@@ -1,0 +1,21 @@
+{
+  "name": "first-principle-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "First Principle landing page - static site. Scripts are dev-only asset builders; generated assets are committed.",
+  "type": "module",
+  "scripts": {
+    "fonts": "node scripts/build-fonts.mjs",
+    "images": "node scripts/build-images.mjs",
+    "css": "node scripts/build-css.mjs",
+    "assets": "npm run fonts && npm run images && npm run css",
+    "serve": "npx --yes serve -l 8765 ."
+  },
+  "devDependencies": {
+    "csso": "^5.0.5",
+    "fontkit": "^2.0.4",
+    "opentype.js": "^2.0.0",
+    "sharp": "^0.34.3",
+    "subset-font": "^2.4.0"
+  }
+}

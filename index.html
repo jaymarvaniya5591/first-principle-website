@@ -2,32 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>First Principle — Toilets Redefined</title>
-  <meta name="description" content="Introducing India's first toilet with built in urine analysis. Engineered at IIT Kharagpur. Built for Indian bathrooms." />
+  <meta name="description" content="Introducing India's first toilet with built-in urine analysis. Engineered at IIT Kharagpur. Built for Indian bathrooms. Smart toilets starting at ₹19,999." />
+  <meta name="theme-color" content="#111111" />
+  <meta name="color-scheme" content="light" />
+  <link rel="canonical" href="https://first-principle-website-nine.vercel.app/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="First Principle" />
+  <meta property="og:title" content="First Principle — Toilets Redefined" />
+  <meta property="og:description" content="India's first toilet with built-in urine analysis. Engineered at IIT Kharagpur. Built for Indian bathrooms." />
+  <meta property="og:url" content="https://first-principle-website-nine.vercel.app/" />
+  <meta property="og:image" content="https://first-principle-website-nine.vercel.app/assets/img/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="First Principle — Toilets Redefined" />
+  <meta name="twitter:description" content="India's first toilet with built-in urine analysis. Engineered at IIT Kharagpur." />
+  <meta name="twitter:image" content="https://first-principle-website-nine.vercel.app/assets/img/og-image.jpg" />
+
   <link rel="icon" type="image/svg+xml" href="assets/img/logo-mobile.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/icon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/icon-180.png" />
+
+  <!-- Above-the-fold fonts -->
+  <link rel="preload" href="assets/fonts/anton-400.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/billion-dreams-400.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/helvetica-now-400.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/helvetica-now-500.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/helvetica-now-700.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/helvetica-now-700i.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/helvetica-now-300.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- Hero LCP image -->
+  <link rel="preload" as="image" type="image/avif"
+        imagesrcset="assets/img/hero-toilet-800.avif 800w, assets/img/hero-toilet-1200.avif 1200w, assets/img/hero-toilet-1536.avif 1536w"
+        imagesizes="(max-width: 899px) 190vw, (max-width: 1440px) 70vw, 997px" />
+
+  <link rel="stylesheet" href="css/styles.min.css" />
 </head>
 <body>
+  <a class="skip-link" href="#technology">Skip to content</a>
 
   <!-- ============ HERO ============ -->
   <header class="hero" id="home">
-    <img class="hero__bg" src="assets/img/hero-bg.jpg" alt="" />
-    <img class="hero__toilet" src="assets/img/hero-toilet.png" alt="First Principle smart toilet on a rock" />
-    <img class="hero__clouds" src="assets/img/clouds.png" alt="" />
+    <picture class="hero__bg">
+      <source type="image/avif" srcset="assets/img/hero-bg-960.avif 960w, assets/img/hero-bg-1440.avif 1440w, assets/img/hero-bg-1535.avif 1535w" sizes="100vw" />
+      <source type="image/webp" srcset="assets/img/hero-bg-960.webp 960w, assets/img/hero-bg-1440.webp 1440w, assets/img/hero-bg-1535.webp 1535w" sizes="100vw" />
+      <img src="assets/img/hero-bg-1440.jpg" srcset="assets/img/hero-bg-960.jpg 960w, assets/img/hero-bg-1440.jpg 1440w, assets/img/hero-bg-1535.jpg 1535w" sizes="100vw" width="1535" height="1024" alt="" fetchpriority="high" decoding="async" />
+    </picture>
+
+    <picture class="hero__toilet">
+      <source type="image/avif" srcset="assets/img/hero-toilet-800.avif 800w, assets/img/hero-toilet-1200.avif 1200w, assets/img/hero-toilet-1536.avif 1536w" sizes="(max-width: 899px) 190vw, (max-width: 1440px) 70vw, 997px" />
+      <source type="image/webp" srcset="assets/img/hero-toilet-800.webp 800w, assets/img/hero-toilet-1200.webp 1200w, assets/img/hero-toilet-1536.webp 1536w" sizes="(max-width: 899px) 190vw, (max-width: 1440px) 70vw, 997px" />
+      <img src="assets/img/hero-toilet-1200.png" srcset="assets/img/hero-toilet-800.png 800w, assets/img/hero-toilet-1200.png 1200w, assets/img/hero-toilet-1536.png 1536w" sizes="(max-width: 899px) 190vw, (max-width: 1440px) 70vw, 997px" width="1536" height="1024" alt="First Principle smart toilet resting on a rock" fetchpriority="high" decoding="async" />
+    </picture>
+
+    <picture class="hero__clouds">
+      <source type="image/avif" srcset="assets/img/clouds-1080.avif 1080w, assets/img/clouds-1440.avif 1440w, assets/img/clouds-2172.avif 2172w" sizes="(max-width: 899px) 140vw, 100vw" />
+      <source type="image/webp" srcset="assets/img/clouds-1080.webp 1080w, assets/img/clouds-1440.webp 1440w, assets/img/clouds-2172.webp 2172w" sizes="(max-width: 899px) 140vw, 100vw" />
+      <img src="assets/img/clouds-1440.png" srcset="assets/img/clouds-1080.png 1080w, assets/img/clouds-1440.png 1440w, assets/img/clouds-2172.png 2172w" sizes="(max-width: 899px) 140vw, 100vw" width="2172" height="724" alt="" fetchpriority="high" decoding="async" />
+    </picture>
 
     <!-- Desktop brand pill -->
-    <a class="brand-pill" href="#home" aria-label="First Principle home">
-      <img class="brand-pill__mark" src="assets/img/logo-mark-header.svg" alt="" />
+    <a class="brand-pill" href="#home">
+      <img class="brand-pill__mark" src="assets/img/logo-mark-header.svg" width="38" height="34" alt="" />
       <span class="brand-pill__text">First Principle</span>
     </a>
 
     <!-- Mobile brand + hamburger -->
-    <a class="brand-mobile" href="#home" aria-label="First Principle home">
-      <img src="assets/img/logo-mobile.svg" alt="" />
+    <a class="brand-mobile" href="#home" aria-label="First Principle — home">
+      <img src="assets/img/logo-mobile.svg" width="56" height="56" alt="" />
     </a>
     <button class="hamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
       <span></span><span></span><span></span>
@@ -35,27 +80,31 @@
 
     <!-- Desktop nav -->
     <nav class="nav" aria-label="Primary">
-      <a class="nav__item nav__item--active" href="#home">Home</a>
-      <a class="nav__item" href="#technology">Technology</a>
-      <a class="nav__item" href="#why-us">Why us</a>
-      <a class="nav__item" href="#product">Product</a>
-      <a class="nav__item" href="#support">Support</a>
+      <a class="nav__item nav__item--active" href="#home" data-section="home">Home</a>
+      <a class="nav__item" href="#technology" data-section="technology">Technology</a>
+      <a class="nav__item" href="#why-us" data-section="why-us">Why us</a>
+      <a class="nav__item" href="#product" data-section="product">Product</a>
+      <a class="nav__item" href="#support" data-section="support">Support</a>
     </nav>
 
     <!-- Mobile menu -->
     <div class="mobile-menu" id="mobile-menu" hidden>
-      <a href="#home">Home</a>
-      <a href="#technology">Technology</a>
-      <a href="#why-us">Why us</a>
-      <a href="#product">Product</a>
-      <a href="#support">Support</a>
+      <nav class="mobile-menu__nav" aria-label="Mobile">
+        <a href="#home">Home</a>
+        <a href="#technology">Technology</a>
+        <a href="#why-us">Why us</a>
+        <a href="#product">Product</a>
+        <a href="#support">Support</a>
+      </nav>
+      <p class="mobile-menu__foot">© 2026 First Principle</p>
     </div>
 
     <div class="hero__content">
       <div class="hero__copy">
         <h1 class="hero__title">
           <span class="hero__title-main">TOILETS</span>
-          <span class="hero__title-script">Redefined</span>
+          <span class="hero__title-script" aria-hidden="true">Redefined</span>
+          <span class="sr-only">Redefined</span>
         </h1>
         <p class="hero__sub">Introducing India's first toilet with <em>built in urine analysis</em></p>
       </div>
@@ -68,80 +117,115 @@
     </div>
   </header>
 
+  <main id="main">
   <!-- ============ WHAT MAKES IT DIFFERENT ============ -->
-  <section class="features" id="technology">
+  <section class="features" id="technology" aria-labelledby="features-title">
     <div class="section-head container">
-      <h2 class="section-head__title"><span class="muted">What makes it</span> <strong>Different</strong></h2>
+      <h2 class="section-head__title" id="features-title"><span class="muted">What makes it</span> <strong>Different</strong></h2>
       <p class="section-head__sub">Engineered at IIT Kharagpur. Built for Indian bathrooms</p>
     </div>
 
     <div class="features__body">
-      <div class="features__media">
-        <img class="features__img is-active" src="assets/img/feature-health-checkup.jpg" alt="Daily Health Checkup" data-feature="0" />
-        <img class="features__img" src="assets/img/feature-uv.jpg" alt="Active UV Sterilization" data-feature="1" loading="lazy" />
-        <img class="features__img" src="assets/img/feature-odour.jpg" alt="No Bad Smells. Ever." data-feature="2" loading="lazy" />
-        <img class="features__img" src="assets/img/feature-germ.jpg" alt="Germ-Resistant Within" data-feature="3" loading="lazy" />
-        <img class="features__img" src="assets/img/feature-handsfree.jpg" alt="Hands-Free Wash" data-feature="4" loading="lazy" />
-        <img class="features__img" src="assets/img/feature-constipation.jpg" alt="Constipation Aid" data-feature="5" loading="lazy" />
-        <img class="features__img" src="assets/img/feature-flush.jpg" alt="Flushes Itself" data-feature="6" loading="lazy" />
+      <div class="features__media" id="features-media">
+        <picture class="features__img is-active" data-feature="0">
+          <source type="image/avif" srcset="assets/img/feature-health-checkup-800.avif 800w, assets/img/feature-health-checkup-1024.avif 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <source type="image/webp" srcset="assets/img/feature-health-checkup-800.webp 800w, assets/img/feature-health-checkup-1024.webp 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <img src="assets/img/feature-health-checkup-800.jpg" srcset="assets/img/feature-health-checkup-800.jpg 800w, assets/img/feature-health-checkup-1024.jpg 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" width="800" height="800" alt="Cutaway of the toilet showing the built-in urine analysis module" loading="lazy" decoding="async" />
+        </picture>
+        <picture class="features__img" data-feature="1">
+          <source type="image/avif" srcset="assets/img/feature-uv-800.avif 800w, assets/img/feature-uv-1600.avif 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <source type="image/webp" srcset="assets/img/feature-uv-800.webp 800w, assets/img/feature-uv-1600.webp 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <img src="assets/img/feature-uv-800.jpg" srcset="assets/img/feature-uv-800.jpg 800w, assets/img/feature-uv-1600.jpg 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" width="800" height="800" alt="UV light sterilising the bowl" loading="lazy" decoding="async" />
+        </picture>
+        <picture class="features__img" data-feature="2">
+          <source type="image/avif" srcset="assets/img/feature-odour-800.avif 800w, assets/img/feature-odour-1254.avif 1254w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <source type="image/webp" srcset="assets/img/feature-odour-800.webp 800w, assets/img/feature-odour-1254.webp 1254w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <img src="assets/img/feature-odour-800.jpg" srcset="assets/img/feature-odour-800.jpg 800w, assets/img/feature-odour-1254.jpg 1254w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" width="800" height="800" alt="Fragrance mist dispensing inside the bowl" loading="lazy" decoding="async" />
+        </picture>
+        <picture class="features__img" data-feature="3">
+          <source type="image/avif" srcset="assets/img/feature-germ-800.avif 800w, assets/img/feature-germ-1024.avif 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <source type="image/webp" srcset="assets/img/feature-germ-800.webp 800w, assets/img/feature-germ-1024.webp 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <img src="assets/img/feature-germ-800.jpg" srcset="assets/img/feature-germ-800.jpg 800w, assets/img/feature-germ-1024.jpg 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" width="800" height="800" alt="Silver-infused ceramic surface" loading="lazy" decoding="async" />
+        </picture>
+        <picture class="features__img features__img--zoom" data-feature="4">
+          <source type="image/avif" srcset="assets/img/feature-handsfree-800.avif 800w, assets/img/feature-handsfree-1600.avif 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <source type="image/webp" srcset="assets/img/feature-handsfree-800.webp 800w, assets/img/feature-handsfree-1600.webp 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <img src="assets/img/feature-handsfree-800.jpg" srcset="assets/img/feature-handsfree-800.jpg 800w, assets/img/feature-handsfree-1600.jpg 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" width="800" height="800" alt="Hands-free wash nozzle" loading="lazy" decoding="async" />
+        </picture>
+        <picture class="features__img" data-feature="5">
+          <source type="image/avif" srcset="assets/img/feature-constipation-800.avif 800w, assets/img/feature-constipation-1024.avif 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <source type="image/webp" srcset="assets/img/feature-constipation-800.webp 800w, assets/img/feature-constipation-1024.webp 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <img src="assets/img/feature-constipation-800.jpg" srcset="assets/img/feature-constipation-800.jpg 800w, assets/img/feature-constipation-1024.jpg 1024w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" width="800" height="800" alt="Heated seat with gentle micro-vibration" loading="lazy" decoding="async" />
+        </picture>
+        <picture class="features__img" data-feature="6">
+          <source type="image/avif" srcset="assets/img/feature-flush-800.avif 800w, assets/img/feature-flush-1600.avif 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <source type="image/webp" srcset="assets/img/feature-flush-800.webp 800w, assets/img/feature-flush-1600.webp 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" />
+          <img src="assets/img/feature-flush-800.jpg" srcset="assets/img/feature-flush-800.jpg 800w, assets/img/feature-flush-1600.jpg 1600w" sizes="(max-width: 899px) 100vw, (max-width: 1440px) 56vw, 800px" width="800" height="800" alt="Transparent side view of the self-flushing system" loading="lazy" decoding="async" />
+        </picture>
       </div>
 
-      <ul class="features__list" role="list">
-        <li class="feature feature--has-desc is-active" data-feature="0">
-          <button class="feature__btn" type="button" aria-expanded="true">
+      <ul class="features__list" role="list" aria-label="Features">
+        <li class="feature is-active" data-feature="0">
+          <button class="feature__btn" type="button" id="feature-btn-0" aria-expanded="true" aria-controls="feature-panel-0">
             <span class="feature__title">Daily Health Checkup</span>
             <span class="feature__icon" aria-hidden="true"></span>
           </button>
-          <p class="feature__desc">A built-in, medical-grade urine test tracks key health parameters every time you go.</p>
+          <p class="feature__desc" id="feature-panel-0">A built-in, medical-grade urine test tracks key health parameters every time you go.</p>
         </li>
         <li class="feature" data-feature="1">
-          <button class="feature__btn" type="button" aria-expanded="false">
+          <button class="feature__btn" type="button" id="feature-btn-1" aria-expanded="false" aria-controls="feature-panel-1">
             <span class="feature__title">Active UV Sterilization</span>
             <span class="feature__icon" aria-hidden="true"></span>
           </button>
+          <p class="feature__desc" id="feature-panel-1">UV light disinfects the seat and bowl after every use.</p>
         </li>
         <li class="feature" data-feature="2">
-          <button class="feature__btn" type="button" aria-expanded="false">
+          <button class="feature__btn" type="button" id="feature-btn-2" aria-expanded="false" aria-controls="feature-panel-2">
             <span class="feature__title">No Bad Smells. Ever.</span>
             <span class="feature__icon" aria-hidden="true"></span>
           </button>
+          <p class="feature__desc" id="feature-panel-2">The moment you sit, a mild mist starts dispensing — neutralising odour before it even builds.</p>
         </li>
         <li class="feature" data-feature="3">
-          <button class="feature__btn" type="button" aria-expanded="false">
+          <button class="feature__btn" type="button" id="feature-btn-3" aria-expanded="false" aria-controls="feature-panel-3">
             <span class="feature__title">Germ-Resistant Within</span>
             <span class="feature__icon" aria-hidden="true"></span>
           </button>
+          <p class="feature__desc" id="feature-panel-3">The ceramic is infused with silver, so germs can't survive or build up on the surface.</p>
         </li>
         <li class="feature" data-feature="4">
-          <button class="feature__btn" type="button" aria-expanded="false">
+          <button class="feature__btn" type="button" id="feature-btn-4" aria-expanded="false" aria-controls="feature-panel-4">
             <span class="feature__title">Hands-Free Wash</span>
             <span class="feature__icon" aria-hidden="true"></span>
           </button>
+          <p class="feature__desc" id="feature-panel-4">Hands-free cleaning with front and back wash, massage mode, and personalized settings.</p>
         </li>
         <li class="feature" data-feature="5">
-          <button class="feature__btn" type="button" aria-expanded="false">
+          <button class="feature__btn" type="button" id="feature-btn-5" aria-expanded="false" aria-controls="feature-panel-5">
             <span class="feature__title">Constipation Aid</span>
             <span class="feature__icon" aria-hidden="true"></span>
           </button>
+          <p class="feature__desc" id="feature-panel-5">A warm seat with gentle micro-vibrations to ease constipation and add comfort.</p>
         </li>
         <li class="feature" data-feature="6">
-          <button class="feature__btn" type="button" aria-expanded="false">
+          <button class="feature__btn" type="button" id="feature-btn-6" aria-expanded="false" aria-controls="feature-panel-6">
             <span class="feature__title">Flushes Itself</span>
             <span class="feature__icon" aria-hidden="true"></span>
           </button>
+          <p class="feature__desc" id="feature-panel-6">Walk away — it's already handled. No touch needed.</p>
         </li>
       </ul>
     </div>
   </section>
 
   <!-- ============ WHY FIRST PRINCIPLE ============ -->
-  <section class="why" id="why-us">
+  <section class="why" id="why-us" aria-labelledby="why-title">
     <div class="section-head container">
-      <h2 class="section-head__title"><span class="muted">Why</span> <strong>First Principle?</strong></h2>
+      <h2 class="section-head__title" id="why-title"><span class="muted">Why</span> <strong>First Principle?</strong></h2>
       <p class="section-head__sub">Made for those who want smarter living, without the complexity</p>
     </div>
 
-    <div class="why__track" tabindex="0" aria-label="Why First Principle highlights">
+    <div class="why__track" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Why First Principle highlights">
       <article class="slide slide--dark">
         <div class="slide__inner slide__inner--narrow">
           <h3 class="slide__title"><span class="dim">We’ve patented</span> new smart toilet <span class="dim">technologies.</span></h3>
@@ -172,7 +256,7 @@
       <article class="slide slide--dark">
         <div class="slide__inner">
           <h3 class="slide__title">In-house service.<br /><span class="dim">Others outsource theirs.</span></h3>
-          <div class="pills">
+          <div class="pills pills--stack-mobile">
             <span class="pill pill--caps"><i class="pill__dot"></i>&lt;3 HRS · Response in Bangalore</span>
             <span class="pill pill--caps"><i class="pill__dot"></i>48 HRS · Industry standard</span>
           </div>
@@ -189,34 +273,122 @@
       <article class="slide slide--dark">
         <div class="slide__inner">
           <h3 class="slide__title">100% <span class="dim">of what we build is</span> smart toilets.</h3>
-          <p class="slide__note dim">For everyone else, it's a side category.</p>
+          <p class="slide__note slide__note--wide dim">For everyone else, it's a side category.</p>
         </div>
       </article>
     </div>
   </section>
 
   <!-- ============ SMART TOILET COLLECTION ============ -->
-  <section class="collection container" id="product">
+  <section class="collection container" id="product" aria-labelledby="collection-title">
     <div class="section-head">
-      <h2 class="section-head__title"><span class="muted">Smart Toilet</span> <strong>Collection</strong></h2>
+      <h2 class="section-head__title" id="collection-title"><span class="muted">Smart Toilet</span> <strong>Collection</strong></h2>
       <p class="section-head__sub">Designed for comfort, hygiene, and smarter living.</p>
     </div>
 
-    <div class="carousel">
-      <div class="carousel__stage">
-        <article class="card" data-pos="left">
-          <div class="card__media"><img src="assets/img/product-novi-b.jpg" alt="Novi smart toilet" loading="lazy" /></div>
+    <div class="carousel" data-active="1">
+      <div class="carousel__stage" role="group" aria-roledescription="carousel" aria-label="Smart toilet collection">
+
+        <article class="card" data-index="0" data-pos="left">
+          <div class="card__media">
+            <picture>
+              <source type="image/avif" srcset="assets/img/product-liva-560.avif 560w, assets/img/product-liva-736.avif 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <source type="image/webp" srcset="assets/img/product-liva-560.webp 560w, assets/img/product-liva-736.webp 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <img src="assets/img/product-liva-560.jpg" srcset="assets/img/product-liva-560.jpg 560w, assets/img/product-liva-736.jpg 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" width="736" height="736" alt="Liva smart toilet" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <div class="card__body">
             <div class="card__head">
-              <div class="card__name">
-                <h3>Novi</h3>
-                <p>The Essential Alternative</p>
-              </div>
+              <div class="card__name"><h3>Liva</h3><p>Everyday Comfort, Smarter</p></div>
               <hr class="card__rule" />
-              <div class="card__price">
-                <p class="card__amount">₹19,999</p>
-                <p>Excluding Installation</p>
-              </div>
+              <div class="card__price"><p class="card__amount">₹19,999</p><p>Excluding Installation</p></div>
+            </div>
+            <ul class="specs" role="list">
+              <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
+              <li class="spec is-yes"><span>Heated Seat + Water</span><i></i></li>
+              <li class="spec is-yes"><span>Warm-Air Drying</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Open / Close</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Flush</span><i></i></li>
+              <li class="spec is-yes"><span>Foot-Touch Flush</span><i></i></li>
+              <li class="spec is-yes"><span>Perfume Mist</span><i></i></li>
+              <li class="spec is-no"><span>Wall-Hung Design</span><i></i></li>
+              <li class="spec is-no"><span>Non-Electric Operation</span><i></i></li>
+              <li class="spec is-no"><span>Urine Analysis</span><i></i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card" data-index="1" data-pos="center">
+          <div class="card__media">
+            <picture>
+              <source type="image/avif" srcset="assets/img/product-sora-560.avif 560w, assets/img/product-sora-1100.avif 1100w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <source type="image/webp" srcset="assets/img/product-sora-560.webp 560w, assets/img/product-sora-1100.webp 1100w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <img src="assets/img/product-sora-560.jpg" srcset="assets/img/product-sora-560.jpg 560w, assets/img/product-sora-1100.jpg 1100w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" width="1100" height="1100" alt="Sora smart toilet" loading="lazy" decoding="async" />
+            </picture>
+          </div>
+          <div class="card__body">
+            <div class="card__head">
+              <div class="card__name"><h3>Sora</h3><p>Premium Comfort, Intelligent Design</p></div>
+              <hr class="card__rule" />
+              <div class="card__price"><p class="card__amount">₹19,999</p><p>Excluding Installation</p></div>
+            </div>
+            <ul class="specs" role="list">
+              <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
+              <li class="spec is-yes"><span>Heated Seat + Water</span><i></i></li>
+              <li class="spec is-yes"><span>Warm-Air Drying</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Open / Close</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Flush</span><i></i></li>
+              <li class="spec is-yes"><span>Foot-Touch Flush</span><i></i></li>
+              <li class="spec is-yes"><span>Perfume Mist</span><i></i></li>
+              <li class="spec is-yes"><span>Wall-Hung Design</span><i></i></li>
+              <li class="spec is-no"><span>Non-Electric Operation</span><i></i></li>
+              <li class="spec is-no"><span>Urine Analysis</span><i></i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card" data-index="2" data-pos="right">
+          <div class="card__media">
+            <picture>
+              <source type="image/avif" srcset="assets/img/product-vero-560.avif 560w, assets/img/product-vero-736.avif 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <source type="image/webp" srcset="assets/img/product-vero-560.webp 560w, assets/img/product-vero-736.webp 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <img src="assets/img/product-vero-560.jpg" srcset="assets/img/product-vero-560.jpg 560w, assets/img/product-vero-736.jpg 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" width="736" height="736" alt="Vero smart toilet" loading="lazy" decoding="async" />
+            </picture>
+          </div>
+          <div class="card__body">
+            <div class="card__head">
+              <div class="card__name"><h3>Vero</h3><p>Smart Comfort, Simplified</p></div>
+              <hr class="card__rule" />
+              <div class="card__price"><p class="card__amount">₹19,999</p><p>Excluding Installation</p></div>
+            </div>
+            <ul class="specs" role="list">
+              <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
+              <li class="spec is-yes"><span>Heated Seat + Water</span><i></i></li>
+              <li class="spec is-yes"><span>Warm-Air Drying</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Open / Close</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Flush</span><i></i></li>
+              <li class="spec is-yes"><span>Foot-Touch Flush</span><i></i></li>
+              <li class="spec is-no"><span>Perfume Mist</span><i></i></li>
+              <li class="spec is-no"><span>Wall-Hung Design</span><i></i></li>
+              <li class="spec is-no"><span>Non-Electric Operation</span><i></i></li>
+              <li class="spec is-no"><span>Urine Analysis</span><i></i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card" data-index="3">
+          <div class="card__media">
+            <picture>
+              <source type="image/avif" srcset="assets/img/product-novi-560.avif 560w, assets/img/product-novi-736.avif 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <source type="image/webp" srcset="assets/img/product-novi-560.webp 560w, assets/img/product-novi-736.webp 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <img src="assets/img/product-novi-560.jpg" srcset="assets/img/product-novi-560.jpg 560w, assets/img/product-novi-736.jpg 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" width="736" height="736" alt="Novi smart toilet" loading="lazy" decoding="async" />
+            </picture>
+          </div>
+          <div class="card__body">
+            <div class="card__head">
+              <div class="card__name"><h3>Novi</h3><p>The Essential Alternative</p></div>
+              <hr class="card__rule" />
+              <div class="card__price"><p class="card__amount">₹19,999</p><p>Excluding Installation</p></div>
             </div>
             <ul class="specs" role="list">
               <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
@@ -233,110 +405,140 @@
           </div>
         </article>
 
-        <article class="card" data-pos="center">
-          <div class="card__media"><img src="assets/img/product-sora.jpg" alt="Sora smart toilet" /></div>
+        <article class="card" data-index="4">
+          <div class="card__media">
+            <picture>
+              <source type="image/avif" srcset="assets/img/product-aera-560.avif 560w, assets/img/product-aera-736.avif 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <source type="image/webp" srcset="assets/img/product-aera-560.webp 560w, assets/img/product-aera-736.webp 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <img src="assets/img/product-aera-560.jpg" srcset="assets/img/product-aera-560.jpg 560w, assets/img/product-aera-736.jpg 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" width="736" height="736" alt="Aera smart toilet" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <div class="card__body">
             <div class="card__head">
-              <div class="card__name">
-                <h3>Sora</h3>
-                <p>The Essential Alternative</p>
-              </div>
+              <div class="card__name"><h3>Aera</h3><p>Smart Comfort, Reimagined</p></div>
               <hr class="card__rule" />
-              <div class="card__price">
-                <p class="card__amount">₹19,999</p>
-                <p>Excluding Installation</p>
-              </div>
+              <div class="card__price"><p class="card__amount">₹19,999</p><p>Excluding Installation</p></div>
             </div>
             <ul class="specs" role="list">
               <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
-              <li class="spec is-no"><span>Heated Seat + Water</span><i></i></li>
-              <li class="spec is-no"><span>Warm-Air Drying</span><i></i></li>
-              <li class="spec is-no"><span>Auto Open / Close</span><i></i></li>
+              <li class="spec is-yes"><span>Heated Seat + Water</span><i></i></li>
+              <li class="spec is-yes"><span>Warm-Air Drying</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Open / Close</span><i></i></li>
               <li class="spec is-yes"><span>Auto Flush</span><i></i></li>
               <li class="spec is-yes"><span>Foot-Touch Flush</span><i></i></li>
               <li class="spec is-no"><span>Perfume Mist</span><i></i></li>
-              <li class="spec is-no"><span>Wall-Hung Design</span><i></i></li>
-              <li class="spec is-yes"><span>Non-Electric Operation</span><i></i></li>
+              <li class="spec is-yes"><span>Wall-Hung Design</span><i></i></li>
+              <li class="spec is-no"><span>Non-Electric Operation</span><i></i></li>
               <li class="spec is-no"><span>Urine Analysis</span><i></i></li>
             </ul>
           </div>
         </article>
 
-        <article class="card" data-pos="right">
-          <div class="card__media"><img src="assets/img/product-novi-a.jpg" alt="Novi smart toilet" loading="lazy" /></div>
+        <article class="card" data-index="5">
+          <div class="card__media">
+            <picture>
+              <source type="image/avif" srcset="assets/img/product-luma-560.avif 560w, assets/img/product-luma-736.avif 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <source type="image/webp" srcset="assets/img/product-luma-560.webp 560w, assets/img/product-luma-736.webp 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" />
+              <img src="assets/img/product-luma-560.jpg" srcset="assets/img/product-luma-560.jpg 560w, assets/img/product-luma-736.jpg 736w" sizes="(max-width: 899px) 90vw, (max-width: 1440px) 39vw, 552px" width="736" height="736" alt="Luma smart toilet" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <div class="card__body">
             <div class="card__head">
-              <div class="card__name">
-                <h3>Novi</h3>
-                <p>The Essential Alternative</p>
-              </div>
+              <div class="card__name"><h3>Luma</h3><p>Health, Built Into Your Routine</p></div>
               <hr class="card__rule" />
-              <div class="card__price">
-                <p class="card__amount">₹19,999</p>
-                <p>Excluding Installation</p>
-              </div>
+              <div class="card__price"><p class="card__amount">₹19,999</p><p>Excluding Installation</p></div>
             </div>
             <ul class="specs" role="list">
               <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
-              <li class="spec is-no"><span>Heated Seat + Water</span><i></i></li>
-              <li class="spec is-no"><span>Warm-Air Drying</span><i></i></li>
-              <li class="spec is-no"><span>Auto Open / Close</span><i></i></li>
+              <li class="spec is-yes"><span>Heated Seat + Water</span><i></i></li>
+              <li class="spec is-yes"><span>Warm-Air Drying</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Open / Close</span><i></i></li>
               <li class="spec is-yes"><span>Auto Flush</span><i></i></li>
               <li class="spec is-yes"><span>Foot-Touch Flush</span><i></i></li>
               <li class="spec is-no"><span>Perfume Mist</span><i></i></li>
               <li class="spec is-no"><span>Wall-Hung Design</span><i></i></li>
-              <li class="spec is-yes"><span>Non-Electric Operation</span><i></i></li>
-              <li class="spec is-no"><span>Urine Analysis</span><i></i></li>
+              <li class="spec is-no"><span>Non-Electric Operation</span><i></i></li>
+              <li class="spec is-yes"><span>Urine Analysis</span><i></i></li>
             </ul>
           </div>
         </article>
+
       </div>
 
       <div class="carousel__controls">
         <button class="carousel__arrow carousel__arrow--prev" type="button" aria-label="Previous product" data-dir="-1">
-          <img src="assets/img/arrow-right.svg" alt="" />
+          <img src="assets/img/arrow-right.svg" width="24" height="24" alt="" />
         </button>
         <button class="carousel__arrow carousel__arrow--next" type="button" aria-label="Next product" data-dir="1">
-          <img src="assets/img/arrow-right.svg" alt="" />
+          <img src="assets/img/arrow-right.svg" width="24" height="24" alt="" />
         </button>
       </div>
+      <p class="sr-only" id="carousel-status" role="status" aria-live="polite">Showing Sora, 2 of 6</p>
     </div>
   </section>
 
   <!-- ============ LET'S TALK ============ -->
-  <section class="contact" id="support">
+  <section class="contact" id="support" aria-labelledby="contact-title">
     <div class="contact__inner container">
       <div class="contact__copy">
-        <h2 class="contact__title">Let’s Talk</h2>
+        <h2 class="contact__title" id="contact-title">Let’s Talk</h2>
         <p class="contact__text">Building a home is a lot to figure out. Talk to us - we’ll help you find the right fit <strong>Even if it isn’t us.</strong></p>
       </div>
 
       <form class="contact__form" action="#" method="post" novalidate>
         <div class="contact__fields">
           <div class="field-row">
-            <label class="field"><span class="sr-only">First Name</span><input type="text" name="firstName" placeholder="First Name" autocomplete="given-name" required /></label>
-            <label class="field"><span class="sr-only">Last Name</span><input type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required /></label>
+            <div class="field">
+              <label class="sr-only" for="f-first">First Name</label>
+              <input id="f-first" type="text" name="firstName" placeholder="First Name" autocomplete="given-name" required aria-describedby="e-first" />
+              <span class="field__error" id="e-first"></span>
+            </div>
+            <div class="field">
+              <label class="sr-only" for="f-last">Last Name</label>
+              <input id="f-last" type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required aria-describedby="e-last" />
+              <span class="field__error" id="e-last"></span>
+            </div>
           </div>
           <div class="field-row">
-            <label class="field"><span class="sr-only">Phone Number</span><input type="tel" name="phone" placeholder="Phone Number" autocomplete="tel" required /></label>
-            <label class="field"><span class="sr-only">Email</span><input type="email" name="email" placeholder="Email" autocomplete="email" required /></label>
+            <div class="field">
+              <label class="sr-only" for="f-phone">Phone Number</label>
+              <input id="f-phone" type="tel" name="phone" placeholder="Phone Number" autocomplete="tel" inputmode="tel" required aria-describedby="e-phone" />
+              <span class="field__error" id="e-phone"></span>
+            </div>
+            <div class="field">
+              <label class="sr-only" for="f-email">Email</label>
+              <input id="f-email" type="email" name="email" placeholder="Email" autocomplete="email" inputmode="email" required aria-describedby="e-email" />
+              <span class="field__error" id="e-email"></span>
+            </div>
           </div>
-          <label class="field field--message"><span class="sr-only">Message</span><textarea name="message" placeholder="Message" rows="1"></textarea></label>
+          <div class="field field--message">
+            <label class="sr-only" for="f-message">Message</label>
+            <textarea id="f-message" name="message" placeholder="Message" rows="1"></textarea>
+          </div>
+          <div class="field--hp">
+            <label for="f-company">Leave this field empty</label>
+            <input id="f-company" type="text" name="company" tabindex="-1" autocomplete="off" />
+          </div>
         </div>
         <button class="submit" type="submit">Submit</button>
         <p class="contact__status" role="status" aria-live="polite"></p>
       </form>
     </div>
   </section>
+  </main>
 
   <!-- ============ FOOTER ============ -->
   <footer class="footer">
-    <img class="footer__clouds" src="assets/img/clouds.png" alt="" loading="lazy" />
+    <picture class="footer__clouds">
+      <source type="image/avif" srcset="assets/img/clouds-1080.avif 1080w, assets/img/clouds-1440.avif 1440w, assets/img/clouds-2172.avif 2172w" sizes="100vw" />
+      <source type="image/webp" srcset="assets/img/clouds-1080.webp 1080w, assets/img/clouds-1440.webp 1440w, assets/img/clouds-2172.webp 2172w" sizes="100vw" />
+      <img src="assets/img/clouds-1440.png" srcset="assets/img/clouds-1080.png 1080w, assets/img/clouds-1440.png 1440w, assets/img/clouds-2172.png 2172w" sizes="100vw" width="2172" height="724" alt="" loading="lazy" decoding="async" />
+    </picture>
     <div class="footer__inner container">
       <div class="footer__top">
         <div class="footer__brand">
-          <a class="logo" href="#home" aria-label="First Principle home">
-            <img class="logo__mark" src="assets/img/logo-mark-footer.svg" alt="" />
+          <a class="logo" href="#home">
+            <img class="logo__mark" src="assets/img/logo-mark-footer.svg" width="98" height="98" alt="" />
             <span class="logo__word"><strong>First</strong><span>Principle</span></span>
           </a>
           <p class="footer__tagline">The Future Of Everyday Comfort.</p>
@@ -344,7 +546,7 @@
 
         <nav class="footer__cols" aria-label="Footer">
           <div class="footer__col">
-            <h4>Explore</h4>
+            <h3>Explore</h3>
             <a href="#home">Home</a>
             <a href="#technology">Technology</a>
             <a href="#why-us">Why us</a>
@@ -352,7 +554,7 @@
             <a href="#support">Support</a>
           </div>
           <div class="footer__col">
-            <h4>Connect</h4>
+            <h3>Connect</h3>
             <a href="#" rel="noopener">Instagram</a>
             <a href="#" rel="noopener">LinkedIn</a>
             <a href="#" rel="noopener">X</a>

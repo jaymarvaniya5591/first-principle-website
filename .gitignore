@@ -4,3 +4,11 @@ Thumbs.db
 .env*
 .cursor/
 node_modules/
+
+# Licensed / high-resolution sources for the asset build scripts (outputs are committed)
+assets/fonts-src/
+assets/img-src/
+
+# Unrelated local work in this folder
+output/
+tmp/
