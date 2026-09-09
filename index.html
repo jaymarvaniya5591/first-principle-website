@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>First Principle — Toilets Redefined</title>
+  <meta name="description" content="Introducing India's first toilet with built in urine analysis. Engineered at IIT Kharagpur. Built for Indian bathrooms." />
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo-mobile.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero" id="home">
+    <img class="hero__bg" src="assets/img/hero-bg.jpg" alt="" />
+    <img class="hero__toilet" src="assets/img/hero-toilet.png" alt="First Principle smart toilet on a rock" />
+    <img class="hero__clouds" src="assets/img/clouds.png" alt="" />
+
+    <!-- Desktop brand pill -->
+    <a class="brand-pill" href="#home" aria-label="First Principle home">
+      <img class="brand-pill__mark" src="assets/img/logo-mark-header.svg" alt="" />
+      <span class="brand-pill__text">First Principle</span>
+    </a>
+
+    <!-- Mobile brand + hamburger -->
+    <a class="brand-mobile" href="#home" aria-label="First Principle home">
+      <img src="assets/img/logo-mobile.svg" alt="" />
+    </a>
+    <button class="hamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <!-- Desktop nav -->
+    <nav class="nav" aria-label="Primary">
+      <a class="nav__item nav__item--active" href="#home">Home</a>
+      <a class="nav__item" href="#technology">Technology</a>
+      <a class="nav__item" href="#why-us">Why us</a>
+      <a class="nav__item" href="#product">Product</a>
+      <a class="nav__item" href="#support">Support</a>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div class="mobile-menu" id="mobile-menu" hidden>
+      <a href="#home">Home</a>
+      <a href="#technology">Technology</a>
+      <a href="#why-us">Why us</a>
+      <a href="#product">Product</a>
+      <a href="#support">Support</a>
+    </div>
+
+    <div class="hero__content">
+      <div class="hero__copy">
+        <h1 class="hero__title">
+          <span class="hero__title-main">TOILETS</span>
+          <span class="hero__title-script">Redefined</span>
+        </h1>
+        <p class="hero__sub">Introducing India's first toilet with <em>built in urine analysis</em></p>
+      </div>
+      <a class="price-btn" href="#product">
+        <span class="price-btn__label"><span class="price-btn__starting">Starting at</span> <span class="price-btn__amount">19,999</span></span>
+        <span class="price-btn__circle" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </span>
+      </a>
+    </div>
+  </header>
+
+  <!-- ============ WHAT MAKES IT DIFFERENT ============ -->
+  <section class="features" id="technology">
+    <div class="section-head container">
+      <h2 class="section-head__title"><span class="muted">What makes it</span> <strong>Different</strong></h2>
+      <p class="section-head__sub">Engineered at IIT Kharagpur. Built for Indian bathrooms</p>
+    </div>
+
+    <div class="features__body">
+      <div class="features__media">
+        <img class="features__img is-active" src="assets/img/feature-health-checkup.jpg" alt="Daily Health Checkup" data-feature="0" />
+        <img class="features__img" src="assets/img/feature-uv.jpg" alt="Active UV Sterilization" data-feature="1" loading="lazy" />
+        <img class="features__img" src="assets/img/feature-odour.jpg" alt="No Bad Smells. Ever." data-feature="2" loading="lazy" />
+        <img class="features__img" src="assets/img/feature-germ.jpg" alt="Germ-Resistant Within" data-feature="3" loading="lazy" />
+        <img class="features__img" src="assets/img/feature-handsfree.jpg" alt="Hands-Free Wash" data-feature="4" loading="lazy" />
+        <img class="features__img" src="assets/img/feature-constipation.jpg" alt="Constipation Aid" data-feature="5" loading="lazy" />
+        <img class="features__img" src="assets/img/feature-flush.jpg" alt="Flushes Itself" data-feature="6" loading="lazy" />
+      </div>
+
+      <ul class="features__list" role="list">
+        <li class="feature feature--has-desc is-active" data-feature="0">
+          <button class="feature__btn" type="button" aria-expanded="true">
+            <span class="feature__title">Daily Health Checkup</span>
+            <span class="feature__icon" aria-hidden="true"></span>
+          </button>
+          <p class="feature__desc">A built-in, medical-grade urine test tracks key health parameters every time you go.</p>
+        </li>
+        <li class="feature" data-feature="1">
+          <button class="feature__btn" type="button" aria-expanded="false">
+            <span class="feature__title">Active UV Sterilization</span>
+            <span class="feature__icon" aria-hidden="true"></span>
+          </button>
+        </li>
+        <li class="feature" data-feature="2">
+          <button class="feature__btn" type="button" aria-expanded="false">
+            <span class="feature__title">No Bad Smells. Ever.</span>
+            <span class="feature__icon" aria-hidden="true"></span>
+          </button>
+        </li>
+        <li class="feature" data-feature="3">
+          <button class="feature__btn" type="button" aria-expanded="false">
+            <span class="feature__title">Germ-Resistant Within</span>
+            <span class="feature__icon" aria-hidden="true"></span>
+          </button>
+        </li>
+        <li class="feature" data-feature="4">
+          <button class="feature__btn" type="button" aria-expanded="false">
+            <span class="feature__title">Hands-Free Wash</span>
+            <span class="feature__icon" aria-hidden="true"></span>
+          </button>
+        </li>
+        <li class="feature" data-feature="5">
+          <button class="feature__btn" type="button" aria-expanded="false">
+            <span class="feature__title">Constipation Aid</span>
+            <span class="feature__icon" aria-hidden="true"></span>
+          </button>
+        </li>
+        <li class="feature" data-feature="6">
+          <button class="feature__btn" type="button" aria-expanded="false">
+            <span class="feature__title">Flushes Itself</span>
+            <span class="feature__icon" aria-hidden="true"></span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ WHY FIRST PRINCIPLE ============ -->
+  <section class="why" id="why-us">
+    <div class="section-head container">
+      <h2 class="section-head__title"><span class="muted">Why</span> <strong>First Principle?</strong></h2>
+      <p class="section-head__sub">Made for those who want smarter living, without the complexity</p>
+    </div>
+
+    <div class="why__track" tabindex="0" aria-label="Why First Principle highlights">
+      <article class="slide slide--dark">
+        <div class="slide__inner slide__inner--narrow">
+          <h3 class="slide__title"><span class="dim">We’ve patented</span> new smart toilet <span class="dim">technologies.</span></h3>
+          <div class="pills">
+            <span class="pill"><i class="pill__dot"></i>medical-grade urine analysis</span>
+            <span class="pill"><i class="pill__dot"></i>active perfume mist</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide slide--light">
+        <div class="slide__inner slide__inner--wide">
+          <h3 class="slide__title"><span class="dim">We back our toilets</span> three times longer</h3>
+          <div class="stats">
+            <div class="stat">
+              <p class="stat__num">5 YRS</p>
+              <p class="stat__label">Warranty coverage</p>
+            </div>
+            <span class="stat__divider" aria-hidden="true"></span>
+            <div class="stat">
+              <p class="stat__num">18 MO</p>
+              <p class="stat__label">Industry average</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide slide--dark">
+        <div class="slide__inner">
+          <h3 class="slide__title">In-house service.<br /><span class="dim">Others outsource theirs.</span></h3>
+          <div class="pills">
+            <span class="pill pill--caps"><i class="pill__dot"></i>&lt;3 HRS · Response in Bangalore</span>
+            <span class="pill pill--caps"><i class="pill__dot"></i>48 HRS · Industry standard</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide slide--light">
+        <div class="slide__inner">
+          <h3 class="slide__title">30-day free returns.<br /><span class="dim">No questions asked.</span></h3>
+          <p class="slide__note">We’ll remove it and fit any brand you prefer instead.</p>
+        </div>
+      </article>
+
+      <article class="slide slide--dark">
+        <div class="slide__inner">
+          <h3 class="slide__title">100% <span class="dim">of what we build is</span> smart toilets.</h3>
+          <p class="slide__note dim">For everyone else, it's a side category.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ SMART TOILET COLLECTION ============ -->
+  <section class="collection container" id="product">
+    <div class="section-head">
+      <h2 class="section-head__title"><span class="muted">Smart Toilet</span> <strong>Collection</strong></h2>
+      <p class="section-head__sub">Designed for comfort, hygiene, and smarter living.</p>
+    </div>
+
+    <div class="carousel">
+      <div class="carousel__stage">
+        <article class="card" data-pos="left">
+          <div class="card__media"><img src="assets/img/product-novi-b.jpg" alt="Novi smart toilet" loading="lazy" /></div>
+          <div class="card__body">
+            <div class="card__head">
+              <div class="card__name">
+                <h3>Novi</h3>
+                <p>The Essential Alternative</p>
+              </div>
+              <hr class="card__rule" />
+              <div class="card__price">
+                <p class="card__amount">₹19,999</p>
+                <p>Excluding Installation</p>
+              </div>
+            </div>
+            <ul class="specs" role="list">
+              <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
+              <li class="spec is-no"><span>Heated Seat + Water</span><i></i></li>
+              <li class="spec is-no"><span>Warm-Air Drying</span><i></i></li>
+              <li class="spec is-no"><span>Auto Open / Close</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Flush</span><i></i></li>
+              <li class="spec is-yes"><span>Foot-Touch Flush</span><i></i></li>
+              <li class="spec is-no"><span>Perfume Mist</span><i></i></li>
+              <li class="spec is-no"><span>Wall-Hung Design</span><i></i></li>
+              <li class="spec is-yes"><span>Non-Electric Operation</span><i></i></li>
+              <li class="spec is-no"><span>Urine Analysis</span><i></i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card" data-pos="center">
+          <div class="card__media"><img src="assets/img/product-sora.jpg" alt="Sora smart toilet" /></div>
+          <div class="card__body">
+            <div class="card__head">
+              <div class="card__name">
+                <h3>Sora</h3>
+                <p>The Essential Alternative</p>
+              </div>
+              <hr class="card__rule" />
+              <div class="card__price">
+                <p class="card__amount">₹19,999</p>
+                <p>Excluding Installation</p>
+              </div>
+            </div>
+            <ul class="specs" role="list">
+              <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
+              <li class="spec is-no"><span>Heated Seat + Water</span><i></i></li>
+              <li class="spec is-no"><span>Warm-Air Drying</span><i></i></li>
+              <li class="spec is-no"><span>Auto Open / Close</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Flush</span><i></i></li>
+              <li class="spec is-yes"><span>Foot-Touch Flush</span><i></i></li>
+              <li class="spec is-no"><span>Perfume Mist</span><i></i></li>
+              <li class="spec is-no"><span>Wall-Hung Design</span><i></i></li>
+              <li class="spec is-yes"><span>Non-Electric Operation</span><i></i></li>
+              <li class="spec is-no"><span>Urine Analysis</span><i></i></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card" data-pos="right">
+          <div class="card__media"><img src="assets/img/product-novi-a.jpg" alt="Novi smart toilet" loading="lazy" /></div>
+          <div class="card__body">
+            <div class="card__head">
+              <div class="card__name">
+                <h3>Novi</h3>
+                <p>The Essential Alternative</p>
+              </div>
+              <hr class="card__rule" />
+              <div class="card__price">
+                <p class="card__amount">₹19,999</p>
+                <p>Excluding Installation</p>
+              </div>
+            </div>
+            <ul class="specs" role="list">
+              <li class="spec is-yes"><span>Water Bidet</span><i></i></li>
+              <li class="spec is-no"><span>Heated Seat + Water</span><i></i></li>
+              <li class="spec is-no"><span>Warm-Air Drying</span><i></i></li>
+              <li class="spec is-no"><span>Auto Open / Close</span><i></i></li>
+              <li class="spec is-yes"><span>Auto Flush</span><i></i></li>
+              <li class="spec is-yes"><span>Foot-Touch Flush</span><i></i></li>
+              <li class="spec is-no"><span>Perfume Mist</span><i></i></li>
+              <li class="spec is-no"><span>Wall-Hung Design</span><i></i></li>
+              <li class="spec is-yes"><span>Non-Electric Operation</span><i></i></li>
+              <li class="spec is-no"><span>Urine Analysis</span><i></i></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <div class="carousel__controls">
+        <button class="carousel__arrow carousel__arrow--prev" type="button" aria-label="Previous product" data-dir="-1">
+          <img src="assets/img/arrow-right.svg" alt="" />
+        </button>
+        <button class="carousel__arrow carousel__arrow--next" type="button" aria-label="Next product" data-dir="1">
+          <img src="assets/img/arrow-right.svg" alt="" />
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LET'S TALK ============ -->
+  <section class="contact" id="support">
+    <div class="contact__inner container">
+      <div class="contact__copy">
+        <h2 class="contact__title">Let’s Talk</h2>
+        <p class="contact__text">Building a home is a lot to figure out. Talk to us - we’ll help you find the right fit <strong>Even if it isn’t us.</strong></p>
+      </div>
+
+      <form class="contact__form" action="#" method="post" novalidate>
+        <div class="contact__fields">
+          <div class="field-row">
+            <label class="field"><span class="sr-only">First Name</span><input type="text" name="firstName" placeholder="First Name" autocomplete="given-name" required /></label>
+            <label class="field"><span class="sr-only">Last Name</span><input type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required /></label>
+          </div>
+          <div class="field-row">
+            <label class="field"><span class="sr-only">Phone Number</span><input type="tel" name="phone" placeholder="Phone Number" autocomplete="tel" required /></label>
+            <label class="field"><span class="sr-only">Email</span><input type="email" name="email" placeholder="Email" autocomplete="email" required /></label>
+          </div>
+          <label class="field field--message"><span class="sr-only">Message</span><textarea name="message" placeholder="Message" rows="1"></textarea></label>
+        </div>
+        <button class="submit" type="submit">Submit</button>
+        <p class="contact__status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <img class="footer__clouds" src="assets/img/clouds.png" alt="" loading="lazy" />
+    <div class="footer__inner container">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <a class="logo" href="#home" aria-label="First Principle home">
+            <img class="logo__mark" src="assets/img/logo-mark-footer.svg" alt="" />
+            <span class="logo__word"><strong>First</strong><span>Principle</span></span>
+          </a>
+          <p class="footer__tagline">The Future Of Everyday Comfort.</p>
+        </div>
+
+        <nav class="footer__cols" aria-label="Footer">
+          <div class="footer__col">
+            <h4>Explore</h4>
+            <a href="#home">Home</a>
+            <a href="#technology">Technology</a>
+            <a href="#why-us">Why us</a>
+            <a href="#product">Products</a>
+            <a href="#support">Support</a>
+          </div>
+          <div class="footer__col">
+            <h4>Connect</h4>
+            <a href="#" rel="noopener">Instagram</a>
+            <a href="#" rel="noopener">LinkedIn</a>
+            <a href="#" rel="noopener">X</a>
+          </div>
+        </nav>
+      </div>
+      <hr class="footer__rule" />
+      <p class="footer__copy">© 2026 First Principle. All Rights Reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>
