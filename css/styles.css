@@ -10,17 +10,13 @@
 @font-face { font-family: "Billion Dreams"; src: url("../assets/fonts/BillionDreams.ttf") format("truetype"); font-weight: 400; font-display: swap; }
 
 @font-face { font-family: "Helvetica Now Display"; src: url("../assets/fonts/HelveticaNowDisplayLight.otf") format("opentype"); font-weight: 300; font-style: normal; font-display: swap; }
-@font-face { font-family: "Helvetica Now Display"; src: url("../assets/fonts/HelveticaNowDisplayLtIt.otf") format("opentype"); font-weight: 300; font-style: italic; font-display: swap; }
 @font-face { font-family: "Helvetica Now Display"; src: url("../assets/fonts/HelveticaNowDisplay.otf") format("opentype"); font-weight: 400; font-style: normal; font-display: swap; }
-@font-face { font-family: "Helvetica Now Display"; src: url("../assets/fonts/HelveticaNowDisplayIt.otf") format("opentype"); font-weight: 400; font-style: italic; font-display: swap; }
 @font-face { font-family: "Helvetica Now Display"; src: url("../assets/fonts/HelveticaNowDisplayMedium.otf") format("opentype"); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: "Helvetica Now Display"; src: url("../assets/fonts/HelveticaNowDisplayBold.otf") format("opentype"); font-weight: 700; font-style: normal; font-display: swap; }
 @font-face { font-family: "Helvetica Now Display"; src: url("../assets/fonts/HelveticaNowDisplayBdIt.otf") format("opentype"); font-weight: 700; font-style: italic; font-display: swap; }
 
-@font-face { font-family: "Helvetica Neue"; src: url("../assets/fonts/HelveticaNeue-Light.ttf") format("truetype"); font-weight: 300; font-display: swap; }
 @font-face { font-family: "Helvetica Neue"; src: url("../assets/fonts/HelveticaNeue-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Helvetica Neue"; src: url("../assets/fonts/HelveticaNeue-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
-@font-face { font-family: "Helvetica Neue"; src: url("../assets/fonts/HelveticaNeue-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
 
 /* ---------- Tokens ---------- */
 :root {
