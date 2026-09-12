@@ -1,6 +1,6 @@
 /* ==========================================================================
-   First Principle — Landing page
-   Design canvases: Web 1440px, Mobile 390px (Figma "FIRST PRINCIPLE — LANDIN PAGE").
+   First Principle â€” Landing page
+   Design canvases: Web 1440px, Mobile 390px (Figma "FIRST PRINCIPLE â€” LANDIN PAGE").
    All sizes are authored in rem where 1rem = 16 design px; the root font-size
    scales with the viewport so both canvases stay proportional.
    ========================================================================== */
@@ -103,10 +103,19 @@ img { max-width: 100%; height: auto; }
    ========================================================================== */
 .hero {
   position: relative;
-  height: clamp(40rem, 100svh, 51.25rem);      /* design 820 */
-  overflow: hidden;
+  height: 250vh;
   color: var(--white);
   background: #3d8ee0;
+}
+
+.hero__sticky {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100svh;
+}
+.hero__inner {
+  position: absolute; inset: 0; width: 100%; height: 100%;
 }
 
 .hero__bg { position: absolute; inset: 0; }
@@ -306,7 +315,201 @@ img { max-width: 100%; height: auto; }
 }
 
 /* ==========================================================================
-   FEATURES — What makes it Different
+/* Toilet + rock: 997x577 at (529, 326) in the 1440x820 canvas, anchored to the bottom edge */
+.hero__toilet {
+  position: absolute;
+  left: calc(50% - 45rem + 33.0625rem);
+  bottom: -5.1875rem;
+  width: 62.3125rem;
+  height: 36.0625rem;
+}
+.hero__toilet img { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
+
+.hero__clouds {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 30rem;                               /* 480 */
+  opacity: 0.6;
+  pointer-events: none;
+}
+.hero__clouds img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Brand pill (desktop) */
+.brand-pill {
+  position: absolute;
+  left: calc(50% - 45rem + 1.625rem); top: 1.875rem;     /* 26 / 30 */
+  width: 16.5625rem; height: 4.25rem;                     /* 265 x 68 */
+  border-radius: 8.125rem;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex; align-items: center;
+  padding-left: 1.125rem;
+  gap: 0.6875rem;
+  z-index: 2;
+}
+.brand-pill__mark { width: 2.3885rem; height: 2.1042rem; }
+.brand-pill__text {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: max(1.375rem, 15px);
+  line-height: 1;
+  color: var(--white);
+  white-space: nowrap;
+}
+
+/* Mobile brand + hamburger (hidden on desktop) */
+.brand-mobile, .hamburger, .mobile-menu { display: none; }
+
+/* Nav */
+.nav {
+  position: absolute;
+  top: 1.5rem; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.08);
+  z-index: 2;
+}
+.nav__item {
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.25rem;
+  border-radius: 999px;
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: max(1rem, 12px);
+  line-height: 1.5;
+  color: var(--white);
+  opacity: 0.9;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.nav__item--active {
+  opacity: 1;
+  border-color: var(--white-60);
+  background-image: linear-gradient(241.23deg, rgba(255, 255, 255, 0.2) 10.43%, rgba(255, 255, 255, 0) 94.98%);
+}
+
+/* Hero content: 485 wide at (80, 167); vertically centred so it tracks the viewport height */
+.hero__content {
+  position: absolute;
+  left: calc(50% - 45rem + 5rem);
+  top: 51%;
+  transform: translateY(-50%);
+  width: 30.3125rem;
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 3.875rem;                               /* 62 */
+  z-index: 1;
+}
+.hero__copy { display: flex; flex-direction: column; gap: 2rem; width: 100%; }
+
+.hero__title {
+  position: relative;
+  width: 100%;
+  height: 17.25rem;                            /* 276 */
+  font-weight: 400;
+}
+.hero__title-main,
+.hero__title-script {
+  position: absolute; left: 0;
+  font-size: 10.625rem;                        /* 170 */
+  line-height: 0.91;
+  white-space: nowrap;
+}
+.hero__title-main { top: 0; font-family: var(--f-anton); }
+.hero__title-script { top: 7.5625rem; font-family: var(--f-script); opacity: 0.4; }
+
+.hero__sub {
+  width: 21.3125rem;                           /* 341 */
+  font-size: max(1.5rem, 15px);
+  line-height: 1.5;
+  font-weight: 400;
+}
+.hero__sub em { font-weight: 700; font-style: italic; }
+
+/* Price button */
+.price-btn {
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between;
+  width: 14.75rem; height: 3.75rem;            /* 236 x 60 */
+  min-height: 44px;
+  padding: 0.25rem 0.25rem 0.25rem 1.5rem;
+  border-radius: 110px;
+  background: var(--white);
+  color: var(--ink);
+}
+.price-btn__label { white-space: nowrap; line-height: 1; }
+.price-btn__starting { font-weight: 300; font-size: max(1rem, 11px); }
+.price-btn__amount { font-weight: 500; font-size: max(1.375rem, 15px); }
+
+.price-btn__circle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 3.25em; height: 3.25em;               /* 52 */
+  font-size: 1rem;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.price-btn__circle i {
+  position: absolute;
+  width: 0.125em; height: 0.125em;
+  border-radius: 50%;
+  background: var(--white);
+}
+/* Default state: dotted arrow pointing up-right */
+.price-btn__circle i:nth-child(1) { left: 1.93em; top: 1.24em; }
+.price-btn__circle i:nth-child(2) { left: 1.59em; top: 1.24em; }
+.price-btn__circle i:nth-child(3) { left: 1.25em; top: 1.24em; }
+.price-btn__circle i:nth-child(4) { left: 1.93em; top: 1.58em; }
+.price-btn__circle i:nth-child(5) { left: 1.93em; top: 1.91em; }
+.price-btn__circle i:nth-child(6) { left: 1.59em; top: 1.58em; }
+.price-btn__circle i:nth-child(7) { left: 1.36em; top: 1.80em; }
+/* Hover state (Figma Button / Variant2): larger dots, arrow pointing down-right */
+.price-btn:hover .price-btn__circle i,
+.price-btn:focus-visible .price-btn__circle i { width: 0.185em; height: 0.185em; }
+.price-btn:hover .price-btn__circle i:nth-child(1),
+.price-btn:focus-visible .price-btn__circle i:nth-child(1) { left: 2.03em; top: 0.91em; }
+.price-btn:hover .price-btn__circle i:nth-child(2),
+.price-btn:focus-visible .price-btn__circle i:nth-child(2) { left: 2.03em; top: 1.41em; }
+.price-btn:hover .price-btn__circle i:nth-child(3),
+.price-btn:focus-visible .price-btn__circle i:nth-child(3) { left: 2.03em; top: 1.91em; }
+.price-btn:hover .price-btn__circle i:nth-child(4),
+.price-btn:focus-visible .price-btn__circle i:nth-child(4) { left: 1.03em; top: 1.91em; }
+.price-btn:hover .price-btn__circle i:nth-child(5),
+.price-btn:focus-visible .price-btn__circle i:nth-child(5) { left: 1.53em; top: 1.91em; }
+.price-btn:hover .price-btn__circle i:nth-child(6),
+.price-btn:focus-visible .price-btn__circle i:nth-child(6) { left: 1.53em; top: 1.41em; }
+.price-btn:hover .price-btn__circle i:nth-child(7),
+.price-btn:focus-visible .price-btn__circle i:nth-child(7) { left: 1.20em; top: 1.07em; }
+
+/* ==========================================================================
+   SECTION HEAD (shared)
+   ========================================================================== */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 4rem;
+}
+.section-head__title {
+  font-family: var(--f-neue);
+  font-weight: 400;
+  font-size: 4rem;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.section-head__title strong { font-weight: 500; }
+.section-head__sub {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: max(1.25rem, 13px);
+  line-height: 1.5;
+  color: var(--ink);
+  max-width: 33.6875rem;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   FEATURES â€” What makes it Different
    ========================================================================== */
 .features { padding-top: 8.75rem; }             /* 140 */
 .features .section-head { margin-bottom: 2rem; }
@@ -314,37 +517,17 @@ img { max-width: 100%; height: auto; }
 .features__body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 40rem;  /* 800 | 640 */
-  height: min(50rem, 100svh);                   /* 800, never taller than the screen */
   max-width: 90rem;
   margin: 0 auto;
-  overflow: hidden;
+  align-items: start;
 }
 
 .features__media {
-  position: relative;
+  position: sticky;
+  top: 0;
+  height: 100svh;
   background: #d9d9d9;
   overflow: hidden;
-}
-.features__img {
-  position: absolute; inset: 0;
-  display: none;
-}
-.features__img.is-active { display: block; }
-.features__img img { width: 100%; height: 100%; object-fit: cover; }
-.features__img--zoom img { transform: scale(1.0494); }   /* Figma places this render at 104.94% */
-
-.features__list {
-  list-style: none;
-  height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-  background: var(--white);
-}
-.features__list::-webkit-scrollbar { display: none; }
-
-.feature {
-  background: var(--white);
   border-bottom: 1px solid var(--ink-70);
 }
 .feature__btn {
@@ -390,7 +573,7 @@ img { max-width: 100%; height: auto; }
 }
 
 /* ==========================================================================
-   WHY — Why First Principle?
+   WHY â€” Why First Principle?
    ========================================================================== */
 .why { padding-top: 8.75rem; }
 .why .section-head { margin-bottom: 2rem; }
@@ -473,7 +656,7 @@ img { max-width: 100%; height: auto; }
 .stat__divider { width: 1px; height: 8.625rem; background: var(--ink-40); }   /* 138 */
 
 /* ==========================================================================
-   COLLECTION — Smart Toilet Collection
+   COLLECTION â€” Smart Toilet Collection
    ========================================================================== */
 .collection { padding-top: 8.75rem; }
 .collection .section-head { margin-bottom: 2rem; }
@@ -512,12 +695,12 @@ img { max-width: 100%; height: auto; }
 }
 .spec.is-no { color: var(--ink-40); }
 .spec > span { position: relative; display: inline-block; }
-.spec > span::before { content: "•"; position: absolute; left: 0; top: 0; }
+.spec > span::before { content: "â€¢"; position: absolute; left: 0; top: 0; }
 .spec > i { width: 1rem; height: 1rem; flex: 0 0 auto; background-repeat: no-repeat; background-position: center; background-size: 0.9375rem auto; }
 .spec.is-yes > i { background-image: url("../assets/img/check.svg"); }
 .spec.is-no  > i { background-image: url("../assets/img/minus.svg"); }
 
-/* Centre (front) card — 1040 x 682 */
+/* Centre (front) card â€” 1040 x 682 */
 .card[data-pos="center"] {
   left: 7.5rem; top: 0;
   width: 65rem; height: 42.625rem;
@@ -535,7 +718,7 @@ img { max-width: 100%; height: auto; }
 .card[data-pos="center"] .spec { font-size: max(1rem, 11px); line-height: 1.375; }
 .card[data-pos="center"] .spec > span { padding-left: 1.5rem; }
 
-/* Side cards — 872 x 570 */
+/* Side cards â€” 872 x 570 */
 .card[data-pos="left"], .card[data-pos="right"] {
   top: 3.4375rem;
   width: 54.5rem; height: 35.625rem;
@@ -578,7 +761,7 @@ img { max-width: 100%; height: auto; }
 .carousel__arrow--next { right: 0; top: 18.375rem; }
 
 /* ==========================================================================
-   CONTACT — Let's Talk
+   CONTACT â€” Let's Talk
    ========================================================================== */
 .contact {
   margin-top: 12.5rem;                          /* 200 */
@@ -720,7 +903,7 @@ img { max-width: 100%; height: auto; }
 }
 
 /* ==========================================================================
-   MOBILE + TABLET (design canvas 390px) — up to 899px
+   MOBILE + TABLET (design canvas 390px) â€” up to 899px
    ========================================================================== */
 @media (max-width: 899px) {
   html { font-size: clamp(13px, 4.1026vw, 18px); }   /* 390 => 16px */
@@ -930,4 +1113,120 @@ img { max-width: 100%; height: auto; }
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* --- Mobile Polish Pass --- */
+@media (max-width: 899px) {
+  /* 1. Margin for mobile from left/right will be 20 pixels */
+  .container { padding: 0 20px !important; }
+  .brand-mobile { left: 20px !important; }
+  .hamburger { right: 20px !important; }
+  .hero__content { left: 20px !important; right: 20px !important; width: auto !important; margin: 0 !important; }
+
+  /* 2. Heading and subtext left aligned in hero section */
+  .hero__content { text-align: left !important; align-items: flex-start !important; }
+  .hero__title { text-align: left !important; align-items: flex-start !important; }
+
+  /* 3. Logo should be slightly smaller, outer box white, inner icon black */
+  .brand-mobile {
+    width: 2.75rem !important; height: 2.75rem !important;
+    background: var(--white) !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+  }
+  .brand-mobile img { filter: invert(1) !important; width: 100% !important; height: 100% !important; }
+  body.is-scrolled .brand-mobile { filter: none !important; } /* Reset invert on scroll since it's already white box */
+
+  /* Menu icon should be visible on right side */
+  .hamburger {
+    width: 2.75rem !important; height: 2.75rem !important;
+    background: var(--white) !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .hamburger span { background: var(--ink) !important; }
+  body.is-scrolled .hamburger {
+    background: var(--white) !important; /* Keep it solid white box always */
+  }
+
+  /* 4. Fog behavior on mobile */
+  /* Remove top override so it defaults to top: 100%, exactly at fold.
+     This covers the toilet's bottom 6rem properly.
+     Wait, I won't add ANY fog overrides here. Let the desktop fog CSS handle it natively!
+     It might be a bit tall, but it WILL BE VISIBLE. */
+  .hero__fog-layer--1 {
+    background-size: 100% 250vh, 200vw 35vh !important;
+    background-position: center top, center 15vh !important;
+  }
+}
+
+/* --- Mobile Polish Pass --- */
+.nav.is-hidden {
+  transform: translate(-50%, -200%);
+  opacity: 0;
+  pointer-events: none;
+}
+.nav, .brand-pill, .brand-mobile, .hamburger, .hero__clouds, .footer__inner, .footer__clouds, .tech__cols {
+  will-change: transform, opacity;
+}
+.hero__fog-layer--1, .hero__fog-layer--2, .features__img {
+  will-change: transform, opacity;
+}
+
+@media (max-width: 899px) {
+  /* 1. Margin for mobile from left/right will be 20 pixels */
+  .container { padding: 0 20px !important; }
+  .brand-mobile { left: 20px !important; }
+  .hamburger { right: 20px !important; }
+  .hero__content { left: 20px !important; right: 20px !important; width: auto !important; margin: 0 !important; }
+
+  /* 2. Heading and subtext left aligned in hero section */
+  .hero__content { text-align: left !important; align-items: flex-start !important; }
+  .hero__title { text-align: left !important; align-items: flex-start !important; }
+
+  /* 3. Logo should be slightly smaller, outer box white, inner icon black */
+  .brand-mobile {
+    width: 2.75rem !important; height: 2.75rem !important;
+    background: var(--white) !important;
+    border-radius: 8px !important;
+    padding: 6px !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+  }
+  .brand-mobile img { filter: invert(1) !important; width: 100% !important; height: 100% !important; }
+  body.is-scrolled .brand-mobile { filter: none !important; }
+
+  /* 4. Menu icon should not have a background, it should be white menu icon only */
+  /* Wait, the user specifically said: "menu item should not have a background, it should be white menu icon only, with 20 pixel of margin from right side" */
+  .hamburger {
+    width: 2.75rem !important; height: 2.75rem !important;
+    background: transparent !important; /* NO BACKGROUND */
+    border-radius: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    right: 20px !important;
+  }
+  .hamburger span { background: var(--white) !important; } /* White menu icon only */
+  body.is-scrolled .hamburger span { background: var(--ink) !important; }
+
+  /* 5. Padding between product and CTA & slide up animation */
+  @keyframes heroSlideUpMobile {
+    0% { transform: translateY(100px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  .hero__toilet { 
+    bottom: -9rem !important; 
+    animation: heroSlideUpMobile 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both !important;
+  }
+
+  /* 6. Fog on mobile */
+  .hero__fog-layer--1 {
+    background-size: 100vw 250vh, 250vw auto !important;
+    background-position: center top, center top !important;
+  }
 }
