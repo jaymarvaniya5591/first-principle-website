@@ -1,22 +1,28 @@
-﻿/* First Principle — landing page behaviour. */
+/* First Principle — landing page behaviour. No animations yet (added in a later phase). */
 (function () {
   "use strict";
 
-  // Throttle scroll events to RAF
-  function throttleRAF(fn) {
-    var ticking = false;
-    return function() {
-      if (!ticking) {
-        window.requestAnimationFrame(function() {
-          fn();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-  }
-
   var isDesktop = function () { return window.matchMedia("(min-width: 900px)").matches; };
+
+  /* ---------------- Hamburger visibility (responds to viewport changes) ---------------- */
+  var _btn = document.querySelector(".hamburger");
+  if (_btn) {
+    var mobileStyles = [
+      "display:flex", "flex-direction:column", "justify-content:center",
+      "align-items:center", "gap:6px", "position:fixed",
+      "top:20px", "right:20px", "width:48px", "height:48px",
+      "background:#111111", "border:none", "border-radius:12px",
+      "cursor:pointer", "z-index:9999"
+    ].join(";");
+    _btn.querySelectorAll("span").forEach(function (s) {
+      s.style.cssText = "display:block;width:24px;height:2px;background:#ffffff;border-radius:2px;";
+    });
+    var applyHamburgerDisplay = function () {
+      _btn.style.cssText = isDesktop() ? "display:none" : mobileStyles;
+    };
+    applyHamburgerDisplay();
+    window.matchMedia("(min-width: 900px)").addEventListener("change", applyHamburgerDisplay);
+  }
 
   /* ---------------- Mobile menu ---------------- */
   var burger = document.querySelector(".hamburger");
@@ -41,8 +47,8 @@
     });
   }
 
-  /* ---------------- Features accordion (Scroll-Driven) ---------------- */
-  var featuresSection = document.querySelector(".features");
+  /* ---------------- Features accordion (Scroll-Driven / Click-Driven) ---------------- */
+  var featuresSection = document.getElementById("technology");
   var featuresBody = document.querySelector(".features__body");
   var featureList = document.querySelector(".features__list");
   var featureItems = Array.prototype.slice.call(document.querySelectorAll(".features__list .feature"));
@@ -51,29 +57,69 @@
   if (featuresSection && featuresBody && featureList) {
     featuresSection.style.height = "auto";
     featuresSection.style.position = "static";
-    
+
+    var featuresMedia = document.getElementById("features-media");
+    var isMobileFeatures = function() { return window.matchMedia("(max-width: 899px)").matches; };
+
+    // Move media panel into a given feature card (mobile only)
+    function moveMobileMedia(li) {
+      if (!featuresMedia || !li) return;
+      if (!li.contains(featuresMedia)) {
+        li.insertBefore(featuresMedia, li.firstChild);
+      }
+    }
+
+    // Restore media panel to its original position in features body (desktop)
+    function restoreMedia() {
+      if (!featuresMedia || !featuresBody) return;
+      if (!featuresBody.contains(featuresMedia) || featuresMedia.parentElement !== featuresBody) {
+        featuresBody.insertBefore(featuresMedia, featuresBody.firstChild);
+      }
+    }
+
+    // Initialize first feature as active
     activateFeatureScroll(0);
 
-    window.addEventListener("scroll", throttleRAF(function() {
-      var isMobile = window.innerWidth < 900;
-      var triggerY = window.innerHeight * (isMobile ? 0.7 : 0.4);
+    // On mobile: move media into the first card on init
+    if (isMobileFeatures()) {
+      moveMobileMedia(featureItems[0]);
+    }
+
+    // Desktop scroll spy (skip on mobile — click-only on mobile)
+    window.addEventListener("scroll", function() {
+      if (isMobileFeatures()) return;
+      var triggerY = window.innerHeight * 0.4;
       var bestIndex = 0;
-      
       featureItems.forEach(function(li, i) {
         var rect = li.getBoundingClientRect();
-        if (rect.top <= triggerY) {
-          bestIndex = i;
+        if (rect.top <= triggerY) bestIndex = i;
+      });
+      activateFeatureScroll(bestIndex);
+    }, { passive: true });
+
+    // Click interaction (mobile: open card with image inside; desktop: also works as accordion)
+    featureItems.forEach(function(li, i) {
+      li.style.cursor = "pointer";
+      li.addEventListener("click", function() {
+        if (li.classList.contains("is-active")) {
+          activateFeatureScroll(-1);
+        } else {
+          activateFeatureScroll(i);
+          if (isMobileFeatures()) moveMobileMedia(li);
         }
       });
-      
-      activateFeatureScroll(bestIndex);
-    }), { passive: true });
+    });
+
+    // On resize to desktop: put media back where it belongs
+    window.matchMedia("(max-width: 899px)").addEventListener("change", function(e) {
+      if (!e.matches) restoreMedia();
+    });
   }
 
   function activateFeatureScroll(index) {
-    index = String(index);
+    var indexStr = String(index);
     featureItems.forEach(function (li) {
-      var on = li.dataset.feature === index;
+      var on = li.dataset.feature === indexStr;
       if (on !== li.classList.contains("is-active")) {
         li.classList.toggle("is-active", on);
         var btn = li.querySelector(".feature__btn");
@@ -83,15 +129,19 @@
         }
       }
     });
-    featureImgs.forEach(function (pic) {
-      var on = pic.dataset.feature === index;
-      if (on !== pic.classList.contains("is-active")) {
-        pic.classList.toggle("is-active", on);
-      }
-    });
+    
+    // Only update images and layout if we are opening a feature.
+    if (index !== -1) {
+      featureImgs.forEach(function (pic) {
+        var on = pic.dataset.feature === indexStr;
+        if (on !== pic.classList.contains("is-active")) {
+          pic.classList.toggle("is-active", on);
+        }
+      });
+    }
   }
 
-    /* ---------------- Collection carousel (6 products, 3 visible on desktop) ---------------- */
+  /* ---------------- Collection carousel (6 products, 3 visible on desktop) ---------------- */
   var carousel = document.querySelector(".carousel");
   if (carousel) {
     var cards = Array.prototype.slice.call(carousel.querySelectorAll(".card"));
@@ -106,6 +156,8 @@
         if (rel === 0) card.dataset.pos = "center";
         else if (rel === n - 1) card.dataset.pos = "left";
         else if (rel === 1) card.dataset.pos = "right";
+        else if (rel === n - 2) card.dataset.pos = "out-left";
+        else if (rel === 2) card.dataset.pos = "out-right";
         else card.removeAttribute("data-pos");
         card.setAttribute("aria-hidden", rel === 0 ? "false" : "true");
       });
@@ -152,25 +204,48 @@
   var track = document.querySelector(".why__track");
   if (whyScroll && track && whySticky) {
     if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      var whySlideEls = Array.prototype.slice.call(track.querySelectorAll(".slide"));
       var updateWhyScroll = function () {
         if (whyScroll.dataset.skipping === "true") return;
         var rect = whyScroll.getBoundingClientRect();
         var maxScroll = rect.height - window.innerHeight;
         var scrolled = -rect.top;
-        if (maxScroll > 0) {
-          var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-          whyScroll.style.setProperty('--why-progress', progress);
-          
-          var currentSlide = Math.round(progress * 4);
-          if (currentSlide % 2 === 0) {
-            whySticky.setAttribute("data-theme", "dark");
-          } else {
-            whySticky.setAttribute("data-theme", "light");
-          }
+        if (maxScroll <= 0) return;
+
+        if (window.matchMedia("(max-width: 899px)").matches) {
+          // Mobile: vertical card-stack scroll hijack
+          var totalProgress = Math.max(0, Math.min(1, scrolled / maxScroll));
+          var numTransitions = whySlideEls.length - 1; // 4
+          var slideProgress = totalProgress * numTransitions;
+          var cur = Math.floor(slideProgress);
+          var frac = slideProgress - cur; // 0..1 within current transition
+
+          whySlideEls.forEach(function(slide, i) {
+            var y;
+            if (i <= cur) {
+              y = 0;                         // already settled on screen
+            } else if (i === cur + 1) {
+              y = (1 - frac) * 100;          // entering from bottom
+            } else {
+              y = 100;                       // waiting below screen
+            }
+            slide.style.transform = "translateY(" + y + "%)";
+          });
+
+          // Keep data-theme in sync
+          var activeIdx = Math.min(Math.round(totalProgress * numTransitions), whySlideEls.length - 1);
+          whySticky.setAttribute("data-theme", activeIdx % 2 === 0 ? "dark" : "light");
+          return;
         }
+
+        // Desktop: horizontal slide via CSS custom property
+        var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
+        whyScroll.style.setProperty('--why-progress', progress);
+        var currentSlide = Math.round(progress * 4);
+        whySticky.setAttribute("data-theme", currentSlide % 2 === 0 ? "dark" : "light");
       };
-      window.addEventListener("scroll", throttleRAF(updateWhyScroll), { passive: true });
-      window.addEventListener("resize", throttleRAF(updateWhyScroll), { passive: true });
+      window.addEventListener("scroll", updateWhyScroll, { passive: true });
+      window.addEventListener("resize", updateWhyScroll, { passive: true });
       updateWhyScroll();
     }
     
@@ -201,6 +276,12 @@
         }
       });
     }
+
+    track.addEventListener("keydown", function (e) {
+      if (!isDesktop()) return;
+      if (e.key === "ArrowRight") { e.preventDefault(); window.scrollBy({ top: window.innerHeight, behavior: 'smooth' }); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); window.scrollBy({ top: -window.innerHeight, behavior: 'smooth' }); }
+    });
   }
 
   /* ---------------- Nav: highlight the section in view ---------------- */
@@ -211,17 +292,19 @@
     var setActiveNav = function (id) {
       navItems.forEach(function (a) { a.classList.toggle("nav__item--active", a.dataset.section === id); });
     };
+    // Create an array of thresholds from 0 to 1 with 0.05 increments
     var thresholds = [];
     for (var i = 0; i <= 20; i++) thresholds.push(i / 20);
+    
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { visible[entry.target.id] = entry.intersectionRatio; });
+      entries.forEach(function (en) { visible[en.target.id] = en.isIntersecting ? en.intersectionRect.height : 0; });
       var best = null, bestVal = 0;
       sectionIds.forEach(function (id) { if (visible[id] > bestVal) { best = id; bestVal = visible[id]; } });
       if (best) setActiveNav(best);
     }, { threshold: thresholds, rootMargin: "-10% 0px -30% 0px" });
     sectionIds.forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
 
-    // Custom fast smooth scroll
+    // Custom fast smooth scroll for all anchor links
     document.querySelectorAll('a[href^="#"]').forEach(function(item) {
       item.addEventListener("click", function(e) {
         var targetId = this.getAttribute("href");
@@ -231,6 +314,7 @@
         
         e.preventDefault();
         
+        // Freeze the 'why us' track so it doesn't fast-forward
         var whyScroll = document.querySelector(".why__scroll-container");
         if (whyScroll) whyScroll.dataset.skipping = "true";
         
@@ -238,11 +322,12 @@
         var startY = window.scrollY;
         var difference = targetY - startY;
         var startTime = null;
-        var duration = 600;
+        var duration = 600; // 600ms is very fast and smooth
         
         function step(time) {
           if (startTime === null) startTime = time;
           var progress = Math.min((time - startTime) / duration, 1);
+          // easeInOutCubic
           var ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
           
           window.scrollTo(0, startY + difference * ease);
@@ -250,6 +335,7 @@
           if (progress < 1) {
             requestAnimationFrame(step);
           } else {
+            // Unfreeze when done
             if (whyScroll) {
               whyScroll.dataset.skipping = "false";
               window.dispatchEvent(new Event('scroll'));
@@ -261,7 +347,7 @@
     });
   }
 
-    /* ---------------- Contact form ---------------- */
+  /* ---------------- Contact form ---------------- */
   var form = document.querySelector(".contact__form");
   if (form) {
     var formStatus = form.querySelector(".contact__status");
@@ -323,7 +409,7 @@
       });
     }, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
 
-    document.querySelectorAll(".reveal-up, .reveal-fade").forEach(function(el) {
+    document.querySelectorAll(".reveal-up").forEach(function(el) {
       revealObserver.observe(el);
     });
   }
@@ -347,8 +433,8 @@
         hero.style.setProperty('--scroll-p', progress);
       }
     };
-    window.addEventListener("scroll", throttleRAF(updateScroll), { passive: true });
-    window.addEventListener("resize", throttleRAF(updateScroll), { passive: true });
+    window.addEventListener("scroll", updateScroll, { passive: true });
+    window.addEventListener("resize", updateScroll, { passive: true });
     updateScroll();
   }
 
@@ -357,13 +443,14 @@
   if (tech && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     var updateTechScroll = function () {
       var rect = tech.getBoundingClientRect();
-      var start = window.innerHeight;
-      var end = window.innerHeight - 300;
+      var start = window.innerHeight; // entering viewport
+      var end = window.innerHeight - 300; // 300px into viewport
+      // Calculate progress 0 to 1
       var progress = 1 - Math.max(0, Math.min(1, (rect.top - end) / (start - end)));
       tech.style.setProperty('--tech-scroll-p', progress);
     };
-    window.addEventListener("scroll", throttleRAF(updateTechScroll), { passive: true });
-    window.addEventListener("resize", throttleRAF(updateTechScroll), { passive: true });
+    window.addEventListener("scroll", updateTechScroll, { passive: true });
+    window.addEventListener("resize", updateTechScroll, { passive: true });
     updateTechScroll();
   }
 
@@ -375,9 +462,11 @@
   
   if (nav || brandPill) {
     var lastScrollY = window.scrollY;
-    window.addEventListener("scroll", throttleRAF(function() {
+    window.addEventListener("scroll", function() {
       var currentScrollY = window.scrollY;
       
+      // We only want to trigger hide when scrolled past a small threshold (e.g., 50px)
+      // to ensure it is fully visible at the absolute top of the Hero.
       if (currentScrollY > 50 && currentScrollY > lastScrollY) {
         // Scrolling DOWN
         if (nav) nav.classList.add("is-hidden");
@@ -393,7 +482,7 @@
       }
       
       lastScrollY = currentScrollY;
-    }), { passive: true });
+    }, { passive: true });
   }
 
   /* ---------------- Footer Cinematic Reveal ---------------- */
@@ -426,8 +515,33 @@
         clouds.style.opacity = 0;
       }
     };
-    window.addEventListener("scroll", throttleRAF(updateFooterParallax), { passive: true });
-    window.addEventListener("resize", throttleRAF(updateFooterParallax), { passive: true });
+    window.addEventListener("scroll", updateFooterParallax, { passive: true });
+    window.addEventListener("resize", updateFooterParallax, { passive: true });
     updateFooterParallax();
   }
 })();
+
+
+  // Mobile Why Us Skip functionality
+  var mobileSkipBtns = document.querySelectorAll(".skip-btn-mobile");
+  mobileSkipBtns.forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var nextSection = document.getElementById("product");
+      if (nextSection) {
+        var targetY = nextSection.getBoundingClientRect().top + window.scrollY;
+        var startY = window.scrollY;
+        var difference = targetY - startY;
+        var startTime = null;
+        function step(time) {
+          if (startTime === null) startTime = time;
+          var progress = Math.min((time - startTime) / 600, 1);
+          var ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+          window.scrollTo(0, startY + difference * ease);
+          if (progress < 1) {
+            window.requestAnimationFrame(step);
+          }
+        }
+        window.requestAnimationFrame(step);
+      }
+    });
+  });
