@@ -414,111 +414,140 @@
     });
   }
 
-  /* ---------------- Hero Scroll Transition ---------------- */
+  /* ---------------- Scroll-driven effects ----------------
+     One listener, one rAF per frame, all reads before all writes. Previously
+     four independent scroll handlers each called getBoundingClientRect() and
+     wrote styles, interleaving reads and writes and forcing repeated layout. */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
   var hero = document.getElementById("home");
-  if (hero && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    var updateScroll = function () {
-      var scrollY = window.scrollY;
-      if (hero && scrollY > hero.offsetHeight - 100) {
-        document.body.classList.add('is-scrolled');
-      } else {
-        document.body.classList.remove('is-scrolled');
-      }
-
-      var rect = hero.getBoundingClientRect();
-      var scrolled = -rect.top;
-      var maxScroll = rect.height - window.innerHeight;
-      if (maxScroll > 0) {
-        var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-        hero.style.setProperty('--scroll-p', progress);
-      }
-    };
-    window.addEventListener("scroll", updateScroll, { passive: true });
-    window.addEventListener("resize", updateScroll, { passive: true });
-    updateScroll();
-  }
-
-  /* ---------------- Technology Reveal Transition ---------------- */
   var tech = document.getElementById("technology");
-  if (tech && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    var updateTechScroll = function () {
-      var rect = tech.getBoundingClientRect();
-      var start = window.innerHeight; // entering viewport
-      var end = window.innerHeight - 300; // 300px into viewport
-      // Calculate progress 0 to 1
-      var progress = 1 - Math.max(0, Math.min(1, (rect.top - end) / (start - end)));
-      tech.style.setProperty('--tech-scroll-p', progress);
-    };
-    window.addEventListener("scroll", updateTechScroll, { passive: true });
-    window.addEventListener("resize", updateTechScroll, { passive: true });
-    updateTechScroll();
-  }
-
-  /* ---------------- Nav hide on scroll down ---------------- */
-  var nav = document.querySelector(".nav");
-  var brandPill = document.querySelector(".brand-pill");
+  var topbar = document.querySelector(".topbar");
   var brandMobile = document.querySelector(".brand-mobile");
   var hamburger = document.querySelector(".hamburger");
-  
-  if (nav || brandPill) {
-    var lastScrollY = window.scrollY;
-    window.addEventListener("scroll", function() {
-      var currentScrollY = window.scrollY;
-      
-      // We only want to trigger hide when scrolled past a small threshold (e.g., 50px)
-      // to ensure it is fully visible at the absolute top of the Hero.
-      if (currentScrollY > 50 && currentScrollY > lastScrollY) {
-        // Scrolling DOWN
-        if (nav) nav.classList.add("is-hidden");
-        if (brandPill) brandPill.style.transform = "translateY(-250%)";
-        if (brandMobile) brandMobile.style.transform = "translateY(-250%)";
-        if (hamburger) hamburger.style.transform = "translateY(-250%)";
-      } else {
-        // Scrolling UP or at top
-        if (nav) nav.classList.remove("is-hidden");
-        if (brandPill) brandPill.style.transform = "translateY(0)";
-        if (brandMobile) brandMobile.style.transform = "translateY(0)";
-        if (hamburger) hamburger.style.transform = "translateY(0)";
-      }
-      
-      lastScrollY = currentScrollY;
-    }, { passive: true });
-  }
-
-  /* ---------------- Footer Cinematic Reveal ---------------- */
   var footer = document.querySelector(".footer");
   var clouds = document.querySelector(".footer__clouds");
   var footerInner = document.querySelector(".footer__inner");
-  if (footer && clouds && footerInner) {
-    var updateFooterParallax = function() {
-      var rect = footer.getBoundingClientRect();
-      var start = window.innerHeight;
-      var maxScroll = rect.height;
-      var scrolled = start - rect.top; 
-      
-      if (scrolled > 0 && scrolled <= start + maxScroll) {
-        var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-        var footerY = (1 - progress) * 100; 
-        var cloudY = (1 - progress) * 200; 
-        
-        footerInner.style.transform = "translateY(" + footerY + "px)";
-        clouds.style.transform = "translateY(" + cloudY + "px)";
-        footerInner.style.opacity = progress;
-        clouds.style.opacity = progress;
-      } else if (scrolled > start + maxScroll) {
+
+  /* Adaptive top bar ink. `.hero__fog-sentinel` is pinned to the exact gradient
+     stop where the fog turns opaque white, so its position tells us when the
+     capsule stops sitting on blue sky and starts sitting on white.
+
+     The old test (`scrollY > hero.offsetHeight - 100`) fired about 440px of
+     scroll too late, leaving white labels on a white background. */
+  var sentinel = document.querySelector(".hero__fog-sentinel");
+  var CHROME_DARK_AT = 88; // capsule bottom: 1.75rem top + 3.75rem height
+  var CHROME_LIGHT_AT = 108; // 20px band so it cannot flicker at the boundary
+  var chromeDark = false;
+
+  var lastScrollY = window.scrollY;
+  var chromeHidden = false;
+  var bodyScrolled = false;
+  // Hysteresis: the old handler flipped on any 1px direction change, which made
+  // the bar twitch. Require sustained travel before changing state.
+  var HIDE_AFTER = 8;
+  var SHOW_AFTER = 12;
+  var HIDE_FLOOR = 64;
+  var travel = 0;
+
+  var setChromeHidden = function (hidden) {
+    if (hidden === chromeHidden) return;
+    chromeHidden = hidden;
+    if (topbar) topbar.classList.toggle("is-hidden", hidden);
+    if (brandMobile) brandMobile.classList.toggle("is-hidden", hidden);
+    if (hamburger) hamburger.classList.toggle("is-hidden", hidden);
+  };
+
+  var frame = 0;
+  var onFrame = function () {
+    frame = 0;
+
+    var vh = window.innerHeight;
+    var scrollY = window.scrollY;
+
+    /* ---- reads ---- */
+    var heroRect = hero ? hero.getBoundingClientRect() : null;
+    var techRect = tech ? tech.getBoundingClientRect() : null;
+    var footerRect = footer ? footer.getBoundingClientRect() : null;
+    var sentinelTop = sentinel ? sentinel.getBoundingClientRect().top : null;
+
+    /* ---- writes ---- */
+    if (topbar && sentinelTop !== null) {
+      var wantDark = chromeDark
+        ? sentinelTop < CHROME_LIGHT_AT
+        : sentinelTop <= CHROME_DARK_AT;
+      if (wantDark !== chromeDark) {
+        chromeDark = wantDark;
+        topbar.classList.toggle("is-chrome-dark", wantDark);
+      }
+    }
+
+    if (heroRect) {
+      // Mobile inverts its brand mark off this flag.
+      var pastHero = scrollY > heroRect.height - 100;
+      if (pastHero !== bodyScrolled) {
+        bodyScrolled = pastHero;
+        document.body.classList.toggle("is-scrolled", pastHero);
+      }
+    }
+
+    if (heroRect && !reduceMotion.matches) {
+      var heroMax = heroRect.height - vh;
+      if (heroMax > 0) {
+        var p = Math.max(0, Math.min(1, -heroRect.top / heroMax));
+        hero.style.setProperty("--scroll-p", p);
+      }
+    }
+
+    if (techRect && !reduceMotion.matches) {
+      var start = vh;
+      var end = vh - 300;
+      var techP = 1 - Math.max(0, Math.min(1, (techRect.top - end) / (start - end)));
+      tech.style.setProperty("--tech-scroll-p", techP);
+    }
+
+    var delta = scrollY - lastScrollY;
+    if (delta !== 0) {
+      travel = delta > 0 === travel > 0 ? travel + delta : delta;
+      if (scrollY <= HIDE_FLOOR) {
+        setChromeHidden(false);
+      } else if (travel > HIDE_AFTER) {
+        setChromeHidden(true);
+      } else if (travel < -SHOW_AFTER) {
+        setChromeHidden(false);
+      }
+      lastScrollY = scrollY;
+    }
+
+    if (footerRect && clouds && footerInner) {
+      var footerMax = footerRect.height;
+      var scrolled = vh - footerRect.top;
+      if (scrolled > 0 && scrolled <= vh + footerMax) {
+        var fp = Math.max(0, Math.min(1, scrolled / footerMax));
+        footerInner.style.transform = "translateY(" + (1 - fp) * 100 + "px)";
+        clouds.style.transform = "translateY(" + (1 - fp) * 200 + "px)";
+        footerInner.style.opacity = fp;
+        clouds.style.opacity = fp;
+      } else if (scrolled > vh + footerMax) {
         footerInner.style.transform = "translateY(0)";
         clouds.style.transform = "translateY(0)";
         footerInner.style.opacity = 1;
         clouds.style.opacity = 1;
-      } else if (scrolled <= 0) {
+      } else {
         footerInner.style.opacity = 0;
         clouds.style.opacity = 0;
       }
-    };
-    window.addEventListener("scroll", updateFooterParallax, { passive: true });
-    window.addEventListener("resize", updateFooterParallax, { passive: true });
-    updateFooterParallax();
-  }
+    }
+  };
+
+  var requestFrame = function () {
+    if (!frame) frame = window.requestAnimationFrame(onFrame);
+  };
+
+  window.addEventListener("scroll", requestFrame, { passive: true });
+  window.addEventListener("resize", requestFrame, { passive: true });
+  requestFrame();
+
 })();
 
 
