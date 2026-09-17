@@ -408,12 +408,19 @@ img {
 @media (min-width: 900px) {
   .hero__inner {
     display: flex;
-    align-items: center;
+    /* flex-start plus auto margins, NOT `align-items: center`. Centred flex
+       items overflow their container equally in both directions once they are
+       taller than it, so on a short window the copy spills upward through the
+       padding and collides with the capsule. Auto margins collapse to 0 when
+       there is no free space, so the padding-top always holds as a floor. */
+    align-items: flex-start;
     padding-top: 6.5rem; /* 104px floor, clears the 88px capsule */
     padding-bottom: clamp(6rem, 22vh, 15rem);
   }
   .hero__content {
     flex: 0 0 auto;
+    margin-top: auto;
+    margin-bottom: auto;
   }
 }
 .hero__inner::after {
@@ -710,8 +717,10 @@ img {
 }
 .hero__title-main {
   /* 170px at 1440, and keeps growing past it — the root font caps at 16px, so
-     a fixed rem size would leave the headline stranded on wide screens. */
-  font-size: clamp(6.5rem, 11.8vw, 13rem);
+     a fixed rem size would leave the headline stranded on wide screens.
+     The 19vh term only bites on wide-but-short windows, where a width-only
+     scale produces a headline too tall for the space it has to live in. */
+  font-size: clamp(6.5rem, min(11.8vw, 19vh), 13rem);
   font-family: var(--f-anton);
   line-height: 0.9;
   /* Optical sizing: display type tightens as it scales, it does not loosen. */
@@ -722,7 +731,7 @@ img {
   /* Ratio-based so the overlap holds at every width. */
   margin-top: -0.33em;
   margin-left: -0.25rem;
-  font-size: clamp(6.5rem, 11.8vw, 13rem);
+  font-size: clamp(6.5rem, min(11.8vw, 19vh), 13rem);
   font-family: var(--f-script);
   /* Ghosted on purpose: two words at the same size must not carry equal weight. */
   opacity: 0.5;
