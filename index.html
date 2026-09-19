@@ -47,11 +47,43 @@
 
 
   <!-- ============ NAVBAR (FIXED) ============ -->
-  <!-- Desktop brand pill -->
-  <a class="brand-pill" href="#home">
-    <img class="brand-pill__mark" src="assets/img/logo-mark-header.svg" width="38" height="34" alt="" />
-    <span class="brand-pill__text">First Principle</span>
-  </a>
+  <!-- Desktop: a single full-width glass bar, always visible (no hide-on-scroll).
+       Liquid-glass refraction (Chromium) is layered on top of a frosted-white
+       fallback via the hidden SVG filter below + the @supports block in CSS. -->
+  <!-- Liquid-glass distortion filter. Implemented exactly per the widely-used
+       "Apple Liquid Glass" vanilla CSS/SVG recipe (feTurbulence -> feDisplacementMap,
+       applied via a plain `filter:` reference, layered under separate overlay
+       and specular-highlight divs) - Chromium renders the actual distortion;
+       every other engine simply ignores the unsupported `filter:url()` term
+       and keeps the blur + tint underneath, degrading gracefully with no
+       feature-detection needed. -->
+  <svg style="display: none">
+    <filter id="fp-glass-distortion">
+      <feTurbulence type="turbulence" baseFrequency="0.008" numOctaves="2" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="77" />
+    </filter>
+  </svg>
+
+  <header class="topbar" id="topbar">
+    <div class="glass-filter"></div>
+    <div class="glass-overlay"></div>
+    <div class="glass-specular"></div>
+    <div class="topbar__inner">
+      <a class="topbar__brand" href="#home" aria-label="First Principle — home">
+        <picture>
+          <source type="image/webp" srcset="assets/img/logo-full.webp" />
+          <img class="topbar__logo" src="assets/img/logo-full.png" width="256" height="83" alt="First Principle" />
+        </picture>
+      </a>
+      <nav class="topbar__nav" aria-label="Primary">
+        <a class="nav__item nav__item--active" href="#home" data-section="home">Home</a>
+        <a class="nav__item" href="#technology" data-section="technology">Technology</a>
+        <a class="nav__item" href="#why-us" data-section="why-us">Why us</a>
+        <a class="nav__item" href="#product" data-section="product">Product</a>
+        <a class="nav__item" href="#support" data-section="support">Support</a>
+      </nav>
+    </div>
+  </header>
 
   <!-- Mobile brand + hamburger -->
   <a class="brand-mobile" href="#home" aria-label="First Principle — home">
@@ -60,15 +92,6 @@
   <button class="hamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
     <span></span><span></span><span></span>
   </button>
-
-  <!-- Desktop nav -->
-  <nav class="nav" aria-label="Primary">
-    <a class="nav__item nav__item--active" href="#home" data-section="home">Home</a>
-    <a class="nav__item" href="#technology" data-section="technology">Technology</a>
-    <a class="nav__item" href="#why-us" data-section="why-us">Why us</a>
-    <a class="nav__item" href="#product" data-section="product">Product</a>
-    <a class="nav__item" href="#support" data-section="support">Support</a>
-  </nav>
 
   <!-- Mobile menu -->
   <div class="mobile-menu" id="mobile-menu" hidden>

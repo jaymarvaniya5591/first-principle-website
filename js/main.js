@@ -426,8 +426,7 @@
   var hero = document.getElementById("home");
   var fogOverlay = document.querySelector(".hero__fog-overlay");
   var tech = document.getElementById("technology");
-  var nav = document.querySelector(".nav");
-  var brandPill = document.querySelector(".brand-pill");
+  var topbar = document.querySelector(".topbar");
   var brandMobile = document.querySelector(".brand-mobile");
   var hamburger = document.querySelector(".hamburger");
   var footer = document.querySelector(".footer");
@@ -436,26 +435,30 @@
 
   var lastScrollY = window.scrollY;
   var chromeHidden = false;
+  var barElevated = false;
   var bodyScrolled = false;
   var frame = 0;
 
-  /* Bottom edge of the fixed chrome, used to decide when it is sitting over
-     the white fog rather than the blue sky. Cached because it only moves on
-     resize, never on scroll. */
+  /* Bottom edge of the fixed chrome, used only by the mobile ink-flip below
+     (`.brand-mobile` inverts once past the hero's white fog). The desktop
+     .topbar no longer flips ink - it is one frosted-white treatment
+     throughout - so on desktop this measurement is unused. Cached because it
+     only moves on resize, never on scroll. */
   var chromeBottom = 110;
   var measureChrome = function () {
-    var el = nav && nav.offsetParent !== null ? nav : brandMobile;
+    var el = topbar && topbar.offsetParent !== null ? topbar : brandMobile;
     if (el) {
       var r = el.getBoundingClientRect();
       if (r.height) chromeBottom = r.top + r.height;
     }
   };
 
+  /* Mobile only: the hamburger and mobile brand mark still hide on scroll-down
+     the way they always have. The desktop .topbar is intentionally exempt -
+     it never hides, per the reference bar this was modelled on. */
   var setChromeHidden = function (hidden) {
     if (hidden === chromeHidden) return;
     chromeHidden = hidden;
-    if (nav) nav.classList.toggle("is-hidden", hidden);
-    if (brandPill) brandPill.classList.toggle("is-hidden", hidden);
     if (brandMobile) brandMobile.classList.toggle("is-hidden", hidden);
     if (hamburger) hamburger.classList.toggle("is-hidden", hidden);
   };
@@ -508,10 +511,21 @@
       tech.style.setProperty("--tech-scroll-p", techP);
     }
 
-    // Hide when scrolling down past 50px, show on any upward move.
+    // Mobile: hide when scrolling down past 50px, show on any upward move.
     if (scrollY !== lastScrollY) {
       setChromeHidden(scrollY > 50 && scrollY > lastScrollY);
       lastScrollY = scrollY;
+    }
+
+    // Desktop bar: thickens slightly once scrolled past the very top. Not
+    // tied to the hide logic above - the bar is always visible, this just
+    // deepens its frost, mirroring the reference bar's own scroll behaviour.
+    if (topbar) {
+      var elevated = scrollY > 20;
+      if (elevated !== barElevated) {
+        barElevated = elevated;
+        topbar.classList.toggle("is-elevated", elevated);
+      }
     }
 
     if (footerRect) {

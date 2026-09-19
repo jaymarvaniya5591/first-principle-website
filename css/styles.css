@@ -282,18 +282,6 @@ img {
   }
 }
 
-@keyframes heroNavReveal {
-  0% {
-    transform: translateX(-50%) scale(0.85);
-    clip-path: inset(0 15.125rem 0 15.125rem round 999px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(-50%) scale(1);
-    clip-path: inset(0 0 0 0 round 999px);
-    opacity: 1;
-  }
-}
 @keyframes heroSlideLeft {
   0% {
     transform: translateX(-100vw);
@@ -336,14 +324,12 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav,
   .hero__content,
   .hero__toilet,
   .hero__clouds {
     animation: none !important;
     transform: none !important;
   }
-  .nav,
   .hero__content,
   .hero__toilet {
     opacity: 1 !important;
@@ -369,7 +355,10 @@ img {
 .hero__inner {
   position: relative;
   height: 100%;
-  padding-top: 10.375rem; /* 166px */
+  /* Bar is flush at top:0, height 4.5rem (72px). 8.75rem (140px) keeps
+     roughly the same ~68px breathing room below it that the old floating
+     pill (bottom edge ~108px, padding-top 166px) had. */
+  padding-top: 8.75rem; /* 140px */
   padding-bottom: 9.5rem; /* 152px */
   color: var(--white);
 }
@@ -494,41 +483,6 @@ img {
   display: none;
 }
 
-/* Brand pill (desktop) */
-.brand-pill {
-  position: fixed;
-  left: calc(50% - 40rem);
-  top: 2.5rem;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  z-index: 100;
-  transition:
-    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    filter 0.3s;
-}
-.brand-pill__mark {
-  width: 2.25rem;
-  height: 1.98rem;
-}
-.brand-pill__text {
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: 1.25rem;
-  line-height: 1;
-  color: var(--white);
-  white-space: nowrap;
-}
-
-/* Hide-on-scroll-down. These were inline styles rewritten on every scroll
-   event; as classes they are set only when the state actually changes. */
-.brand-pill.is-hidden,
-.brand-mobile.is-hidden,
-.hamburger.is-hidden {
-  transform: translateY(-250%);
-}
-
 /* Mobile brand + hamburger (hidden on desktop) */
 .brand-mobile,
 .hamburger,
@@ -536,73 +490,126 @@ img {
   display: none;
 }
 
-/* Nav */
-.nav {
+/* ==========================================================================
+   TOPBAR — full-width, persistent liquid-glass bar (desktop)
+   Structure and layer split follow the reference "Apple Liquid Glass" vanilla
+   CSS/SVG recipe exactly: a stack of four absolutely-positioned layers -
+   .glass-filter (blur + the SVG turbulence/displacement distortion),
+   .glass-overlay (the tint), .glass-specular (the inset rim highlight), and
+   the real content on top. Colours are adapted to a white/light frost and the
+   bar itself is full-width and flush to the top instead of a contained pill,
+   never hiding on scroll (only deepening its frost past scrollY 20px).
+   ========================================================================== */
+.topbar {
+  --bg-color: rgba(255, 255, 255, 0.3);
+  --highlight: rgba(255, 255, 255, 0.9);
+
   position: fixed;
-  top: 2.25rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: max-content;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   height: 4.5rem; /* 72px */
+  overflow: hidden;
+}
+.topbar.is-elevated {
+  --bg-color: rgba(255, 255, 255, 0.55);
+}
+
+.glass-filter,
+.glass-overlay,
+.glass-specular {
+  position: absolute;
+  inset: 0;
+}
+.glass-filter {
+  z-index: 1;
+  /* Blur intentionally light (6px, vs. a more typical 14-20px frosted panel):
+     any heavier and it smooths the turbulence distortion into invisibility,
+     which is the whole point of this layer. */
+  backdrop-filter: blur(6px) saturate(160%);
+  -webkit-backdrop-filter: blur(6px) saturate(160%);
+  filter: url(#fp-glass-distortion) saturate(115%) brightness(1.03);
+}
+.glass-overlay {
+  z-index: 2;
+  background: var(--bg-color);
+  transition: background 0.35s var(--ease-standard);
+}
+.glass-specular {
+  z-index: 3;
+  box-shadow:
+    inset 0 1px 0 var(--highlight),
+    inset 0 -1px 0 rgba(17, 17, 17, 0.04);
+  border-bottom: 1px solid rgba(17, 17, 17, 0.05);
+}
+
+.topbar__inner {
+  position: relative;
+  z-index: 4;
+  max-width: 80rem;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px; /* 4px inner pill padding */
-  border-radius: 999px;
-  background: rgba(17, 17, 17, 0.082);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  z-index: 100;
-  animation: heroNavReveal 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  transition:
-    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-    background 0.3s ease,
-    backdrop-filter 0.3s ease,
-    border-color 0.3s ease;
 }
-.nav.is-hidden {
-  transform: translate(-50%, -160%);
-  opacity: 0;
-  pointer-events: none;
-}
-body.is-scrolled .nav {
-  background: rgba(17, 17, 17, 0.3); /* reduced fill opacity */
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-color: rgba(255, 255, 255, 0.05);
-}
-body.is-scrolled .brand-pill {
-  filter: invert(1) hue-rotate(180deg);
-}
-.nav__item {
+
+.topbar__brand {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: 0 1.25rem;
-  border-radius: 999px;
+  flex: 0 0 auto;
+}
+.topbar__logo {
+  display: block;
+  height: 2rem; /* 32px, ~99px wide at the source 256:83 ratio */
+  width: auto;
+}
+
+.topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav__item {
+  position: relative;
   font-family: var(--f-display);
   font-weight: 500;
-  font-size: 1rem;
-  color: var(--white);
-  opacity: 0.8;
+  font-size: 0.9375rem;
+  color: var(--ink);
+  opacity: 0.62;
   white-space: nowrap;
-  border: 1px solid transparent;
+  transition: opacity 0.25s ease;
+}
+.nav__item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.4rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0.4);
   transition:
-    opacity 0.3s ease,
-    background 0.3s ease;
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 .nav__item:hover {
   opacity: 1;
 }
+.nav__item:hover::after {
+  opacity: 0.3;
+  transform: scaleX(1);
+}
 .nav__item--active {
   opacity: 1;
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+.nav__item--active::after {
+  opacity: 0.55;
+  transform: scaleX(1);
 }
 
 /* Hero content */
@@ -1750,8 +1757,7 @@ body.is-scrolled .brand-pill {
     width: 90rem;
   }
 
-  .brand-pill,
-  .nav {
+  .topbar {
     display: none;
   }
 
