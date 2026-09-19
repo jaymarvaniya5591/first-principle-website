@@ -202,6 +202,32 @@
   var whyScroll = document.querySelector(".why__scroll-container");
   var whySticky = document.querySelector(".why__sticky");
   var track = document.querySelector(".why__track");
+
+  /* Slides translate right-to-left (`translateX(progress * -400vw)`), so a
+     new slide enters from the right and the old one exits to the left. That
+     means a single "50% of the transition" snap is wrong for BOTH edges of
+     the screen, in opposite directions: the skip button (far right) is the
+     FIRST point the new slide's leading edge reaches, so a 50%-based switch
+     fires far too late for it; the topbar's logo (far left) is the LAST
+     point the old slide vacates, so the same 50% switch fires too early for
+     it. Each needs its own trigger, timed to when the seam actually reaches
+     that element's own position - not a shared, averaged guess.
+
+     `elementsFromPoint` (plural) is used rather than `elementFromPoint`
+     because sampling right at the skip button's own coordinates would just
+     return the skip button itself; walking the full stack finds the actual
+     slide underneath it. */
+  var themeOfSlideAt = function (x, y, excludeSelector) {
+    var stack = document.elementsFromPoint(x, y);
+    for (var i = 0; i < stack.length; i++) {
+      var el = stack[i];
+      if (excludeSelector && el.closest && el.closest(excludeSelector)) continue;
+      var themed = el.closest ? el.closest("[data-nav-theme]") : null;
+      if (themed) return themed.dataset.navTheme;
+    }
+    return null;
+  };
+
   if (whyScroll && track && whySticky) {
     if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       var whySlideEls = Array.prototype.slice.call(track.querySelectorAll(".slide"));
@@ -242,7 +268,21 @@
         var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
         whyScroll.style.setProperty('--why-progress', progress);
         var currentSlide = Math.round(progress * 4);
-        whySticky.setAttribute("data-theme", currentSlide % 2 === 0 ? "dark" : "light");
+        // Sample precisely at the skip button's own position (see
+        // themeOfSlideAt above) instead of a flat 50%-of-transition snap, so
+        // its border/text colour flips exactly when the slide behind IT
+        // changes - not whenever the overall transition happens to cross its
+        // midpoint, which is a different moment for an element sitting at
+        // the far right edge of a right-to-left sliding track.
+        var skipRect = skipBtn ? skipBtn.getBoundingClientRect() : null;
+        var themeAtSkip = skipRect
+          ? themeOfSlideAt(
+              Math.round(skipRect.left + skipRect.width / 2),
+              Math.round(skipRect.top + skipRect.height / 2),
+              ".skip-btn"
+            )
+          : null;
+        whySticky.setAttribute("data-theme", themeAtSkip || (currentSlide % 2 === 0 ? "dark" : "light"));
       };
       window.addEventListener("scroll", updateWhyScroll, { passive: true });
       window.addEventListener("resize", updateWhyScroll, { passive: true });
@@ -270,6 +310,11 @@
             } else {
               whyScroll.dataset.skipping = "false"; 
               updateWhyScroll();
+              // Force the topbar to re-sample its final resting surface
+              // directly, rather than relying only on a "scroll" event
+              // having been processed during the jump - see the matching
+              // note on the general anchor-click handler below.
+              if (typeof requestFrame === "function") requestFrame();
             }
           }
           requestAnimationFrame(step);
@@ -340,6 +385,15 @@
               whyScroll.dataset.skipping = "false";
               window.dispatchEvent(new Event('scroll'));
             }
+            // Belt-and-suspenders: explicitly force the topbar to re-sample
+            // its resting surface (mode/theme/logo colour) right here, rather
+            // than relying solely on the synthetic "scroll" event above
+            // having been fully processed. This is the exact jump this bar
+            // fix targets - clicking a nav link (e.g. "Product") from the
+            // very top of the page lands far down the document in one 600ms
+            // hop, and the topbar should reflect exactly where it landed
+            // without requiring the user to scroll again first.
+            if (typeof requestFrame === "function") requestFrame();
           }
         }
         requestAnimationFrame(step);
@@ -463,6 +517,104 @@
     if (hamburger) hamburger.classList.toggle("is-hidden", hidden);
   };
 
+  /* ---------------- Topbar surface: mode (merge/glass) x theme (light/dark)
+     Inside the hero, the bespoke fog-front geometry below is authoritative
+     (the fog is a custom animated gradient + image, not a plain element with
+     its own background-color, so naive sampling cannot see it). Everywhere
+     past the hero, `sampleBelowHeroSurface` mirrors the reference bar's own
+     technique: hit-test whatever is actually behind the bar right now, read
+     an explicit data-nav-mode/data-nav-theme off the nearest tagged ancestor
+     (the why-us slides, the flat contact section, the footer), and otherwise
+     infer light/dark from the sampled element's own computed background
+     colour. That is what makes the bar merge into the why-us section's grey
+     and black slides exactly the way it merges into the hero's sky, instead
+     of showing a permanently white-tinted bar that seams against them. */
+  // Deliberately not pre-set to "merge"/"dark" (the actual initial state):
+  // applyTopbarSurface only writes an attribute when the value *changes*, and
+  // the DOM starts with neither attribute present at all, so seeding these to
+  // match would make the first real call a no-op and leave the bar without
+  // data-mode/data-theme forever.
+  var topbarMode = null;
+  var topbarTheme = null;
+  var applyTopbarSurface = function (mode, theme) {
+    if (!topbar) return;
+    if (mode !== topbarMode) {
+      topbarMode = mode;
+      topbar.setAttribute("data-mode", mode);
+    }
+    if (theme !== topbarTheme) {
+      topbarTheme = theme;
+      topbar.setAttribute("data-theme", theme);
+    }
+  };
+
+  var parseRgb = function (color) {
+    var m = color && color.match(/rgba?\(([^)]+)\)/);
+    if (!m) return null;
+    var parts = m[1].split(",").map(function (v) {
+      return parseFloat(v);
+    });
+    var r = parts[0],
+      g = parts[1],
+      b = parts[2];
+    var a = parts.length > 3 ? parts[3] : 1;
+    if ([r, g, b, a].some(isNaN)) return null;
+    if (a <= 0.05) return null; // transparent - keep walking up
+    return { r: r, g: g, b: b };
+  };
+  var getLuminance = function (c) {
+    return (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
+  };
+  var inferBackgroundTheme = function (el) {
+    var cur = el;
+    while (cur && cur !== document.documentElement) {
+      var bg = parseRgb(getComputedStyle(cur).backgroundColor);
+      if (bg) return getLuminance(bg) > 0.58 ? "light" : "dark";
+      cur = cur.parentElement;
+    }
+    var bodyBg = parseRgb(getComputedStyle(document.body).backgroundColor);
+    return bodyBg && getLuminance(bodyBg) > 0.58 ? "light" : "dark";
+  };
+  var topbarLogo = document.querySelector(".topbar__logo");
+
+  var sampleBelowHeroSurface = function () {
+    if (!topbar) return;
+
+    /* The why-us section is a horizontal scroll-snap carousel: two flat-
+       coloured slides are often visible side by side mid-transition. Sample
+       at the LOGO's own actual position (not the viewport centre, and not a
+       generic global progress snap) so its own ink/filter flips exactly when
+       the slide truly behind IT changes - matching how `themeOfSlideAt`
+       above times the skip button off its own position instead. Slides move
+       right-to-left, so the logo (far left) is the last point a new slide
+       reaches; sampling there is deliberately the "safest, latest" trigger
+       for the whole bar, since by the time it fires, everything positioned
+       further right (the nav links) has already been under the new slide's
+       colour for a while - not the reverse. */
+    if (whyScroll) {
+      var whyRect = whyScroll.getBoundingClientRect();
+      if (whyRect.top <= 0 && whyRect.bottom >= 0) {
+        var barRect = topbar.getBoundingClientRect();
+        var logoRect = topbarLogo ? topbarLogo.getBoundingClientRect() : null;
+        var lx = logoRect ? Math.round(logoRect.left + logoRect.width / 2) : Math.round(barRect.left + 60);
+        var ly = Math.round(barRect.bottom + 8);
+        var themeAtLogo = themeOfSlideAt(lx, ly, null);
+        applyTopbarSurface("merge", themeAtLogo || (whySticky ? whySticky.dataset.theme : "dark") || "dark");
+        return;
+      }
+    }
+
+    var r = topbar.getBoundingClientRect();
+    var probeX = Math.round(window.innerWidth / 2);
+    var probeY = Math.round(r.bottom + 8); // just past the bar's own pixels
+    var el = document.elementFromPoint(probeX, probeY);
+    var modeEl = el && el.closest ? el.closest("[data-nav-mode]") : null;
+    var mode = modeEl ? modeEl.dataset.navMode : "glass";
+    var themeEl = el && el.closest ? el.closest("[data-nav-theme]") : null;
+    var theme = themeEl ? themeEl.dataset.navTheme : inferBackgroundTheme(el);
+    applyTopbarSurface(mode, theme);
+  };
+
   var onFrame = function () {
     frame = 0;
 
@@ -503,16 +655,26 @@
       var ACTIVATE_LEAD = 550;
       var stickyTop = Math.min(0, heroRect.bottom - vh);
       var whiteFront = stickyTop + vh * (1.5 - heroP);
-      var overWhite = bodyScrolled
+      var glassEngaged = bodyScrolled
         ? whiteFront < chromeBottom + ACTIVATE_LEAD + 100 // wide band so it cannot flicker
         : whiteFront <= chromeBottom + ACTIVATE_LEAD;
-      if (overWhite !== bodyScrolled) {
-        bodyScrolled = overWhite;
-        document.body.classList.toggle("is-scrolled", overWhite);
-        // Content-aware glass: merges into the flat sky when there is nothing
-        // behind it, fades the glass in and flips ink dark the moment real
-        // content (fog texture, then the page) approaches.
-        if (topbar) topbar.classList.toggle("is-active", overWhite);
+      if (glassEngaged !== bodyScrolled) {
+        bodyScrolled = glassEngaged;
+        document.body.classList.toggle("is-scrolled", glassEngaged);
+      }
+
+      // `whiteFront <= chromeBottom` (no lead) means the fog has genuinely
+      // finished resolving to opaque white at the bar - the actual page DOM
+      // is what is visible there now, not the fog's own animated gradient/
+      // image, so it is safe to hand off to the generic sampler below.
+      if (whiteFront <= chromeBottom) {
+        sampleBelowHeroSurface();
+      } else {
+        // Still inside the hero or its fog transition: this bespoke
+        // calculation is authoritative, because the fog is a custom
+        // animated background-image, not a plain element the generic
+        // sampler could read a background-color from.
+        applyTopbarSurface(glassEngaged ? "glass" : "merge", "dark");
       }
     }
 

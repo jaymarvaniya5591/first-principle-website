@@ -501,9 +501,6 @@ img {
    never hiding on scroll (only deepening its frost past scrollY 20px).
    ========================================================================== */
 .topbar {
-  --bg-color: rgba(255, 255, 255, 0.34);
-  --highlight: rgba(255, 255, 255, 0.9);
-
   position: fixed;
   top: 0;
   left: 0;
@@ -513,16 +510,44 @@ img {
   overflow: hidden;
 }
 
-/* Content-aware glass: while the bar sits over the hero's flat sky, there is
-   nothing behind it worth blurring or distorting, so all three glass layers
-   stay fully transparent and the bar visually merges into the background -
-   only the logo and nav labels (in white) are visible, painted directly on
-   the sky. The instant real content approaches - the fog's cloud texture
-   rising in, or the white page sections and their photos/cards once past the
-   hero - `.is-active` fades the glass in and flips the ink dark. Driven by
-   the same fog-front geometry that used to gate the old ink-invert hack (see
-   main.js), not a plain scrollY threshold, so it engages exactly when there
-   is something behind the bar rather than after an arbitrary distance. */
+/* ---------- Surface: mode (merge / glass) x theme (light / dark) ----------
+   `data-mode` and `data-theme` are set by main.js every frame, from whatever
+   is genuinely behind the bar right now - not a single hero-only calculation.
+   Inside the hero, that is still the fog-front geometry (see main.js); below
+   it, every section/slide is sampled directly via elementFromPoint, reading
+   an explicit `data-nav-mode`/`data-nav-theme` where one is set (the why-us
+   slides, the flat paper-coloured contact section, the dark footer) and
+   otherwise inferring light/dark from the sampled element's own computed
+   background colour, the same technique the reference bar itself uses.
+
+   mode="merge"  - flat, single-colour background, nothing to blur or distort:
+                   all three glass layers stay fully transparent, so the bar
+                   is invisible and the real page colour shows straight
+                   through - works for the hero's blue as much as the why-us
+                   section's grey or black slides, since in every case it is
+                   genuinely the same solid colour on both sides of the seam.
+   mode="glass"  - real content (photos, cards, the fog's cloud texture) is
+                   behind the bar, so the frosted/refracting glass fades in to
+                   visually separate the fixed bar from what is scrolling
+                   underneath it.
+   theme="dark"  - background is dark or mid-toned (hero sky, black slides,
+                   the footer): ink and glass tint go light/white.
+   theme="light" - background is light (page sections, the grey slide, the
+                   paper-coloured contact section): ink and glass tint go
+                   dark.
+
+   No attributes present (pre-JS, or a state that has not changed yet) reads
+   as the hero's resting state - merge + dark theme - which is also what
+   scrollY 0 actually is, so there is never a flash of the wrong look. */
+.topbar {
+  --bg-color: rgba(17, 17, 17, 0.34);
+  --highlight: rgba(255, 255, 255, 0.15);
+}
+.topbar[data-theme="light"] {
+  --bg-color: rgba(255, 255, 255, 0.34);
+  --highlight: rgba(255, 255, 255, 0.9);
+}
+
 .glass-filter,
 .glass-overlay,
 .glass-specular {
@@ -531,9 +556,9 @@ img {
   opacity: 0;
   transition: opacity 0.4s var(--ease-standard);
 }
-.topbar.is-active .glass-filter,
-.topbar.is-active .glass-overlay,
-.topbar.is-active .glass-specular {
+.topbar[data-mode="glass"] .glass-filter,
+.topbar[data-mode="glass"] .glass-overlay,
+.topbar[data-mode="glass"] .glass-specular {
   opacity: 1;
 }
 
@@ -549,6 +574,7 @@ img {
 .glass-overlay {
   z-index: 2;
   background: var(--bg-color);
+  transition: background 0.35s var(--ease-standard);
 }
 .glass-specular {
   z-index: 3;
@@ -556,18 +582,22 @@ img {
     inset 0 1px 0 var(--highlight),
     inset 0 -1px 0 rgba(17, 17, 17, 0.04);
   border-bottom: 1px solid rgba(17, 17, 17, 0.05);
+  transition: box-shadow 0.35s var(--ease-standard);
 }
 
-/* Logo + nav centred as three independent columns, so the nav links sit on
-   the bar's true centreline regardless of the logo's width - not just
-   right-aligned against it. */
+/* Logo + nav as three columns, contained to the same 80rem/3rem-gutter
+   measure as the reference bar's own widest tier (it also has 1.25rem/2rem
+   steps below 1024px, but our .topbar only ever renders at 900px+, so there
+   is no narrower tier to replicate). The earlier full-bleed version pinned
+   the logo hard against the raw viewport edge, further left than the
+   reference bar ever places its own mark - this restores that same inset. */
 .topbar__inner {
   position: relative;
   z-index: 4;
   max-width: 80rem;
   height: 100%;
   margin: 0 auto;
-  padding: 0 1.25rem;
+  padding: 0 3rem;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -580,17 +610,18 @@ img {
 }
 .topbar__logo {
   display: block;
-  height: 2.75rem; /* 44px - up from 32px, bar height is unchanged */
+  height: 2.375rem; /* 38px - between the original 32px and the 44px this had briefly */
   width: auto;
-  /* White over the hero (logo art is solid black-on-transparent, so a plain
-     invert gives a clean white silhouette without a second asset); flips to
-     its natural black once the bar goes active over lighter backgrounds.
-     invert() interpolates smoothly, so this crossfades rather than snapping. */
-  filter: invert(1);
+  /* Same currentColor trick as the invert-based approach before it, but now
+     driven by the same data-theme the nav text already reads, instead of
+     being hardcoded to the hero alone: black over light sections, inverted to
+     white over dark ones (the hero, the why-us dark slides, the footer) so it
+     is never reduced to an invisible black-on-black silhouette. */
+  filter: none;
   transition: filter 0.35s var(--ease-standard);
 }
-.topbar.is-active .topbar__logo {
-  filter: invert(0);
+.topbar[data-theme="dark"] .topbar__logo {
+  filter: invert(1);
 }
 
 .topbar__nav {
@@ -604,7 +635,7 @@ img {
   position: relative;
   font-family: var(--f-display);
   font-weight: 500;
-  font-size: 0.9375rem;
+  font-size: 1rem; /* 16px, up slightly from 15px now the logo has grown */
   color: var(--white);
   opacity: 0.82;
   white-space: nowrap;
@@ -612,7 +643,7 @@ img {
     color 0.35s var(--ease-standard),
     opacity 0.25s ease;
 }
-.topbar.is-active .nav__item {
+.topbar[data-theme="light"] .nav__item {
   color: var(--ink);
   opacity: 0.62;
 }
@@ -628,7 +659,8 @@ img {
   transform: scaleX(0.4);
   transition:
     opacity 0.25s ease,
-    transform 0.25s ease;
+    transform 0.25s ease,
+    height 0.25s ease;
 }
 .nav__item:hover {
   opacity: 1;
@@ -637,11 +669,21 @@ img {
   opacity: 0.3;
   transform: scaleX(1);
 }
+/* The active item needs to read clearly regardless of which of the four
+   mode x theme combinations is currently showing, and through the glass
+   layer's turbulence distortion (which only warps the backdrop behind the
+   bar, never the text/underline drawn in front of it, so crispness is not
+   at risk - contrast against a variable backdrop is). Full opacity plus a
+   deliberately heavier, near-solid underline is used instead of the same
+   opacity bump hover gets, so "this is where you are" stays visually
+   distinct from "this is what you're pointing at". */
 .nav__item--active {
   opacity: 1;
+  font-weight: 600;
 }
 .nav__item--active::after {
-  opacity: 0.55;
+  opacity: 0.9;
+  height: 1.5px;
   transform: scaleX(1);
 }
 
