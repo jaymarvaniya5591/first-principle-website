@@ -337,13 +337,15 @@ img {
   .hero__content,
   .hero__toilet,
   .hero__clouds,
-  .hero__mist {
+  .hero__mist,
+  .hero__mist-behind {
     animation: none !important;
     transform: none !important;
   }
   .hero__content,
   .hero__toilet,
-  .hero__mist {
+  .hero__mist,
+  .hero__mist-behind {
     opacity: 1 !important;
   }
   .hero__clouds {
@@ -551,6 +553,148 @@ img {
   opacity: 0.14;
   filter: blur(40px);
   z-index: -1;
+}
+
+/* The three tallest, most visually prominent puffs (directly under the
+   rock/product) get the turbulence distortion - applying it to all nine
+   would cost more per-frame filter work than the visual difference is worth
+   on the low, faint puffs over the copy column, which are barely visible
+   to begin with. url()+blur() combined in one filter list is the same
+   pattern already used for the navbar's glass effect elsewhere in this
+   file; browsers that don't support the SVG filter reference keep the
+   blur() and simply ignore that term. */
+.hero__mist__puff--5,
+.hero__mist__puff--6,
+.hero__mist__puff--7 {
+  /* Confirmed via a throwaway high-contrast test (opaque navy fill, no
+     blur) that the filter itself produces a genuinely irregular, billowy
+     silhouette - the earlier all-white 18-20px-blur version wasn't broken,
+     it was just blurring a bump scale of roughly 20-40px back down to
+     near-invisible. Less blur here than the plain (undistorted) puffs so
+     the organic edge the distortion creates actually survives to be seen -
+     the irregularity itself now does some of the "soft edge" work blur
+     would otherwise have to. */
+  filter: url(#fp-cloud-distortion) blur(11px);
+}
+.hero__mist__puff--6 {
+  filter: url(#fp-cloud-distortion) blur(10px);
+}
+
+/* Very slow, subtle horizontal drift so the bank reads as alive rather than
+   a frozen graphic - your article's layered-parallax idea (technique #3),
+   staggered durations standing in for depth without literal multiple
+   image layers. Amplitudes are small (10-16px) and periods are long
+   (55-90s) on purpose: anything faster or wider reads as "moving graphic"
+   rather than "atmosphere", which is the opposite of what a hero product
+   shot needs. */
+@keyframes mistDrift {
+  0%,
+  100% {
+    /* --ty defaults to the front puffs' own translateY(50%); the
+       behind-layer puffs below override --ty to match their own resting
+       translateY (42%/48%) so the animation doesn't reset it to 50% for
+       the whole time it's running. */
+    transform: translateY(var(--ty, 50%)) translateX(0);
+  }
+  50% {
+    transform: translateY(var(--ty, 50%)) translateX(var(--drift, 12px));
+  }
+}
+.hero__mist__puff--1 {
+  --drift: 10px;
+  animation: mistDrift 78s ease-in-out infinite;
+}
+.hero__mist__puff--2 {
+  --drift: -9px;
+  animation: mistDrift 65s ease-in-out infinite;
+}
+.hero__mist__puff--3 {
+  --drift: 11px;
+  animation: mistDrift 82s ease-in-out infinite;
+}
+.hero__mist__puff--4 {
+  --drift: -13px;
+  animation: mistDrift 60s ease-in-out infinite;
+}
+.hero__mist__puff--5 {
+  --drift: 14px;
+  animation: mistDrift 58s ease-in-out infinite;
+}
+.hero__mist__puff--6 {
+  --drift: -16px;
+  animation: mistDrift 50s ease-in-out infinite;
+}
+.hero__mist__puff--7 {
+  --drift: 12px;
+  animation: mistDrift 62s ease-in-out infinite;
+}
+.hero__mist__puff--8 {
+  --drift: -10px;
+  animation: mistDrift 70s ease-in-out infinite;
+}
+.hero__mist__puff--9 {
+  --drift: 18px;
+  animation: mistDrift 92s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__mist__puff {
+    animation: none !important;
+  }
+}
+
+/* ---------- Behind-the-rock mist ----------
+   Sits at z-index 1 (hero__bg is 0, hero__toilet is 2): straddles the
+   rock's own left edge (measured live at ~44.5% of the viewport width) so
+   roughly half of each puff is covered by the opaque product photo and the
+   other half is visible peeking out to its left against plain sky. That's
+   the one thing the front-only mist above structurally cannot do - without
+   this, the product can only ever look like it has cloud in front of it,
+   never cloud it is emerging out of. Soft and atmospheric on purpose: heavy
+   blur, moderate opacity, no distortion filter (they are large and diffuse
+   enough that the extra turbulence pass would not read at this softness). */
+.hero__mist-behind {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+  animation: heroMistReveal 2s ease-out 0.3s both;
+}
+.hero__mist-behind__puff {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50%;
+  background: #fff;
+}
+.hero__mist-behind__puff--1 {
+  left: 30%;
+  width: 26vw;
+  height: 30vh;
+  opacity: 0.4;
+  filter: blur(34px);
+  --ty: 42%;
+  transform: translateY(var(--ty));
+  animation: mistDrift 85s ease-in-out infinite;
+  --drift: 13px;
+}
+.hero__mist-behind__puff--2 {
+  left: 38%;
+  width: 20vw;
+  height: 24vh;
+  opacity: 0.32;
+  filter: blur(30px);
+  --ty: 48%;
+  transform: translateY(var(--ty));
+  animation: mistDrift 70s ease-in-out infinite;
+  --drift: -11px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__mist-behind__puff {
+    animation: none !important;
+  }
 }
 
 /* Scroll-driven Fog Overlay */
@@ -2167,6 +2311,10 @@ img {
      wasn't part of this pass, so keep it out rather than let it land
      unreviewed in the mobile flow. */
   .hero__social-proof {
+    display: none;
+  }
+  /* Desktop-only mist system; mobile keeps its existing clouds picture. */
+  .hero__mist-behind {
     display: none;
   }
   .hero__toilet {

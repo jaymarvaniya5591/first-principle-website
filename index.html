@@ -62,6 +62,16 @@
       <feTurbulence type="turbulence" baseFrequency="0.008" numOctaves="2" result="noise" />
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="77" />
     </filter>
+    <!-- Same feTurbulence/feDisplacementMap technique as the navbar's glass
+         filter above, retuned for much larger cloud-puff elements (150-450px
+         vs. the bar's 72px): lower baseFrequency so the distortion reads as
+         a few soft, cauliflower-like billows instead of fine fuzzy grain,
+         and a bigger displacement scale so the puffs' edges actually fracture
+         into irregular wisps rather than staying perfect blurred circles. -->
+    <filter id="fp-cloud-distortion" x="-60%" y="-60%" width="220%" height="220%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.006 0.012" numOctaves="2" seed="4" result="cloudNoise" />
+      <feDisplacementMap in="SourceGraphic" in2="cloudNoise" scale="130" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
   </svg>
 
   <header class="topbar" id="topbar">
@@ -114,6 +124,17 @@
           <source type="image/webp" srcset="assets/img/hero-bg-960.webp 960w, assets/img/hero-bg-1440.webp 1440w, assets/img/hero-bg-1535.webp 1535w" sizes="100vw" />
           <img src="assets/img/hero-bg-1440.jpg" srcset="assets/img/hero-bg-960.jpg 960w, assets/img/hero-bg-1440.jpg 1440w, assets/img/hero-bg-1535.jpg 1535w" sizes="100vw" width="1535" height="1024" alt="" fetchpriority="high" decoding="async" />
         </picture>
+
+        <!-- Sits behind the rock (z-index 1, between hero__bg's 0 and
+             hero__toilet's 2). Straddles the rock's left edge so part of
+             each puff is covered by the opaque product photo and part
+             peeks out to its left against the plain sky - the piece that
+             actually reads as "emerging from behind the rock", which the
+             front-only mist below cannot do on its own. -->
+        <div class="hero__mist-behind" aria-hidden="true">
+          <span class="hero__mist-behind__puff hero__mist-behind__puff--1"></span>
+          <span class="hero__mist-behind__puff hero__mist-behind__puff--2"></span>
+        </div>
 
         <picture class="hero__toilet">
           <source type="image/avif" srcset="assets/img/hero-toilet-800.avif 800w, assets/img/hero-toilet-1200.avif 1200w, assets/img/hero-toilet-1536.avif 1536w" sizes="(max-width: 899px) 190vw, (max-width: 1440px) 70vw, 997px" />
