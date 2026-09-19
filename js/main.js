@@ -414,111 +414,142 @@
     });
   }
 
-  /* ---------------- Hero Scroll Transition ---------------- */
+  /* ---------------- Scroll-driven effects ----------------
+     One scroll listener and one rAF per frame, with every measurement taken
+     before any style is written. Previously the hero transition, the
+     Technology reveal, the nav hide and the footer parallax each registered
+     their own unthrottled listener, and each interleaved getBoundingClientRect
+     with style writes — so a single scroll event forced layout several times
+     over. Visual output is unchanged; only the scheduling differs. */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
   var hero = document.getElementById("home");
-  if (hero && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    var updateScroll = function () {
-      var scrollY = window.scrollY;
-      if (hero && scrollY > hero.offsetHeight - 100) {
-        document.body.classList.add('is-scrolled');
-      } else {
-        document.body.classList.remove('is-scrolled');
-      }
-
-      var rect = hero.getBoundingClientRect();
-      var scrolled = -rect.top;
-      var maxScroll = rect.height - window.innerHeight;
-      if (maxScroll > 0) {
-        var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-        hero.style.setProperty('--scroll-p', progress);
-      }
-    };
-    window.addEventListener("scroll", updateScroll, { passive: true });
-    window.addEventListener("resize", updateScroll, { passive: true });
-    updateScroll();
-  }
-
-  /* ---------------- Technology Reveal Transition ---------------- */
+  var fogOverlay = document.querySelector(".hero__fog-overlay");
   var tech = document.getElementById("technology");
-  if (tech && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    var updateTechScroll = function () {
-      var rect = tech.getBoundingClientRect();
-      var start = window.innerHeight; // entering viewport
-      var end = window.innerHeight - 300; // 300px into viewport
-      // Calculate progress 0 to 1
-      var progress = 1 - Math.max(0, Math.min(1, (rect.top - end) / (start - end)));
-      tech.style.setProperty('--tech-scroll-p', progress);
-    };
-    window.addEventListener("scroll", updateTechScroll, { passive: true });
-    window.addEventListener("resize", updateTechScroll, { passive: true });
-    updateTechScroll();
-  }
-
-  /* ---------------- Nav hide on scroll down ---------------- */
   var nav = document.querySelector(".nav");
   var brandPill = document.querySelector(".brand-pill");
   var brandMobile = document.querySelector(".brand-mobile");
   var hamburger = document.querySelector(".hamburger");
-  
-  if (nav || brandPill) {
-    var lastScrollY = window.scrollY;
-    window.addEventListener("scroll", function() {
-      var currentScrollY = window.scrollY;
-      
-      // We only want to trigger hide when scrolled past a small threshold (e.g., 50px)
-      // to ensure it is fully visible at the absolute top of the Hero.
-      if (currentScrollY > 50 && currentScrollY > lastScrollY) {
-        // Scrolling DOWN
-        if (nav) nav.classList.add("is-hidden");
-        if (brandPill) brandPill.style.transform = "translateY(-250%)";
-        if (brandMobile) brandMobile.style.transform = "translateY(-250%)";
-        if (hamburger) hamburger.style.transform = "translateY(-250%)";
-      } else {
-        // Scrolling UP or at top
-        if (nav) nav.classList.remove("is-hidden");
-        if (brandPill) brandPill.style.transform = "translateY(0)";
-        if (brandMobile) brandMobile.style.transform = "translateY(0)";
-        if (hamburger) hamburger.style.transform = "translateY(0)";
-      }
-      
-      lastScrollY = currentScrollY;
-    }, { passive: true });
-  }
-
-  /* ---------------- Footer Cinematic Reveal ---------------- */
   var footer = document.querySelector(".footer");
   var clouds = document.querySelector(".footer__clouds");
   var footerInner = document.querySelector(".footer__inner");
-  if (footer && clouds && footerInner) {
-    var updateFooterParallax = function() {
-      var rect = footer.getBoundingClientRect();
-      var start = window.innerHeight;
-      var maxScroll = rect.height;
-      var scrolled = start - rect.top; 
-      
-      if (scrolled > 0 && scrolled <= start + maxScroll) {
-        var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-        var footerY = (1 - progress) * 100; 
-        var cloudY = (1 - progress) * 200; 
-        
-        footerInner.style.transform = "translateY(" + footerY + "px)";
-        clouds.style.transform = "translateY(" + cloudY + "px)";
-        footerInner.style.opacity = progress;
-        clouds.style.opacity = progress;
-      } else if (scrolled > start + maxScroll) {
+
+  var lastScrollY = window.scrollY;
+  var chromeHidden = false;
+  var bodyScrolled = false;
+  var frame = 0;
+
+  /* Bottom edge of the fixed chrome, used to decide when it is sitting over
+     the white fog rather than the blue sky. Cached because it only moves on
+     resize, never on scroll. */
+  var chromeBottom = 110;
+  var measureChrome = function () {
+    var el = nav && nav.offsetParent !== null ? nav : brandMobile;
+    if (el) {
+      var r = el.getBoundingClientRect();
+      if (r.height) chromeBottom = r.top + r.height;
+    }
+  };
+
+  var setChromeHidden = function (hidden) {
+    if (hidden === chromeHidden) return;
+    chromeHidden = hidden;
+    if (nav) nav.classList.toggle("is-hidden", hidden);
+    if (brandPill) brandPill.classList.toggle("is-hidden", hidden);
+    if (brandMobile) brandMobile.classList.toggle("is-hidden", hidden);
+    if (hamburger) hamburger.classList.toggle("is-hidden", hidden);
+  };
+
+  var onFrame = function () {
+    frame = 0;
+
+    var vh = window.innerHeight;
+    var scrollY = window.scrollY;
+    var still = reduceMotion.matches;
+
+    /* ---- reads ---- */
+    var heroRect = hero ? hero.getBoundingClientRect() : null;
+    var techRect = tech && !still ? tech.getBoundingClientRect() : null;
+    var footerRect = footer && clouds && footerInner ? footer.getBoundingClientRect() : null;
+
+    /* ---- writes ---- */
+    var heroP = 0;
+    if (heroRect) {
+      var heroMax = heroRect.height - vh;
+      if (heroMax > 0) heroP = Math.max(0, Math.min(1, -heroRect.top / heroMax));
+      if (fogOverlay && !still) {
+        // Set on the fog overlay rather than the hero, so the custom property
+        // only invalidates the four fog layers instead of the whole hero tree.
+        fogOverlay.style.setProperty("--scroll-p", heroP);
+      }
+
+      /* The chrome turns dark once the white fog has risen past it. Derived
+         from the fog's own geometry rather than a scroll constant: the old
+         test (`scrollY > hero.offsetHeight - 100`) fired hundreds of pixels
+         late, leaving white labels on an already-white background.
+         The sticky pane pins at 0 until the hero's bottom enters the viewport;
+         the fog's opaque-white stop sits 50vh into a layer anchored one
+         viewport below it and travelling 100vh up. */
+      var stickyTop = Math.min(0, heroRect.bottom - vh);
+      var whiteFront = stickyTop + vh * (1.5 - heroP);
+      var overWhite = bodyScrolled
+        ? whiteFront < chromeBottom + 24 // 24px band so it cannot flicker
+        : whiteFront <= chromeBottom;
+      if (overWhite !== bodyScrolled) {
+        bodyScrolled = overWhite;
+        document.body.classList.toggle("is-scrolled", overWhite);
+      }
+    }
+
+    if (techRect) {
+      var start = vh; // entering viewport
+      var end = vh - 300; // 300px into viewport
+      var techP = 1 - Math.max(0, Math.min(1, (techRect.top - end) / (start - end)));
+      tech.style.setProperty("--tech-scroll-p", techP);
+    }
+
+    // Hide when scrolling down past 50px, show on any upward move.
+    if (scrollY !== lastScrollY) {
+      setChromeHidden(scrollY > 50 && scrollY > lastScrollY);
+      lastScrollY = scrollY;
+    }
+
+    if (footerRect) {
+      var fMax = footerRect.height;
+      var fScrolled = vh - footerRect.top;
+      if (fScrolled > 0 && fScrolled <= vh + fMax) {
+        var fP = Math.max(0, Math.min(1, fScrolled / fMax));
+        footerInner.style.transform = "translateY(" + (1 - fP) * 100 + "px)";
+        clouds.style.transform = "translateY(" + (1 - fP) * 200 + "px)";
+        footerInner.style.opacity = fP;
+        clouds.style.opacity = fP;
+      } else if (fScrolled > vh + fMax) {
         footerInner.style.transform = "translateY(0)";
         clouds.style.transform = "translateY(0)";
         footerInner.style.opacity = 1;
         clouds.style.opacity = 1;
-      } else if (scrolled <= 0) {
+      } else {
         footerInner.style.opacity = 0;
         clouds.style.opacity = 0;
       }
-    };
-    window.addEventListener("scroll", updateFooterParallax, { passive: true });
-    window.addEventListener("resize", updateFooterParallax, { passive: true });
-    updateFooterParallax();
-  }
+    }
+  };
+
+  var requestFrame = function () {
+    if (!frame) frame = window.requestAnimationFrame(onFrame);
+  };
+
+  window.addEventListener("scroll", requestFrame, { passive: true });
+  window.addEventListener(
+    "resize",
+    function () {
+      measureChrome();
+      requestFrame();
+    },
+    { passive: true }
+  );
+  measureChrome();
+  requestFrame();
 })();
 
 

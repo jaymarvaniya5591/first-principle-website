@@ -121,12 +121,27 @@
   --f-anton: "Anton", "Anton Fallback", Impact, sans-serif;
   --f-script: "Billion Dreams", "Script Fallback", cursive;
 
+  /* The hero fog is a CSS background, so it cannot use <picture>. Declared once
+     here so the three fog layers share one decoded image, with modern formats
+     swapped in where supported (581KB PNG -> 16KB AVIF, pixel-identical). */
+  --fog-img: url("../assets/img/fog-new.png");
+
   /* Product card shadow from the Figma component (5 layers) */
   --card-shadow:
     0 0.8125rem 0.90625rem rgba(0, 0, 0, 0.1),
     0 3.3125rem 1.65625rem rgba(0, 0, 0, 0.09),
     0 7.4375rem 2.21875rem rgba(0, 0, 0, 0.05),
     0 13.1875rem 2.625rem rgba(0, 0, 0, 0.01);
+}
+
+@supports (background-image: image-set(url("a.avif") type("image/avif"))) {
+  :root {
+    --fog-img: image-set(
+      url("../assets/img/fog-new.avif") type("image/avif"),
+      url("../assets/img/fog-new.webp") type("image/webp"),
+      url("../assets/img/fog-new.png") type("image/png")
+    );
+  }
 }
 
 /* ---------- Base ---------- */
@@ -193,7 +208,9 @@ img {
   transition:
     opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
     transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  /* No `will-change` here on purpose. It was pinning a compositor layer for
+     every reveal element for the whole session; Chrome already promotes an
+     element while an opacity/transform transition is actually running. */
 }
 .reveal-up.is-revealed {
   opacity: 1;
@@ -430,11 +447,17 @@ img {
   left: -10vw;
   right: -10vw;
   top: 100%; /* Anchor to the absolute bottom of the hero */
-  height: 250vh; /* Extremely tall so bottom edge is never visible */
   will-change: transform;
 }
 .hero__fog-layer--1 {
-  background:
+  /* Only this layer needs the full height: its gradient paints solid white
+     from 50vh all the way down. Layers 2 and 3 paint nothing below their
+     background-size, so they are sized to their artwork instead — each was
+     previously a 120vw x 250vh composited layer holding mostly empty pixels. */
+  height: 250vh;
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-image:
     linear-gradient(
       to bottom,
       rgba(255, 255, 255, 0) 0vh,
@@ -442,7 +465,7 @@ img {
       #ffffff 50vh,
       #ffffff 250vh
     ),
-    url("../assets/img/fog-new.png") no-repeat center top;
+    var(--fog-img);
   background-size:
     100% 250vh,
     100vw 50vh;
@@ -452,14 +475,16 @@ img {
   z-index: 5;
 }
 .hero__fog-layer--2 {
-  background: url("../assets/img/fog-new.png") no-repeat center top;
+  height: 60vh;
+  background: var(--fog-img) no-repeat center top;
   background-size: 120vw 60vh;
   opacity: 0.8;
   transform: translateY(calc(var(--scroll-p, 0) * -110vh)) scaleX(-1);
   z-index: 6;
 }
 .hero__fog-layer--3 {
-  background: url("../assets/img/fog-new.png") no-repeat center top;
+  height: 80vh;
+  background: var(--fog-img) no-repeat center top;
   background-size: 150vw 80vh;
   opacity: 0.6;
   transform: translateY(calc(var(--scroll-p, 0) * -120vh));
@@ -494,6 +519,14 @@ img {
   line-height: 1;
   color: var(--white);
   white-space: nowrap;
+}
+
+/* Hide-on-scroll-down. These were inline styles rewritten on every scroll
+   event; as classes they are set only when the state actually changes. */
+.brand-pill.is-hidden,
+.brand-mobile.is-hidden,
+.hamburger.is-hidden {
+  transform: translateY(-250%);
 }
 
 /* Mobile brand + hamburger (hidden on desktop) */
