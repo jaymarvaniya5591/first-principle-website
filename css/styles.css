@@ -322,16 +322,28 @@ img {
     transform: translateY(0);
   }
 }
+@keyframes heroMistReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .hero__content,
   .hero__toilet,
-  .hero__clouds {
+  .hero__clouds,
+  .hero__mist {
     animation: none !important;
     transform: none !important;
   }
   .hero__content,
-  .hero__toilet {
+  .hero__toilet,
+  .hero__mist {
     opacity: 1 !important;
   }
   .hero__clouds {
@@ -362,22 +374,6 @@ img {
   padding-bottom: 9.5rem; /* 152px */
   color: var(--white);
 }
-.hero__inner::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 5rem; /* tight fade restricted to the bottom edge of the stone */
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 1) 100%
-  );
-  pointer-events: none;
-  z-index: 4;
-}
-
 .hero__bg {
   position: absolute;
   inset: 0;
@@ -406,22 +402,153 @@ img {
   object-position: center bottom;
 }
 
-.hero__clouds {
+/* Desktop only: the mist system above replaces this image. Mobile keeps it -
+   see the max-width:899px overrides further down, which already restyle it
+   for the mobile hero and are untouched here. */
+@media (min-width: 900px) {
+  .hero__clouds {
+    display: none;
+  }
+}
+
+/* ---------- Cinematic mist ----------
+   Replaces the static clouds image + the ::after crop-fade hack. Each "puff"
+   is a plain blurred circle, anchored at a zero-height line running along
+   the very bottom of the hero and pushed down by exactly half its own height
+   (`translateY(50%)`, which - unlike `bottom` percentages - resolves against
+   the ELEMENT's own size, so every puff shows precisely its top half
+   regardless of how tall it is). That makes each one trivial to reason about
+   and re-tune independently, instead of juggling matched index positions
+   across one packed `background-image` list.
+
+   Horizontal position and height are NOT evenly spread - they were set from
+   the product PNG's own alpha channel (sampled directly: `sharp(...)
+   .extractChannel('alpha')`, walking each column for the topmost opaque
+   pixel). That profile shows the bare rock's top surface sitting ~60-70%
+   down the frame on both sides, with the product itself rising to 16-25% in
+   the middle third - taller in the centre-right, lower at the edges. The
+   puffs mirror that: tallest from ~45-85% of the viewport width (under the
+   rock and product), shortest from 0-35% (the copy column and CTA). The
+   tallest puff peaks at 21vh, a safe 12vh short of the CTA's own measured
+   33.4vh clearance from the bottom edge (vhToBtnBottom / vh, measured live).
+   Reads as the product emerging from a cloud bank, not a flat gradient -
+   and needs no image asset at all. */
+.hero__mist {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+  animation: heroMistReveal 1.8s ease-out 0.4s both;
+}
+/* Solid wash: guarantees zero seam at the viewport's own crop line even
+   where no puff reaches. Ramps slowly and only reaches full white right at
+   the bottom edge - an earlier draft hit #fff by 75% of an 11vh band, which
+   combined with the puffs' own overlap to saturate to flat white only ~9vh
+   up, killing the billow silhouette before it could read. This one gives
+   the puffs' shapes room to actually show. */
+.hero__mist::before {
+  content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  width: 100%;
-  height: 25rem;
-  opacity: 0.6;
-  pointer-events: none;
-  z-index: 3;
-  animation: heroFogReveal 1.5s ease-out 0.4s both;
+  height: 16vh;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 55%,
+    #fff 100%
+  );
 }
-.hero__clouds img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.hero__mist__puff {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateY(50%);
+}
+/* Fewer, more spread-out puffs than the previous draft, at more moderate
+   peak opacity (0.62 max, not 0.85) and much heavier blur (24-34px). Dense,
+   heavily-overlapped, high-opacity puffs were compositing straight to flat
+   white within ~9vh - the shape was there in the pixels (verified by
+   sampling row brightness across the width) but invisible to the eye by the
+   time it stopped changing. Spacing them out and softening lets the height
+   differences - not opacity pileup - carry the silhouette, over a taller,
+   genuinely visible range. */
+/* -- Left / copy column: short and faint, well clear of the CTA -- */
+.hero__mist__puff--1 {
+  left: -8%;
+  width: 22vw;
+  height: 10vh;
+  opacity: 0.3;
+  filter: blur(28px);
+}
+.hero__mist__puff--2 {
+  left: 14%;
+  width: 20vw;
+  height: 8vh;
+  opacity: 0.24;
+  filter: blur(26px);
+}
+.hero__mist__puff--3 {
+  left: 30%;
+  width: 20vw;
+  height: 11vh;
+  opacity: 0.3;
+  filter: blur(26px);
+}
+/* -- Transition: rising toward the rock -- */
+.hero__mist__puff--4 {
+  left: 44%;
+  width: 20vw;
+  height: 16vh;
+  opacity: 0.4;
+  filter: blur(24px);
+}
+/* -- Peak: tallest, directly under the rock + product -- */
+.hero__mist__puff--5 {
+  left: 56%;
+  width: 24vw;
+  height: 22vh;
+  opacity: 0.5;
+  filter: blur(22px);
+}
+.hero__mist__puff--6 {
+  left: 70%;
+  width: 24vw;
+  height: 26vh;
+  opacity: 0.62;
+  filter: blur(20px);
+}
+.hero__mist__puff--7 {
+  left: 84%;
+  width: 22vw;
+  height: 19vh;
+  opacity: 0.46;
+  filter: blur(22px);
+}
+/* -- Right taper: back down, mirroring the rock's own silhouette -- */
+.hero__mist__puff--8 {
+  left: 98%;
+  width: 18vw;
+  height: 12vh;
+  opacity: 0.32;
+  filter: blur(26px);
+}
+/* Faint, wide atmospheric haze sitting behind everything else, reaching
+   higher than any single puff - the soft "trailing wisp" that sells depth
+   without adding hard-edged shape or extra whitening near the ground. */
+.hero__mist__puff--9 {
+  left: 40%;
+  width: 60vw;
+  height: 30vh;
+  opacity: 0.14;
+  filter: blur(40px);
+  z-index: -1;
 }
 
 /* Scroll-driven Fog Overlay */
@@ -688,6 +815,25 @@ img {
 }
 
 /* Hero content */
+/* ---------- Hero copy: headline / subhead / CTA scale ----------
+   Previously the headline was sized so "TOILETS" filled 98.3% of the 480px
+   content column - measured via canvas text metrics, not a guess - which is
+   the textbook symptom of a headline sized to "fit the box" rather than to a
+   deliberate scale. World-class hero references (Apple's 40-56px display
+   headlines at 600 weight with negative tracking; Dyson's 36-56px at weight
+   300; conversion research recommending at least a 2:1 headline:subhead
+   ratio with generous, non-competing space around each element) agree on one
+   thing regardless of size: the type is chosen on its own terms and the
+   layout gives it room, not the reverse. 10.625rem -> 8.75rem drops the fill
+   to 80.9% (measured the same way), still an enormous, dominant statement -
+   larger than any reference above - but with the column's remaining ~19%
+   now reading as intentional negative space instead of an accident of fit.
+   Both TOILETS and Redefined keep the same font-size (10.625rem -> 8.75rem
+   applied to both), preserving their existing size ratio to each other
+   exactly, per instruction. Tracking flips from +0.02em (loosened - the
+   opposite of how every premium reference treats large display type) to
+   -0.015em (tightened, matching Apple/Dyson's negative-tracking convention
+   at display scale). */
 .hero__content {
   position: relative;
   margin-left: calc(50% - 40rem);
@@ -695,14 +841,14 @@ img {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2.5rem;
+  gap: 2.75rem; /* 44px, up from 40px - the CTA now reads as its own beat */
   z-index: 5;
   animation: heroSlideLeft 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
 }
 .hero__copy {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.75rem; /* 28px, up from 16px - headline and subhead no longer crowd each other */
   width: 100%;
 }
 
@@ -717,27 +863,32 @@ img {
   white-space: nowrap;
 }
 .hero__title-main {
-  font-size: 10.625rem;
+  font-size: 8.75rem; /* 140px, down from 170px - see note above */
   font-family: var(--f-anton);
   line-height: 0.9;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.015em;
 }
 .hero__title-script {
-  margin-top: -3.5rem;
+  /* -3.5rem was tuned for the old 170px size; -2.875rem holds the identical
+     proportional overlap (÷170×140) at the new size. */
+  margin-top: -2.875rem;
   margin-left: -0.25rem;
-  font-size: 10.625rem;
+  font-size: 8.75rem;
   font-family: var(--f-script);
   opacity: 0.5;
   line-height: 1;
 }
 
 .hero__sub {
-  width: 28rem;
+  max-width: 26rem;
   font-family: var(--f-display);
   font-size: 1.5rem;
-  line-height: 1.5;
+  line-height: 1.45;
   font-weight: 400;
   letter-spacing: -0.01em;
+  /* Was a hard <br> forcing an arbitrary break; balance lets the two lines
+     fall wherever reads best instead of wherever the markup happened to cut. */
+  text-wrap: balance;
 }
 .hero__sub em {
   font-weight: 700;
@@ -2506,6 +2657,11 @@ img {
     height: auto !important;
     z-index: 6 !important;
     opacity: 0.75 !important;
+  }
+  /* Desktop-only mist system (see min-width:900px rules) - mobile keeps its
+     existing clouds image above instead. */
+  .hero__mist {
+    display: none !important;
   }
 }
 

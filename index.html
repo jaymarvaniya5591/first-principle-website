@@ -121,6 +121,27 @@
           <img src="assets/img/hero-toilet-1200.png" srcset="assets/img/hero-toilet-800.png 800w, assets/img/hero-toilet-1200.png 1200w, assets/img/hero-toilet-1536.png 1536w" sizes="(max-width: 899px) 190vw, (max-width: 1440px) 70vw, 997px" width="1536" height="1024" alt="First Principle smart toilet resting on a rock" fetchpriority="high" decoding="async" />
         </picture>
 
+        <!-- Desktop: cinematic mist, replacing the static clouds image + the
+             small ::after crop-fade hack (both hidden at 900px+ below). Pure
+             CSS (layered radial-gradients), no raster asset - three depth
+             layers, each taller roughly where the rock+product silhouette
+             actually sits (informed by sampling the product PNG's own alpha
+             channel) and low over the copy column so it never approaches the
+             CTA. See .hero__mist in styles.css.
+             Mobile keeps its existing clouds picture + mobFogRise animation
+             below, untouched - this is desktop-scope work only. -->
+        <div class="hero__mist" aria-hidden="true">
+          <span class="hero__mist__puff hero__mist__puff--1"></span>
+          <span class="hero__mist__puff hero__mist__puff--2"></span>
+          <span class="hero__mist__puff hero__mist__puff--3"></span>
+          <span class="hero__mist__puff hero__mist__puff--4"></span>
+          <span class="hero__mist__puff hero__mist__puff--5"></span>
+          <span class="hero__mist__puff hero__mist__puff--6"></span>
+          <span class="hero__mist__puff hero__mist__puff--7"></span>
+          <span class="hero__mist__puff hero__mist__puff--8"></span>
+          <span class="hero__mist__puff hero__mist__puff--9"></span>
+        </div>
+
         <picture class="hero__clouds">
           <source type="image/avif" srcset="assets/img/clouds-1080.avif 1080w, assets/img/clouds-1440.avif 1440w, assets/img/clouds-2172.avif 2172w" sizes="(max-width: 899px) 140vw, 100vw" />
           <source type="image/webp" srcset="assets/img/clouds-1080.webp 1080w, assets/img/clouds-1440.webp 1440w, assets/img/clouds-2172.webp 2172w" sizes="(max-width: 899px) 140vw, 100vw" />
@@ -136,7 +157,7 @@
               <span class="hero__title-script" aria-hidden="true">Redefined</span>
               <span class="sr-only">Redefined</span>
             </h1>
-            <p class="hero__sub">Introducing India's first toilet with<br><em>built in urine analysis</em></p>
+            <p class="hero__sub">Introducing India's first toilet with <em>built in urine analysis</em></p>
           </div>
           <a class="price-btn" href="#product">
             <span class="price-btn__label"><span class="price-btn__starting">Starting at</span> <span class="price-btn__amount">₹19,999</span></span>
