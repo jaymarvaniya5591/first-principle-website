@@ -435,15 +435,15 @@
 
   var lastScrollY = window.scrollY;
   var chromeHidden = false;
-  var barElevated = false;
   var bodyScrolled = false;
   var frame = 0;
 
-  /* Bottom edge of the fixed chrome, used only by the mobile ink-flip below
-     (`.brand-mobile` inverts once past the hero's white fog). The desktop
-     .topbar no longer flips ink - it is one frosted-white treatment
-     throughout - so on desktop this measurement is unused. Cached because it
-     only moves on resize, never on scroll. */
+  /* Bottom edge of the fixed chrome. Used to tell whether the bar is sitting
+     over the hero's flat sky (nothing behind it worth a glass treatment) or
+     over real content (the fog's texture rising in, or the page beyond it) -
+     drives both the mobile brand-mark ink-flip and the desktop .topbar's
+     merge/glass toggle below. Cached because it only moves on resize, never
+     on scroll. */
   var chromeBottom = 110;
   var measureChrome = function () {
     var el = topbar && topbar.offsetParent !== null ? topbar : brandMobile;
@@ -486,21 +486,33 @@
         fogOverlay.style.setProperty("--scroll-p", heroP);
       }
 
-      /* The chrome turns dark once the white fog has risen past it. Derived
-         from the fog's own geometry rather than a scroll constant: the old
-         test (`scrollY > hero.offsetHeight - 100`) fired hundreds of pixels
-         late, leaving white labels on an already-white background.
+      /* The chrome turns dark (and the desktop glass fades in) once the fog's
+         cloud texture is APPROACHING the bar - not once it is already fully
+         opaque white there. `whiteFront` is the fog's opaque-white boundary;
+         its own cloud artwork starts fading in ~50vh above that boundary, so
+         triggering right at `whiteFront <= chromeBottom` (the old test) meant
+         the switch happened only once the bar already had faint cloud haze
+         behind it, which is exactly when white-on-white starts losing
+         contrast. ACTIVATE_LEAD pulls the trigger ~500px earlier, while the
+         sky behind the bar is still genuinely flat, so the crossfade always
+         finishes before there is anything to lose contrast against. Verified
+         by screenshotting the transition zone at several scroll depths.
          The sticky pane pins at 0 until the hero's bottom enters the viewport;
          the fog's opaque-white stop sits 50vh into a layer anchored one
          viewport below it and travelling 100vh up. */
+      var ACTIVATE_LEAD = 550;
       var stickyTop = Math.min(0, heroRect.bottom - vh);
       var whiteFront = stickyTop + vh * (1.5 - heroP);
       var overWhite = bodyScrolled
-        ? whiteFront < chromeBottom + 24 // 24px band so it cannot flicker
-        : whiteFront <= chromeBottom;
+        ? whiteFront < chromeBottom + ACTIVATE_LEAD + 100 // wide band so it cannot flicker
+        : whiteFront <= chromeBottom + ACTIVATE_LEAD;
       if (overWhite !== bodyScrolled) {
         bodyScrolled = overWhite;
         document.body.classList.toggle("is-scrolled", overWhite);
+        // Content-aware glass: merges into the flat sky when there is nothing
+        // behind it, fades the glass in and flips ink dark the moment real
+        // content (fog texture, then the page) approaches.
+        if (topbar) topbar.classList.toggle("is-active", overWhite);
       }
     }
 
@@ -515,17 +527,6 @@
     if (scrollY !== lastScrollY) {
       setChromeHidden(scrollY > 50 && scrollY > lastScrollY);
       lastScrollY = scrollY;
-    }
-
-    // Desktop bar: thickens slightly once scrolled past the very top. Not
-    // tied to the hide logic above - the bar is always visible, this just
-    // deepens its frost, mirroring the reference bar's own scroll behaviour.
-    if (topbar) {
-      var elevated = scrollY > 20;
-      if (elevated !== barElevated) {
-        barElevated = elevated;
-        topbar.classList.toggle("is-elevated", elevated);
-      }
     }
 
     if (footerRect) {

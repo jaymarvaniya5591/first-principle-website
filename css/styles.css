@@ -501,7 +501,7 @@ img {
    never hiding on scroll (only deepening its frost past scrollY 20px).
    ========================================================================== */
 .topbar {
-  --bg-color: rgba(255, 255, 255, 0.3);
+  --bg-color: rgba(255, 255, 255, 0.34);
   --highlight: rgba(255, 255, 255, 0.9);
 
   position: fixed;
@@ -512,16 +512,31 @@ img {
   height: 4.5rem; /* 72px */
   overflow: hidden;
 }
-.topbar.is-elevated {
-  --bg-color: rgba(255, 255, 255, 0.55);
-}
 
+/* Content-aware glass: while the bar sits over the hero's flat sky, there is
+   nothing behind it worth blurring or distorting, so all three glass layers
+   stay fully transparent and the bar visually merges into the background -
+   only the logo and nav labels (in white) are visible, painted directly on
+   the sky. The instant real content approaches - the fog's cloud texture
+   rising in, or the white page sections and their photos/cards once past the
+   hero - `.is-active` fades the glass in and flips the ink dark. Driven by
+   the same fog-front geometry that used to gate the old ink-invert hack (see
+   main.js), not a plain scrollY threshold, so it engages exactly when there
+   is something behind the bar rather than after an arbitrary distance. */
 .glass-filter,
 .glass-overlay,
 .glass-specular {
   position: absolute;
   inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-standard);
 }
+.topbar.is-active .glass-filter,
+.topbar.is-active .glass-overlay,
+.topbar.is-active .glass-specular {
+  opacity: 1;
+}
+
 .glass-filter {
   z-index: 1;
   /* Blur intentionally light (6px, vs. a more typical 14-20px frosted panel):
@@ -534,7 +549,6 @@ img {
 .glass-overlay {
   z-index: 2;
   background: var(--bg-color);
-  transition: background 0.35s var(--ease-standard);
 }
 .glass-specular {
   z-index: 3;
@@ -544,6 +558,9 @@ img {
   border-bottom: 1px solid rgba(17, 17, 17, 0.05);
 }
 
+/* Logo + nav centred as three independent columns, so the nav links sit on
+   the bar's true centreline regardless of the logo's width - not just
+   right-aligned against it. */
 .topbar__inner {
   position: relative;
   z-index: 4;
@@ -551,26 +568,36 @@ img {
   height: 100%;
   margin: 0 auto;
   padding: 0 1.25rem;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
 }
 
 .topbar__brand {
   display: flex;
   align-items: center;
-  flex: 0 0 auto;
+  justify-self: start;
 }
 .topbar__logo {
   display: block;
-  height: 2rem; /* 32px, ~99px wide at the source 256:83 ratio */
+  height: 2.75rem; /* 44px - up from 32px, bar height is unchanged */
   width: auto;
+  /* White over the hero (logo art is solid black-on-transparent, so a plain
+     invert gives a clean white silhouette without a second asset); flips to
+     its natural black once the bar goes active over lighter backgrounds.
+     invert() interpolates smoothly, so this crossfades rather than snapping. */
+  filter: invert(1);
+  transition: filter 0.35s var(--ease-standard);
+}
+.topbar.is-active .topbar__logo {
+  filter: invert(0);
 }
 
 .topbar__nav {
   display: flex;
   align-items: center;
   gap: 2rem;
+  justify-self: center;
 }
 
 .nav__item {
@@ -578,10 +605,16 @@ img {
   font-family: var(--f-display);
   font-weight: 500;
   font-size: 0.9375rem;
+  color: var(--white);
+  opacity: 0.82;
+  white-space: nowrap;
+  transition:
+    color 0.35s var(--ease-standard),
+    opacity 0.25s ease;
+}
+.topbar.is-active .nav__item {
   color: var(--ink);
   opacity: 0.62;
-  white-space: nowrap;
-  transition: opacity 0.25s ease;
 }
 .nav__item::after {
   content: "";
