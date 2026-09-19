@@ -47,6 +47,9 @@ const FACES = {
   "HelveticaNowDisplayBdIt.otf": ["helvetica-now-700i", "Helvetica Now Display", "Bold Italic"],
   "HelveticaNeue-Regular.ttf": ["helvetica-neue-400", "Helvetica Neue", "Regular"],
   "HelveticaNeue-Medium.ttf": ["helvetica-neue-500", "Helvetica Neue", "Medium"],
+  "HelveticaNowText-Regular.ttf": ["helvetica-now-text-400", "Helvetica Now Text", "Regular"],
+  "HelveticaNowText-Medium.ttf": ["helvetica-now-text-500", "Helvetica Now Text", "Medium"],
+  "HelveticaNowText-Bold.ttf": ["helvetica-now-text-700", "Helvetica Now Text", "Bold"],
 };
 
 /** Character set: Basic Latin, Latin-1 Supplement, general punctuation, rupee sign. */

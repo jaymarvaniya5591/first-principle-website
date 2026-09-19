@@ -34,6 +34,9 @@
   <link rel="preload" href="assets/fonts/helvetica-now-700.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/helvetica-now-700i.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="assets/fonts/helvetica-now-300.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- Nav buttons + hero subtext: a different optical size of Helvetica Now, above the fold -->
+  <link rel="preload" href="assets/fonts/helvetica-now-text-400.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/helvetica-now-text-500.woff2" as="font" type="font/woff2" crossorigin />
   <!-- Hero LCP image -->
   <link rel="preload" as="image" type="image/avif"
         imagesrcset="assets/img/hero-toilet-800.avif 800w, assets/img/hero-toilet-1200.avif 1200w, assets/img/hero-toilet-1536.avif 1536w"
@@ -69,10 +72,25 @@
          and a bigger displacement scale so the puffs' edges actually fracture
          into irregular wisps rather than staying perfect blurred circles. -->
     <filter id="fp-cloud-distortion" x="-60%" y="-60%" width="220%" height="220%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.006 0.012" numOctaves="2" seed="4" result="cloudNoise" />
+      <!-- Slowly oscillating baseFrequency (not just a static value) is the
+           "morphing" technique for organic cloud motion: the noise pattern
+           itself drifts over 90s, so distorted puffs subtly reshape rather
+           than only sliding sideways via the CSS transform drift. id'd so
+           the inline script below can remove it for prefers-reduced-motion
+           - SMIL animations do not respond to that media query on their
+           own the way CSS animations do. -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.006 0.012" numOctaves="2" seed="4" result="cloudNoise">
+        <animate id="fp-cloud-morph" attributeName="baseFrequency" values="0.006 0.012; 0.0085 0.0135; 0.005 0.011; 0.006 0.012" dur="90s" repeatCount="indefinite" />
+      </feTurbulence>
       <feDisplacementMap in="SourceGraphic" in2="cloudNoise" scale="130" xChannelSelector="R" yChannelSelector="G" />
     </filter>
   </svg>
+  <script>
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      var m = document.getElementById("fp-cloud-morph");
+      if (m) m.remove();
+    }
+  </script>
 
   <header class="topbar" id="topbar">
     <div class="glass-filter"></div>
@@ -134,6 +152,7 @@
         <div class="hero__mist-behind" aria-hidden="true">
           <span class="hero__mist-behind__puff hero__mist-behind__puff--1"></span>
           <span class="hero__mist-behind__puff hero__mist-behind__puff--2"></span>
+          <span class="hero__mist-behind__puff hero__mist-behind__puff--3"></span>
         </div>
 
         <picture class="hero__toilet">
@@ -161,6 +180,8 @@
           <span class="hero__mist__puff hero__mist__puff--7"></span>
           <span class="hero__mist__puff hero__mist__puff--8"></span>
           <span class="hero__mist__puff hero__mist__puff--9"></span>
+          <span class="hero__mist__puff hero__mist__puff--10"></span>
+          <span class="hero__mist__puff hero__mist__puff--11"></span>
         </div>
 
         <picture class="hero__clouds">
@@ -182,45 +203,40 @@
           </div>
           <a class="price-btn" href="#product">
             <span class="price-btn__label"><span class="price-btn__starting">Starting at</span> <span class="price-btn__amount">₹19,999</span></span>
+            <!-- Standard Feather/Lucide "arrow-down-right" glyph - one
+                 diagonal line plus an L-shaped arrowhead bracket, drawn
+                 already pointing down-right (no rotation transform needed,
+                 which also rules it out as a source of the reported oval
+                 distortion - that was the circle's own width/height sync,
+                 now fixed with aspect-ratio in CSS). -->
             <span class="price-btn__circle" aria-hidden="true">
-              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="7" x2="17" y2="17" />
+                <polyline points="17 7 17 17 7 17" />
+              </svg>
             </span>
           </a>
-          <!-- Social proof: placeholder brand names (researched India's
-               largest luxury hotel groups - IHCL/Taj, ITC Hotels, The Leela,
-               Oberoi/EIH) cross-fading in the sentence below. Swap the four
-               .social-proof__brand-name spans for the confirmed client list
-               when available - nothing else needs to change. -->
+          <!-- Social proof, redesigned as one compact line to fit the space
+               freed up above: rating + a "Trusted by" logo row. Placeholder
+               brand names (researched India's largest luxury hotel groups -
+               IHCL/Taj, ITC Hotels, The Leela, Oberoi/EIH) - swap the four
+               .social-proof__logo spans for real logo marks/confirmed
+               client list when available. -->
           <div class="hero__social-proof">
-            <span class="social-proof__avatars" aria-hidden="true">
-              <span class="social-proof__avatar">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.42 0-9 2.24-9 5v2h18v-2c0-2.76-4.58-5-9-5Z"/></svg>
-              </span>
-              <span class="social-proof__avatar">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.42 0-9 2.24-9 5v2h18v-2c0-2.76-4.58-5-9-5Z"/></svg>
-              </span>
-              <span class="social-proof__avatar">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.42 0-9 2.24-9 5v2h18v-2c0-2.76-4.58-5-9-5Z"/></svg>
-              </span>
+            <span class="social-proof__stars" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
             </span>
-            <span class="social-proof__body">
-              <span class="social-proof__stars" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-              </span>
-              <span class="social-proof__text">
-                Trusted by
-                <span class="social-proof__brand">
-                  <span class="social-proof__brand-name social-proof__brand-name--1">The Leela Palace<span class="social-proof__brand-rest"> &amp; 1,000+ homes across India</span></span>
-                  <span class="social-proof__brand-name social-proof__brand-name--2">Taj Hotels<span class="social-proof__brand-rest"> &amp; 1,000+ homes across India</span></span>
-                  <span class="social-proof__brand-name social-proof__brand-name--3">ITC Hotels<span class="social-proof__brand-rest"> &amp; 1,000+ homes across India</span></span>
-                  <span class="social-proof__brand-name social-proof__brand-name--4">Oberoi Hotels<span class="social-proof__brand-rest"> &amp; 1,000+ homes across India</span></span>
-                </span>
-              </span>
-            </span>
+            <span class="social-proof__rating-num">4.9</span>
+            <span class="social-proof__divider" aria-hidden="true"></span>
+            <span class="social-proof__logos-label">Trusted by</span>
+            <span class="social-proof__logo">TAJ</span>
+            <span class="social-proof__logo social-proof__logo--script">The Leela</span>
+            <span class="social-proof__logo">ITC</span>
+            <span class="social-proof__logo">OBEROI</span>
           </div>
         </div>
         

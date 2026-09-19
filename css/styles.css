@@ -68,6 +68,31 @@
   font-display: swap;
 }
 
+/* Nav buttons + hero subtext only (per instruction) - a different optical
+   size within the same Helvetica Now family as --f-display above, not a
+   substitute for it elsewhere. */
+@font-face {
+  font-family: "Helvetica Now Text";
+  src: url("../assets/fonts/helvetica-now-text-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Now Text";
+  src: url("../assets/fonts/helvetica-now-text-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Helvetica Now Text";
+  src: url("../assets/fonts/helvetica-now-text-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Metric-matched local fallbacks: text renders at the final size while the
    web fonts load, so there is no layout shift on swap. Metrics come from the
    build script (ascent / descent / line gap / average advance, in em). */
@@ -118,6 +143,10 @@
 
   --f-display: "Helvetica Now Display", "HN Fallback", Arial, sans-serif;
   --f-neue: "Helvetica Neue", "Neue Fallback", Arial, sans-serif;
+  /* Its vertical metrics (ascent/descent/lineGap: 111%/36%/0%, from the build
+     script's font report) are identical to Helvetica Now Display's, so it
+     reuses "HN Fallback" rather than duplicating a near-identical face. */
+  --f-now-text: "Helvetica Now Text", "HN Fallback", Arial, sans-serif;
   --f-anton: "Anton", "Anton Fallback", Impact, sans-serif;
   --f-script: "Billion Dreams", "Script Fallback", cursive;
 
@@ -390,9 +419,12 @@ img {
 /* Toilet + rock */
 .hero__toilet {
   position: absolute;
-  /* Shifted 2.5rem (40px) left of the original calc(50% - 2rem), matching
-     .hero__content's rightward shift above - see that comment. */
-  left: calc(50% - 4.5rem);
+  /* Shifted further left again per the reference layout - the product was
+     overflowing well past the viewport's own right edge before (measured:
+     left 648px + width 928px = 1576px on a 1440px viewport, 136px of it
+     off-screen), where the reference keeps the whole rock+product inside
+     the frame with room to spare. */
+  left: calc(50% - 8.5rem);
   bottom: -6rem;
   width: 58rem;
   height: 38.66rem;
@@ -416,27 +448,16 @@ img {
 }
 
 /* ---------- Cinematic mist ----------
-   Replaces the static clouds image + the ::after crop-fade hack. Each "puff"
-   is a plain blurred circle, anchored at a zero-height line running along
-   the very bottom of the hero and pushed down by exactly half its own height
-   (`translateY(50%)`, which - unlike `bottom` percentages - resolves against
-   the ELEMENT's own size, so every puff shows precisely its top half
-   regardless of how tall it is). That makes each one trivial to reason about
-   and re-tune independently, instead of juggling matched index positions
-   across one packed `background-image` list.
-
-   Horizontal position and height are NOT evenly spread - they were set from
-   the product PNG's own alpha channel (sampled directly: `sharp(...)
-   .extractChannel('alpha')`, walking each column for the topmost opaque
-   pixel). That profile shows the bare rock's top surface sitting ~60-70%
-   down the frame on both sides, with the product itself rising to 16-25% in
-   the middle third - taller in the centre-right, lower at the edges. The
-   puffs mirror that: tallest from ~45-85% of the viewport width (under the
-   rock and product), shortest from 0-35% (the copy column and CTA). The
-   tallest puff peaks at 21vh, a safe 12vh short of the CTA's own measured
-   33.4vh clearance from the bottom edge (vhToBtnBottom / vh, measured live).
-   Reads as the product emerging from a cloud bank, not a flat gradient -
-   and needs no image asset at all. */
+   The previous version's heights rose and fell as one smooth curve across
+   x (low -> rising -> peak -> tapering back down) - internally consistent,
+   but that smoothness is exactly what reads as "designed"/uniform rather
+   than the patchy, irregular banks in the reference image. This version
+   deliberately breaks the curve: heights bounce up and down non-
+   monotonically (see the actual vh values below - they do not sort), so
+   the silhouette reads as drifting patches of ground fog, not a single
+   graded shape. Still permanently capped by the ::before wash below,
+   which guarantees the crop line itself is never bare regardless of how
+   the puffs above it move. */
 .hero__mist {
   position: absolute;
   left: 0;
@@ -448,23 +469,21 @@ img {
   overflow: visible;
   animation: heroMistReveal 1.8s ease-out 0.4s both;
 }
-/* Solid wash: guarantees zero seam at the viewport's own crop line even
-   where no puff reaches. Ramps slowly and only reaches full white right at
-   the bottom edge - an earlier draft hit #fff by 75% of an 11vh band, which
-   combined with the puffs' own overlap to saturate to flat white only ~9vh
-   up, killing the billow silhouette before it could read. This one gives
-   the puffs' shapes room to actually show. */
+/* Solid wash: this - not any single puff - is what guarantees the "barren
+   floor never revealed" requirement. It is not animated and does not
+   depend on any puff's position, so no drift amplitude or timing can ever
+   open a gap at the actual crop line. */
 .hero__mist::before {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 16vh;
+  height: 5vh;
   background: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.45) 55%,
+    rgba(255, 255, 255, 0.35) 60%,
     #fff 100%
   );
 }
@@ -475,166 +494,173 @@ img {
   background: #fff;
   transform: translateY(50%);
 }
-/* Fewer, more spread-out puffs than the previous draft, at more moderate
-   peak opacity (0.62 max, not 0.85) and much heavier blur (24-34px). Dense,
-   heavily-overlapped, high-opacity puffs were compositing straight to flat
-   white within ~9vh - the shape was there in the pixels (verified by
-   sampling row brightness across the width) but invisible to the eye by the
-   time it stopped changing. Spacing them out and softening lets the height
-   differences - not opacity pileup - carry the silhouette, over a taller,
-   genuinely visible range. */
-/* -- Left / copy column: short and faint, well clear of the CTA -- */
+/* -- Copy column (0-35%): low and faint, but not flat - a small bump/dip
+   pair instead of a smooth taper, well clear of the CTA either way -- */
 .hero__mist__puff--1 {
   left: -8%;
-  width: 22vw;
-  height: 10vh;
-  opacity: 0.3;
-  filter: blur(28px);
+  width: 18vw;
+  height: 4vh;
+  opacity: 0.15;
+  filter: blur(18px);
 }
 .hero__mist__puff--2 {
-  left: 14%;
-  width: 20vw;
-  height: 8vh;
-  opacity: 0.24;
-  filter: blur(26px);
+  left: 12%;
+  width: 16vw;
+  height: 6vh; /* bump - not smaller than #1 */
+  opacity: 0.19;
+  filter: blur(17px);
 }
 .hero__mist__puff--3 {
-  left: 30%;
-  width: 20vw;
-  height: 11vh;
-  opacity: 0.3;
-  filter: blur(26px);
+  left: 26%;
+  width: 16vw;
+  height: 3.5vh; /* dip */
+  opacity: 0.13;
+  filter: blur(16px);
 }
-/* -- Transition: rising toward the rock -- */
+/* -- Under the rock/product (35-100%): irregular peaks, not a bell curve.
+   Reading the heights in order: 8, 5, 10, 6.5, 9, 5 vh - up, down, up,
+   down, up, down. That non-monotonic pattern is the actual fix for
+   "uniform"; the rest (turbulence distortion, blur, behind-layer) all
+   already existed and were not the problem by themselves. -- */
 .hero__mist__puff--4 {
-  left: 44%;
-  width: 20vw;
-  height: 16vh;
-  opacity: 0.4;
-  filter: blur(24px);
+  left: 38%;
+  width: 17vw;
+  height: 8vh;
+  opacity: 0.28;
+  filter: blur(15px);
 }
-/* -- Peak: tallest, directly under the rock + product -- */
 .hero__mist__puff--5 {
-  left: 56%;
-  width: 24vw;
-  height: 22vh;
-  opacity: 0.5;
-  filter: blur(22px);
+  left: 48%;
+  width: 15vw;
+  height: 5vh;
+  opacity: 0.2;
+  filter: blur(16px);
 }
 .hero__mist__puff--6 {
-  left: 70%;
-  width: 24vw;
-  height: 26vh;
-  opacity: 0.62;
-  filter: blur(20px);
+  left: 58%;
+  width: 19vw;
+  height: 10vh;
+  opacity: 0.38;
+  filter: blur(13px);
 }
 .hero__mist__puff--7 {
-  left: 84%;
-  width: 22vw;
-  height: 19vh;
-  opacity: 0.46;
-  filter: blur(22px);
+  left: 68%;
+  width: 16vw;
+  height: 6.5vh;
+  opacity: 0.24;
+  filter: blur(15px);
 }
-/* -- Right taper: back down, mirroring the rock's own silhouette -- */
 .hero__mist__puff--8 {
-  left: 98%;
+  left: 79%;
   width: 18vw;
-  height: 12vh;
+  height: 9vh;
   opacity: 0.32;
-  filter: blur(26px);
+  filter: blur(14px);
 }
-/* Faint, wide atmospheric haze sitting behind everything else, reaching
-   higher than any single puff - the soft "trailing wisp" that sells depth
-   without adding hard-edged shape or extra whitening near the ground. */
 .hero__mist__puff--9 {
-  left: 40%;
-  width: 60vw;
-  height: 30vh;
-  opacity: 0.14;
-  filter: blur(40px);
-  z-index: -1;
+  left: 92%;
+  width: 15vw;
+  height: 5vh;
+  opacity: 0.2;
+  filter: blur(17px);
+}
+/* Two small, separate puffs drifting in open sky, away from the rock, at
+   different heights and sizes - the reference shows distinct little
+   clouds doing this, not every wisp hugging the ground, and two (not one)
+   avoids them reading as a single repeated copy-paste element. */
+.hero__mist__puff--10 {
+  left: 4%;
+  width: 9vw;
+  height: 5.5vh;
+  opacity: 0.3;
+  filter: url(#fp-cloud-distortion) blur(9px);
+  --ty: -180%;
+  transform: translateY(var(--ty));
+}
+.hero__mist__puff--11 {
+  left: 58%;
+  width: 6.5vw;
+  height: 4vh;
+  opacity: 0.22;
+  filter: blur(9px);
+  --ty: -340%;
+  transform: translateY(var(--ty));
 }
 
-/* The three tallest, most visually prominent puffs (directly under the
-   rock/product) get the turbulence distortion - applying it to all nine
-   would cost more per-frame filter work than the visual difference is worth
-   on the low, faint puffs over the copy column, which are barely visible
-   to begin with. url()+blur() combined in one filter list is the same
-   pattern already used for the navbar's glass effect elsewhere in this
-   file; browsers that don't support the SVG filter reference keep the
-   blur() and simply ignore that term. */
-.hero__mist__puff--5,
+/* Turbulence distortion applied to four puffs spread across the irregular
+   pattern above (not four consecutive ones - deliberately so the organic
+   edges don't cluster in one spot), same technique as the navbar's glass
+   effect elsewhere in this file. Reduced blur on these specific puffs so
+   the distortion survives (confirmed via a throwaway high-contrast test
+   that heavy blur alone smooths it back to invisible). */
+.hero__mist__puff--4,
 .hero__mist__puff--6,
-.hero__mist__puff--7 {
-  /* Confirmed via a throwaway high-contrast test (opaque navy fill, no
-     blur) that the filter itself produces a genuinely irregular, billowy
-     silhouette - the earlier all-white 18-20px-blur version wasn't broken,
-     it was just blurring a bump scale of roughly 20-40px back down to
-     near-invisible. Less blur here than the plain (undistorted) puffs so
-     the organic edge the distortion creates actually survives to be seen -
-     the irregularity itself now does some of the "soft edge" work blur
-     would otherwise have to. */
-  filter: url(#fp-cloud-distortion) blur(11px);
+.hero__mist__puff--8 {
+  filter: url(#fp-cloud-distortion) blur(7px);
 }
-.hero__mist__puff--6 {
-  filter: url(#fp-cloud-distortion) blur(10px);
+.hero__mist__puff--2 {
+  filter: url(#fp-cloud-distortion) blur(9px);
 }
 
 /* Very slow, subtle horizontal drift so the bank reads as alive rather than
-   a frozen graphic - your article's layered-parallax idea (technique #3),
-   staggered durations standing in for depth without literal multiple
-   image layers. Amplitudes are small (10-16px) and periods are long
-   (55-90s) on purpose: anything faster or wider reads as "moving graphic"
-   rather than "atmosphere", which is the opposite of what a hero product
-   shot needs. */
+   a frozen graphic. Amplitudes are small (6-10px) and periods are long
+   (55-95s) on purpose - anything faster reads as a moving graphic, not
+   atmosphere. */
 @keyframes mistDrift {
   0%,
   100% {
-    /* --ty defaults to the front puffs' own translateY(50%); the
-       behind-layer puffs below override --ty to match their own resting
-       translateY (42%/48%) so the animation doesn't reset it to 50% for
-       the whole time it's running. */
+    /* --ty defaults to the ground puffs' own translateY(50%); the two
+       floating puffs above override --ty to float clear of the ground
+       instead. */
     transform: translateY(var(--ty, 50%)) translateX(0);
   }
   50% {
-    transform: translateY(var(--ty, 50%)) translateX(var(--drift, 12px));
+    transform: translateY(var(--ty, 50%)) translateX(var(--drift, 8px));
   }
 }
 .hero__mist__puff--1 {
-  --drift: 10px;
+  --drift: 7px;
   animation: mistDrift 78s ease-in-out infinite;
 }
 .hero__mist__puff--2 {
-  --drift: -9px;
+  --drift: -6px;
   animation: mistDrift 65s ease-in-out infinite;
 }
 .hero__mist__puff--3 {
-  --drift: 11px;
+  --drift: 7px;
   animation: mistDrift 82s ease-in-out infinite;
 }
 .hero__mist__puff--4 {
-  --drift: -13px;
+  --drift: -8px;
   animation: mistDrift 60s ease-in-out infinite;
 }
 .hero__mist__puff--5 {
-  --drift: 14px;
+  --drift: 9px;
   animation: mistDrift 58s ease-in-out infinite;
 }
 .hero__mist__puff--6 {
-  --drift: -16px;
+  --drift: -10px;
   animation: mistDrift 50s ease-in-out infinite;
 }
 .hero__mist__puff--7 {
-  --drift: 12px;
+  --drift: 8px;
   animation: mistDrift 62s ease-in-out infinite;
 }
 .hero__mist__puff--8 {
-  --drift: -10px;
-  animation: mistDrift 70s ease-in-out infinite;
+  --drift: -9px;
+  animation: mistDrift 68s ease-in-out infinite;
 }
 .hero__mist__puff--9 {
-  --drift: 18px;
-  animation: mistDrift 92s ease-in-out infinite;
+  --drift: 6px;
+  animation: mistDrift 74s ease-in-out infinite;
+}
+.hero__mist__puff--10 {
+  --drift: 16px;
+  animation: mistDrift 45s ease-in-out infinite;
+}
+.hero__mist__puff--11 {
+  --drift: -13px;
+  animation: mistDrift 52s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .hero__mist__puff {
@@ -644,14 +670,11 @@ img {
 
 /* ---------- Behind-the-rock mist ----------
    Sits at z-index 1 (hero__bg is 0, hero__toilet is 2): straddles the
-   rock's own left edge (measured live at ~44.5% of the viewport width) so
-   roughly half of each puff is covered by the opaque product photo and the
-   other half is visible peeking out to its left against plain sky. That's
-   the one thing the front-only mist above structurally cannot do - without
-   this, the product can only ever look like it has cloud in front of it,
-   never cloud it is emerging out of. Soft and atmospheric on purpose: heavy
-   blur, moderate opacity, no distortion filter (they are large and diffuse
-   enough that the extra turbulence pass would not read at this softness). */
+   rock's own left edge so a sliver of each puff is covered by the opaque
+   product photo and the rest peeks out beside it - the one thing the
+   front-only mist above cannot do, and the concrete fix for "the back
+   should be covered too". Three puffs now (was two), staggered heights and
+   positions along that same edge, for more of a wrap than a single bump. */
 .hero__mist-behind {
   position: absolute;
   left: 0;
@@ -671,25 +694,36 @@ img {
 }
 .hero__mist-behind__puff--1 {
   left: 30%;
-  width: 26vw;
-  height: 30vh;
-  opacity: 0.4;
-  filter: blur(34px);
-  --ty: 42%;
+  width: 15vw;
+  height: 10vh;
+  opacity: 0.24;
+  filter: blur(21px);
+  --ty: 44%;
   transform: translateY(var(--ty));
   animation: mistDrift 85s ease-in-out infinite;
-  --drift: 13px;
+  --drift: 7px;
 }
 .hero__mist-behind__puff--2 {
-  left: 38%;
-  width: 20vw;
-  height: 24vh;
-  opacity: 0.32;
-  filter: blur(30px);
-  --ty: 48%;
+  left: 37%;
+  width: 10vw;
+  height: 6.5vh;
+  opacity: 0.17;
+  filter: blur(18px);
+  --ty: 50%;
   transform: translateY(var(--ty));
   animation: mistDrift 70s ease-in-out infinite;
-  --drift: -11px;
+  --drift: -6px;
+}
+.hero__mist-behind__puff--3 {
+  left: 42%;
+  width: 12vw;
+  height: 8.5vh;
+  opacity: 0.2;
+  filter: blur(19px);
+  --ty: 47%;
+  transform: translateY(var(--ty));
+  animation: mistDrift 78s ease-in-out infinite;
+  --drift: 8px;
 }
 @media (prefers-reduced-motion: reduce) {
   .hero__mist-behind__puff {
@@ -917,7 +951,7 @@ img {
 
 .nav__item {
   position: relative;
-  font-family: var(--f-neue); /* brand consistency: logo wordmark is set in Helvetica Neue */
+  font-family: var(--f-now-text);
   font-weight: 500;
   font-size: 1rem; /* 16px, up slightly from 15px now the logo has grown */
   color: var(--white);
@@ -1002,14 +1036,19 @@ img {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2.75rem; /* 44px, up from 40px - the CTA now reads as its own beat */
+  /* 44px -> 24px: with the social-proof strip now a fourth element sharing
+     this same gap (copy -> CTA -> trust strip), the generous 44px spacing
+     that suited three elements was compounding into a much taller block
+     with four. Tightened so heading + subtext + CTA + trust strip together
+     land close to the height the first three used to take alone. */
+  gap: 1.5rem;
   z-index: 5;
   animation: heroSlideLeft 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
 }
 .hero__copy {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem; /* 28px, up from 16px - headline and subhead no longer crowd each other */
+  gap: 1.125rem; /* 18px, down from 28px - same compression rationale as above */
   width: 100%;
 }
 
@@ -1024,17 +1063,20 @@ img {
   white-space: nowrap;
 }
 .hero__title-main {
-  font-size: 8.75rem; /* 140px, down from 170px - see note above */
+  /* 140px -> 116px: still a dominant display headline (well above any
+     reference cited earlier), but part of fitting a fourth element into
+     the space the first three used to occupy alone. */
+  font-size: 7.25rem;
   font-family: var(--f-anton);
   line-height: 0.9;
   letter-spacing: -0.015em;
 }
 .hero__title-script {
-  /* -3.5rem was tuned for the old 170px size; -2.875rem holds the identical
-     proportional overlap (÷170×140) at the new size. */
-  margin-top: -2.875rem;
+  /* -2.875rem was tuned for the 140px size; -2.375rem holds the identical
+     proportional overlap (÷140×116) at the new size. */
+  margin-top: -2.375rem;
   margin-left: -0.25rem;
-  font-size: 8.75rem;
+  font-size: 7.25rem;
   font-family: var(--f-script);
   opacity: 0.5;
   line-height: 1;
@@ -1042,11 +1084,11 @@ img {
 
 .hero__sub {
   max-width: 24rem;
-  font-family: var(--f-neue); /* brand consistency: logo wordmark is set in Helvetica Neue */
-  /* 24px -> 20px: still inside the 18-24px desktop-subhead range research
-     backs, but no longer sitting at its upper edge - opens room for the
-     social-proof line below without the copy block feeling heavy. */
-  font-size: 1.25rem;
+  font-family: var(--f-now-text);
+  /* 24px -> 20px -> 18px: matching the reference layout's much smaller
+     subtext-to-headline ratio - still inside the 18-24px desktop-subhead
+     range research backs, now at its lower edge on purpose. */
+  font-size: 1.125rem;
   line-height: 1.5;
   font-weight: 400;
   letter-spacing: -0.01em;
@@ -1065,9 +1107,9 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 14.75rem;
-  height: 3.75rem;
-  padding: 0.25rem 0.25rem 0.25rem 1.5rem;
+  width: 13rem;
+  height: 3.25rem;
+  padding: 0.25rem 0.25rem 0.25rem 1.375rem;
   border-radius: 999px;
   background: var(--white);
   color: var(--ink);
@@ -1075,288 +1117,138 @@ img {
 .price-btn__label {
   display: flex;
   align-items: baseline;
-  gap: 0.375rem;
+  gap: 0.3125rem;
   white-space: nowrap;
   line-height: 1;
   font-family: var(--f-neue);
 }
 .price-btn__starting {
   font-weight: 300;
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: var(--ink-70);
 }
 .price-btn__amount {
   font-weight: 500;
-  font-size: 1.375rem;
+  font-size: 1.1875rem;
 }
 
+/* Redesigned CTA circle. Two earlier problems, both fixed structurally
+   rather than patched:
+   1. The old hand-placed 10-dot arrow read as visual noise at this size,
+      not a legible icon. Replaced with the standard Feather/Lucide
+      "arrow-down-right" glyph (one diagonal line + an L-shaped arrowhead
+      bracket) - drawn already pointing down-right, no rotation needed.
+   2. The circle could render as an oval: width and height were two
+      separately authored values that had to be kept in sync by hand across
+      three different breakpoints (3.25rem/3.25rem, 3rem/3rem, 2.75rem/
+      2.75rem, 44px/44px) - any future edit to just one of a pair would
+      silently break it. `aspect-ratio: 1` makes that structurally
+      impossible: only `width` is ever set now, height always follows. */
 .price-btn__circle {
   position: relative;
   flex: 0 0 auto;
-  width: 3.25rem;
-  height: 3.25rem;
-  font-size: 0.96rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: var(--ink);
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-  /* The dots below are drawn as an up-right (NE) arrow, same as before -
-     rotating the whole circle 90deg clockwise turns that into a down-right
-     (SE) arrow, which is the resting state we actually want (a CTA arrow
-     should already point where the click takes you, not need a hover to
-     get there). */
-  transform: rotate(90deg);
+  box-shadow: 0 2px 8px rgba(17, 17, 17, 0.25);
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.price-btn__circle svg {
+  width: 40%;
+  height: 40%;
+  color: var(--white);
 }
 .price-btn:hover .price-btn__circle {
-  /* Already pointing the right way at rest, so hover no longer needs to
-     rotate - just a small scale for feedback, keeping the same rotation. */
-  transform: rotate(90deg) scale(1.08);
-}
-.price-btn__circle i {
-  position: absolute;
-  width: 0.125em;
-  height: 0.125em;
-  border-radius: 50%;
-  background: var(--white);
-}
-/* Drawn as an up-right arrow (rotated 90deg by the parent above, so it reads
-   as down-right on screen). i1/i2/i3 are the arrowhead's top barb, i1/i4/i5
-   are its right barb, meeting at the tip (i1). i6-i10 continue the shaft
-   diagonally away from the tip, tapering (shorter steps further out) so the
-   tail reads as a proper comet-like trail instead of stopping short. */
-.price-btn__circle i:nth-child(1) {
-  left: 1.93em;
-  top: 1.24em;
-}
-.price-btn__circle i:nth-child(2) {
-  left: 1.59em;
-  top: 1.24em;
-}
-.price-btn__circle i:nth-child(3) {
-  left: 1.25em;
-  top: 1.24em;
-}
-.price-btn__circle i:nth-child(4) {
-  left: 1.93em;
-  top: 1.58em;
-}
-.price-btn__circle i:nth-child(5) {
-  left: 1.93em;
-  top: 1.91em;
-}
-.price-btn__circle i:nth-child(6) {
-  left: 1.59em;
-  top: 1.58em;
-}
-.price-btn__circle i:nth-child(7) {
-  left: 1.36em;
-  top: 1.8em;
-}
-.price-btn__circle i:nth-child(8) {
-  left: 1.03em;
-  top: 2.03em;
-}
-.price-btn__circle i:nth-child(9) {
-  left: 0.75em;
-  top: 2.22em;
-}
-.price-btn__circle i:nth-child(10) {
-  left: 0.52em;
-  top: 2.38em;
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.32);
 }
 
-/* Desktop-only: spacious pill — padding on all 4 sides, gap between label and circle.
-   64px -> 56px tall (17rem -> 15rem wide to match): still comfortably above
-   the 44-48px minimum tap-target guideline, but no longer the largest single
-   element in the copy block competing with the new social-proof line below it. */
+/* Desktop-only: a touch more side padding, gap between label and circle. */
 @media (min-width: 900px) {
   .price-btn {
-    width: 15rem;
-    height: 3.5rem;
-    padding: 0.25rem 0.25rem 0.25rem 1.5rem; /* 4px top/right/bottom, 24px left */
-    gap: 0.875rem; /* space between label text and arrow circle */
-  }
-  .price-btn__circle {
-    width: 3rem;
-    height: 3rem;
-    /* 0.72rem keeps the exact same circle-diameter/font-size ratio as before
-       (3rem/0.72rem = 3.25rem/0.78rem = 4.167em), so every dot coordinate
-       below still lands in the same relative spot inside the smaller circle
-       without needing to be re-tuned. */
-    font-size: 0.72rem;
-    /* 3rem circle fits exactly in 3.5rem − 2×0.25rem = 3rem content height */
-  }
-  .price-btn__circle i {
-    width: 0.175em;
-    height: 0.175em;
-  }
-  .price-btn__circle i:nth-child(1) {
-    left: 2.36em;
-    top: 1.68em;
-  }
-  .price-btn__circle i:nth-child(2) {
-    left: 2.02em;
-    top: 1.68em;
-  }
-  .price-btn__circle i:nth-child(3) {
-    left: 1.68em;
-    top: 1.68em;
-  }
-  .price-btn__circle i:nth-child(4) {
-    left: 2.36em;
-    top: 2.02em;
-  }
-  .price-btn__circle i:nth-child(5) {
-    left: 2.36em;
-    top: 2.35em;
-  }
-  .price-btn__circle i:nth-child(6) {
-    left: 2.02em;
-    top: 2.02em;
-  }
-  .price-btn__circle i:nth-child(7) {
-    left: 1.79em;
-    top: 2.24em;
-  }
-  .price-btn__circle i:nth-child(8) {
-    left: 1.46em;
-    top: 2.47em;
-  }
-  .price-btn__circle i:nth-child(9) {
-    left: 1.18em;
-    top: 2.66em;
-  }
-  .price-btn__circle i:nth-child(10) {
-    left: 0.95em;
-    top: 2.82em;
+    width: 13.25rem;
+    padding: 0.25rem 0.25rem 0.25rem 1.5rem;
+    gap: 0.75rem;
   }
 }
 
 /* ---------- Hero social proof ----------
-   Sits under the CTA, filling the room the subtext/pill trim above opened
-   up. Avatar stack + star rating mirror the placement of the reference
-   image, not its rendering - three plain silhouette glyphs (no fabricated
-   customer photos), a static 5-star row, and one line of trust copy with a
-   cross-fading brand name so it reads as alive rather than a flat banner. */
+   Redesigned as a single compact line (was two rows: a rating line plus a
+   wrapping logo row) - once the heading/CTA above were compressed to make
+   room for this element without growing the block's total height, a
+   two-row trust strip no longer fit the brief. Everything here sits in one
+   flex row with a small divider between the rating and the logo names,
+   wrapping only as a last resort on very narrow columns. */
 .hero__social-proof {
   display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  margin-top: 0.25rem;
-}
-.social-proof__avatars {
-  display: flex;
-  flex: 0 0 auto;
-}
-.social-proof__avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--white);
-  color: var(--ink-40);
-  box-shadow: 0 0 0 2px rgba(61, 142, 224, 1); /* separates overlapping circles against the sky */
-}
-.social-proof__avatar svg {
-  width: 1.125rem;
-  height: 1.125rem;
-}
-.social-proof__avatar + .social-proof__avatar {
-  margin-left: -0.625rem;
-}
-.social-proof__body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0.5rem;
+  row-gap: 0.25rem;
+  margin-top: 0.125rem;
 }
 .social-proof__stars {
-  display: flex;
-  gap: 0.125rem;
-  color: var(--white);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.0625rem;
+  /* Gold/amber, not white - a plain white star row read as decorative
+     rather than an actual rating. */
+  color: #ffc94d;
+  transform: translateY(0.0625rem);
 }
 .social-proof__stars svg {
-  width: 0.8125rem;
-  height: 0.8125rem;
+  width: 0.75rem;
+  height: 0.75rem;
 }
-.social-proof__text {
+.social-proof__rating-num {
   font-family: var(--f-neue);
-  font-weight: 400;
-  font-size: 0.875rem;
-  color: var(--white-60);
-  white-space: nowrap;
-}
-.social-proof__brand {
-  position: relative;
-  display: inline-block;
-  /* Sized for the longest full phrase ("Oberoi Hotels & 1,000+ homes across
-     India", measured via canvas text metrics at this font). Each rotation
-     below is a complete phrase (brand name + shared tail), not just the
-     brand name, so a shorter name never leaves a stranded static suffix
-     with an awkward gap before it - it just ends a little earlier on the
-     same line. */
-  min-width: 18.75rem;
-  height: 1.2em;
-  vertical-align: -0.3em;
-}
-.social-proof__brand-name {
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.8125rem;
   color: var(--white);
-  opacity: 0;
-  animation: socialProofBrandCycle 12s ease-in-out infinite;
 }
-.social-proof__brand-rest {
+.social-proof__divider {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--white-60);
+  align-self: center;
+}
+/* Logo row: shown together (not one rotating name at a time), since the
+   actual ask was visible hotel-chain logos. No official logo image files
+   exist yet, so each is a distinct wordmark-style text treatment rather
+   than a fabricated logo graphic - swap for real marks once available. */
+.social-proof__logos-label {
+  font-family: var(--f-now-text);
   font-weight: 400;
+  font-size: 0.75rem;
   color: var(--white-60);
 }
-.social-proof__brand-name--1 {
-  animation-delay: 0s;
+.social-proof__logo {
+  font-family: var(--f-neue);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  opacity: 0.92;
+  margin-left: 0.5rem;
 }
-.social-proof__brand-name--2 {
-  animation-delay: 3s;
+.social-proof__logo:first-of-type {
+  margin-left: 0.375rem;
 }
-.social-proof__brand-name--3 {
-  animation-delay: 6s;
-}
-.social-proof__brand-name--4 {
-  animation-delay: 9s;
-}
-@keyframes socialProofBrandCycle {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  3% {
-    opacity: 1;
-  }
-  22% {
-    opacity: 1;
-  }
-  25% {
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  /* Each rotation is now a full phrase (brand + shared tail), so cycling
-     through all four statically would read as one run-on sentence. Freeze
-     on the first phrase instead - no animation, no layout tricks needed. */
-  .social-proof__brand-name {
-    animation: none !important;
-    opacity: 0 !important;
-  }
-  .social-proof__brand-name--1 {
-    position: static;
-    opacity: 1 !important;
-  }
-  .social-proof__brand {
-    display: inline;
-    min-width: 0;
-    height: auto;
-    vertical-align: baseline;
-  }
+/* One of the four rendered as a softer wordmark (not bold caps) so the row
+   reads as a set of distinct brand marks, not a single repeated style. */
+.social-proof__logo--script {
+  font-family: var(--f-script);
+  font-weight: 400;
+  font-size: 0.9375rem;
+  letter-spacing: 0;
+  opacity: 1;
 }
 
 /* ==========================================================================
@@ -2438,8 +2330,6 @@ img {
   }
   .price-btn__circle {
     width: 2.75rem;
-    height: 2.75rem;
-    font-size: 0.846rem;
   }
 
   /* ---- Section heads ---- */
@@ -2975,9 +2865,8 @@ img {
   }
   .price-btn__circle {
     width: 44px !important;
-    height: 44px !important;
+    aspect-ratio: 1 !important;
     flex: 0 0 44px !important;
-    font-size: 0.846rem !important;
   }
 
   /* Product */
