@@ -121,9 +121,6 @@
   --f-anton: "Anton", "Anton Fallback", Impact, sans-serif;
   --f-script: "Billion Dreams", "Script Fallback", cursive;
 
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-
   /* Product card shadow from the Figma component (5 layers) */
   --card-shadow:
     0 0.8125rem 0.90625rem rgba(0, 0, 0, 0.1),
@@ -268,60 +265,35 @@ img {
   }
 }
 
-/* Desktop entrance choreography.
-   Short travel (8-40px) on expo-out easing, staggered ~80ms apart and fully
-   resolved by ~1.25s. The previous full-viewport slides ran for 1.8-2s, which
-   left the LCP headline off-screen and invisible for most of that time. */
-@keyframes heroChromeIn {
-  from {
-    transform: translate(-50%, -8px);
+@keyframes heroNavReveal {
+  0% {
+    transform: translateX(-50%) scale(0.85);
+    clip-path: inset(0 15.125rem 0 15.125rem round 999px);
     opacity: 0;
   }
-  to {
-    transform: translate(-50%, 0);
+  100% {
+    transform: translateX(-50%) scale(1);
+    clip-path: inset(0 0 0 0 round 999px);
     opacity: 1;
   }
 }
-@keyframes heroRiseIn {
-  from {
-    transform: translateY(24px);
+@keyframes heroSlideLeft {
+  0% {
+    transform: translateX(-100vw);
     opacity: 0;
   }
-  to {
-    transform: translateY(0);
+  100% {
+    transform: translateX(0);
     opacity: 1;
   }
 }
-/* The script word settles at 0.5, not 1. A shared keyframe ending at opacity 1
-   would win over the static rule, because `fill-mode: both` keeps the final
-   keyframe applied after the animation ends. */
-@keyframes heroRiseInGhost {
-  from {
-    transform: translateY(24px);
+@keyframes heroSlideRight {
+  0% {
+    transform: translateX(100vw);
     opacity: 0;
   }
-  to {
-    transform: translateY(0);
-    opacity: 0.5;
-  }
-}
-@keyframes heroCtaIn {
-  from {
-    transform: translateY(16px) scale(0.98);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
-}
-@keyframes heroProductIn {
-  from {
-    transform: translateX(40px) scale(1.02);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0) scale(1);
+  100% {
+    transform: translateX(0);
     opacity: 1;
   }
 }
@@ -338,7 +310,7 @@ img {
 @keyframes heroFogReveal {
   0% {
     opacity: 0;
-    transform: translateY(2rem);
+    transform: translateY(4rem);
   }
   100% {
     opacity: 0.6;
@@ -347,34 +319,19 @@ img {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .topbar,
+  .nav,
   .hero__content,
-  .hero__title-main,
-  .hero__title-script,
-  .hero__sub,
-  .price-btn,
   .hero__toilet,
   .hero__clouds {
     animation: none !important;
+    transform: none !important;
   }
+  .nav,
   .hero__content,
-  .hero__title-main,
-  .hero__sub,
-  .price-btn,
   .hero__toilet {
-    transform: none !important;
-    opacity: 1 !important;
-  }
-  .hero__title-script {
-    transform: none !important;
-    opacity: 0.5 !important;
-  }
-  .topbar {
-    transform: translateX(-50%) !important;
     opacity: 1 !important;
   }
   .hero__clouds {
-    transform: none !important;
     opacity: 0.6 !important;
   }
 }
@@ -395,33 +352,9 @@ img {
 .hero__inner {
   position: relative;
   height: 100%;
-  padding-top: clamp(8.5rem, 13vh + 3.25rem, 12rem);
+  padding-top: 10.375rem; /* 166px */
   padding-bottom: 9.5rem; /* 152px */
   color: var(--white);
-}
-
-/* Desktop: centre the copy in the space under the capsule, biased above the
-   midline to counter the product's weight in the lower right. A vh-based
-   padding cannot express this, because the copy block's height scales with
-   viewport *width* (type size), not height — which is why a fixed 166px
-   top padding drifted badly on tall screens. */
-@media (min-width: 900px) {
-  .hero__inner {
-    display: flex;
-    /* flex-start plus auto margins, NOT `align-items: center`. Centred flex
-       items overflow their container equally in both directions once they are
-       taller than it, so on a short window the copy spills upward through the
-       padding and collides with the capsule. Auto margins collapse to 0 when
-       there is no free space, so the padding-top always holds as a floor. */
-    align-items: flex-start;
-    padding-top: 6.5rem; /* 104px floor, clears the 88px capsule */
-    padding-bottom: clamp(6rem, 22vh, 15rem);
-  }
-  .hero__content {
-    flex: 0 0 auto;
-    margin-top: auto;
-    margin-bottom: auto;
-  }
 }
 .hero__inner::after {
   content: "";
@@ -450,28 +383,20 @@ img {
   object-fit: cover;
 }
 
-/* Toilet + rock.
-   Sized off the viewport rather than the root font, which caps at 16px at
-   1440px wide. The old fixed 58rem x 38.66rem box pushed the rock entirely
-   below the fold on 1080-tall screens. */
+/* Toilet + rock */
 .hero__toilet {
   position: absolute;
-  left: auto;
-  right: -2vw;
-  bottom: -1vh;
-  /* Height-driven: the product has to fit the viewport vertically or the rock
-     drops below the fold, which is what happened at 1080 tall. The 66vw cap
-     keeps it from dominating short, very wide screens. */
-  width: min(64vw, clamp(39rem, 90vh, 66rem));
-  height: auto;
-  aspect-ratio: 1536 / 1024;
+  left: calc(50% - 2rem);
+  bottom: -6rem;
+  width: 58rem;
+  height: 38.66rem;
   z-index: 2;
-  animation: heroProductIn 0.9s var(--ease-out-expo) 0.12s both;
+  animation: heroSlideRight 2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
 }
 .hero__toilet img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center bottom;
 }
 
@@ -485,7 +410,7 @@ img {
   opacity: 0.6;
   pointer-events: none;
   z-index: 3;
-  animation: heroFogReveal 1.2s ease-out 0.4s both;
+  animation: heroFogReveal 1.5s ease-out 0.4s both;
 }
 .hero__clouds img {
   width: 100%;
@@ -507,16 +432,6 @@ img {
   top: 100%; /* Anchor to the absolute bottom of the hero */
   height: 250vh; /* Extremely tall so bottom edge is never visible */
   will-change: transform;
-}
-/* Marks the gradient's opaque-white stop. Observing this element tells us when
-   the white front has reached the capsule, without any scroll math. */
-.hero__fog-sentinel {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50vh;
-  height: 1px;
-  pointer-events: none;
 }
 .hero__fog-layer--1 {
   background:
@@ -554,91 +469,31 @@ img {
   display: none;
 }
 
-/* ---------- Top bar: one glass capsule holding logo + nav ----------
-   Replaces the old split of a left brand-pill (centred at y=64) and a centred
-   nav pill (centred at y=72). A single object means a single centre line, and
-   it fills the composition instead of leaving one half of the width empty.
-
-   Ink is driven by `color`, which the inline logo picks up via currentColor.
-   Over the hero the glass is frosted white with near-black ink, so the black
-   logo reads at ~13:1. Once the fog whites out the page, `.is-chrome-dark`
-   flips the capsule to dark glass with white ink. */
-.topbar {
+/* Brand pill (desktop) */
+.brand-pill {
   position: fixed;
-  top: 1.75rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: calc(100vw - 2.5rem);
-  height: 3.75rem; /* 60px */
+  left: calc(50% - 40rem);
+  top: 2.5rem;
+  height: 3rem;
   display: flex;
   align-items: center;
-  gap: 2rem;
-  padding: 0.3125rem 0.3125rem 0.3125rem 1.25rem;
-  border-radius: 999px;
+  gap: 0.625rem;
   z-index: 100;
-
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  box-shadow:
-    0 0.5rem 2rem rgba(17, 17, 17, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-
-  animation: heroChromeIn 0.52s var(--ease-out-expo) both;
   transition:
-    transform 0.45s var(--ease-standard),
-    opacity 0.45s var(--ease-standard),
-    color 0.4s var(--ease-standard),
-    background-color 0.4s var(--ease-standard),
-    border-color 0.4s var(--ease-standard),
-    box-shadow 0.4s var(--ease-standard);
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.3s;
 }
-
-.topbar.is-chrome-dark {
+.brand-pill__mark {
+  width: 2.25rem;
+  height: 1.98rem;
+}
+.brand-pill__text {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1;
   color: var(--white);
-  background: rgba(17, 17, 17, 0.72);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 0.5rem 2rem rgba(17, 17, 17, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-.topbar.is-hidden {
-  transform: translate(-50%, -180%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.topbar__brand {
-  display: flex;
-  align-items: center;
-  flex: 0 0 auto;
-}
-.topbar__logo {
-  display: block;
-  width: auto;
-  height: 2.5rem; /* 40px — stacked lockup lands at ~127px wide */
-  color: inherit;
-}
-.topbar__logo--horizontal {
-  height: 1.75rem; /* 28px — wider lockup, so shorter to match optical weight */
-}
-/* data-lockup on .topbar picks which lockup is shown. */
-.topbar[data-lockup="stacked"] .topbar__logo--horizontal,
-.topbar[data-lockup="horizontal"] .topbar__logo--stacked {
-  display: none;
-}
-
-.topbar__nav {
-  display: flex;
-  align-items: center;
-  gap: 0.125rem;
-  height: 100%;
+  white-space: nowrap;
 }
 
 /* Mobile brand + hamburger (hidden on desktop) */
@@ -648,60 +503,91 @@ img {
   display: none;
 }
 
+/* Nav */
+.nav {
+  position: fixed;
+  top: 2.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  height: 4.5rem; /* 72px */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px; /* 4px inner pill padding */
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.082);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  z-index: 100;
+  animation: heroNavReveal 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.3s ease,
+    backdrop-filter 0.3s ease,
+    border-color 0.3s ease;
+}
+.nav.is-hidden {
+  transform: translate(-50%, -160%);
+  opacity: 0;
+  pointer-events: none;
+}
+body.is-scrolled .nav {
+  background: rgba(17, 17, 17, 0.3); /* reduced fill opacity */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+body.is-scrolled .brand-pill {
+  filter: invert(1) hue-rotate(180deg);
+}
 .nav__item {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 3.125rem; /* 50px */
-  padding: 0 1.125rem;
+  height: 100%;
+  padding: 0 1.25rem;
   border-radius: 999px;
   font-family: var(--f-display);
   font-weight: 500;
-  font-size: 0.9375rem; /* 15px */
-  letter-spacing: -0.005em;
-  color: inherit;
-  opacity: 0.72;
+  font-size: 1rem;
+  color: var(--white);
+  opacity: 0.8;
   white-space: nowrap;
   border: 1px solid transparent;
   transition:
-    opacity 0.25s ease,
-    background-color 0.25s ease,
-    border-color 0.25s ease;
+    opacity 0.3s ease,
+    background 0.3s ease;
 }
 .nav__item:hover {
   opacity: 1;
-  background: rgba(17, 17, 17, 0.05);
 }
 .nav__item--active {
   opacity: 1;
-  border-color: rgba(17, 17, 17, 0.1);
-  background: rgba(17, 17, 17, 0.07);
-}
-.topbar.is-chrome-dark .nav__item:hover {
+  border-color: rgba(255, 255, 255, 0.3);
   background: rgba(255, 255, 255, 0.1);
-}
-.topbar.is-chrome-dark .nav__item--active {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
-/* Hero content.
-   The +1.25rem matches `.container`'s gutter, so the hero starts on the same
-   x as every other section instead of sitting 20px to its left. */
+/* Hero content */
 .hero__content {
   position: relative;
-  margin-left: calc(50% - 40rem + 1.25rem);
+  margin-left: calc(50% - 40rem);
   width: 30rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2.25rem;
+  gap: 2.5rem;
   z-index: 5;
+  animation: heroSlideLeft 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
 }
 .hero__copy {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1rem;
   width: 100%;
 }
 
@@ -716,43 +602,31 @@ img {
   white-space: nowrap;
 }
 .hero__title-main {
-  /* 170px at 1440, and keeps growing past it — the root font caps at 16px, so
-     a fixed rem size would leave the headline stranded on wide screens.
-     The 19vh term only bites on wide-but-short windows, where a width-only
-     scale produces a headline too tall for the space it has to live in. */
-  font-size: clamp(6.5rem, min(11.8vw, 19vh), 13rem);
+  font-size: 10.625rem;
   font-family: var(--f-anton);
   line-height: 0.9;
-  /* Optical sizing: display type tightens as it scales, it does not loosen. */
-  letter-spacing: -0.015em;
-  animation: heroRiseIn 0.64s var(--ease-out-expo) 0.08s both;
+  letter-spacing: 0.02em;
 }
 .hero__title-script {
-  /* Ratio-based so the overlap holds at every width. */
-  margin-top: -0.33em;
+  margin-top: -3.5rem;
   margin-left: -0.25rem;
-  font-size: clamp(6.5rem, min(11.8vw, 19vh), 13rem);
+  font-size: 10.625rem;
   font-family: var(--f-script);
-  /* Ghosted on purpose: two words at the same size must not carry equal weight. */
   opacity: 0.5;
   line-height: 1;
-  animation: heroRiseInGhost 0.64s var(--ease-out-expo) 0.18s both;
 }
 
 .hero__sub {
-  /* Was 448px at 24px, which forced ~19 characters per line. */
-  max-width: 26rem;
+  width: 28rem;
   font-family: var(--f-display);
-  font-size: clamp(1.25rem, 1.56vw, 1.625rem);
-  line-height: 1.4;
+  font-size: 1.5rem;
+  line-height: 1.5;
   font-weight: 400;
-  letter-spacing: -0.012em;
-  text-wrap: balance;
-  animation: heroRiseIn 0.64s var(--ease-out-expo) 0.26s both;
+  letter-spacing: -0.01em;
 }
 .hero__sub em {
-  font-weight: 600;
-  font-style: normal;
+  font-weight: 700;
+  font-style: italic;
 }
 
 /* Price button */
@@ -767,7 +641,6 @@ img {
   border-radius: 999px;
   background: var(--white);
   color: var(--ink);
-  animation: heroCtaIn 0.56s var(--ease-out-expo) 0.34s both;
 }
 .price-btn__label {
   display: flex;
@@ -1844,7 +1717,8 @@ img {
     width: 90rem;
   }
 
-  .topbar {
+  .brand-pill,
+  .nav {
     display: none;
   }
 
@@ -1859,11 +1733,6 @@ img {
     transition:
       transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
       filter 0.3s;
-  }
-  /* Hide-on-scroll is a class now, not an inline style written every event. */
-  .brand-mobile.is-hidden,
-  .hamburger.is-hidden {
-    transform: translateY(-250%);
   }
   .brand-mobile img {
     width: 100%;
@@ -3158,7 +3027,6 @@ img {
     border-radius: 12px;
     cursor: pointer;
     z-index: 999;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .hamburger span {
     display: block;
