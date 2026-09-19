@@ -180,8 +180,8 @@
           <span class="hero__mist__puff hero__mist__puff--7"></span>
           <span class="hero__mist__puff hero__mist__puff--8"></span>
           <span class="hero__mist__puff hero__mist__puff--9"></span>
-          <span class="hero__mist__puff hero__mist__puff--10"></span>
-          <span class="hero__mist__puff hero__mist__puff--11"></span>
+          <span class="hero__mist__cloud hero__mist__cloud--10"></span>
+          <span class="hero__mist__cloud hero__mist__cloud--11"></span>
         </div>
 
         <picture class="hero__clouds">
@@ -201,42 +201,76 @@
             </h1>
             <p class="hero__sub">Introducing India's first toilet with <em>built in urine analysis</em></p>
           </div>
-          <a class="price-btn" href="#product">
-            <span class="price-btn__label"><span class="price-btn__starting">Starting at</span> <span class="price-btn__amount">₹19,999</span></span>
-            <!-- Standard Feather/Lucide "arrow-down-right" glyph - one
-                 diagonal line plus an L-shaped arrowhead bracket, drawn
-                 already pointing down-right (no rotation transform needed,
-                 which also rules it out as a source of the reported oval
-                 distortion - that was the circle's own width/height sync,
-                 now fixed with aspect-ratio in CSS). -->
-            <span class="price-btn__circle" aria-hidden="true">
+          <!-- CTA redesigned from scratch (was a text pill + a bolted-on
+               dot-arrow circle). Two researched, established interaction
+               patterns instead: a "circle reveal" hover (the dark accent
+               circle scales up under overflow:hidden to fill the whole
+               pill - the same technique behind Framer's "Circle to fill
+               CTA" component and widely used on Awwwards-tier product
+               sites) plus a magnetic pointer pull (Codrops' MagneticButtons/
+               shadcn's magnetic-button pattern: the whole button drifts a
+               few px toward the cursor within a small radius, springs back
+               on leave) - both gated behind pointer/reduced-motion checks
+               in js/main.js so touch devices and reduced-motion users get
+               a plain static button. -->
+          <a class="price-btn" href="#product" id="heroPriceBtn">
+            <span class="price-btn__fill" aria-hidden="true"></span>
+            <span class="price-btn__label">
+              <span class="price-btn__starting">Starting at</span>
+              <span class="price-btn__amount">₹19,999</span>
+            </span>
+            <span class="price-btn__arrow" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="7" y1="7" x2="17" y2="17" />
                 <polyline points="17 7 17 17 7 17" />
               </svg>
             </span>
           </a>
-          <!-- Social proof, redesigned as one compact line to fit the space
-               freed up above: rating + a "Trusted by" logo row. Placeholder
-               brand names (researched India's largest luxury hotel groups -
+          <!-- Trust strip, redesigned as two distinct rows rather than one
+               crowded line - research (hero social-proof studies) is
+               explicit that stacking many proof *types* into one line
+               dilutes the message, but distinguishes social proof (ratings,
+               client logos) from product-credibility bullets. Row 1: social
+               proof, sized up per instruction. Row 2: three credibility
+               chips - copy matches specs/copy that already exist elsewhere
+               on this page (Technology section subhead, and the "Perfume
+               Mist"/"Non-Electric Operation" product specs), just elevated
+               to hero-level visibility, not invented. Placeholder hotel
+               names (researched India's largest luxury hotel groups -
                IHCL/Taj, ITC Hotels, The Leela, Oberoi/EIH) - swap the four
-               .social-proof__logo spans for real logo marks/confirmed
-               client list when available. -->
+               .social-proof__logo spans for a confirmed client list when
+               available. -->
           <div class="hero__social-proof">
-            <span class="social-proof__stars" aria-hidden="true">
-              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-              <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
-            </span>
-            <span class="social-proof__rating-num">4.9</span>
-            <span class="social-proof__divider" aria-hidden="true"></span>
-            <span class="social-proof__logos-label">Trusted by</span>
-            <span class="social-proof__logo">TAJ</span>
-            <span class="social-proof__logo social-proof__logo--script">The Leela</span>
-            <span class="social-proof__logo">ITC</span>
-            <span class="social-proof__logo">OBEROI</span>
+            <div class="social-proof__main">
+              <span class="social-proof__stars" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z"/></svg>
+              </span>
+              <span class="social-proof__rating-num">4.9</span>
+              <span class="social-proof__divider" aria-hidden="true"></span>
+              <span class="social-proof__logos-label">Trusted by</span>
+              <span class="social-proof__logo">TAJ</span>
+              <span class="social-proof__logo social-proof__logo--script">The Leela</span>
+              <span class="social-proof__logo">ITC</span>
+              <span class="social-proof__logo">OBEROI</span>
+            </div>
+            <div class="social-proof__chips">
+              <span class="proof-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z" /><path d="M6 12v5c0 1.5 2.5 3 6 3s6-1.5 6-3v-5" /></svg>
+                Engineered at IIT Kharagpur
+              </span>
+              <span class="proof-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5s7 7.5 7 12.5a7 7 0 0 1-14 0c0-5 7-12.5 7-12.5Z" /></svg>
+                Electricity-Free Bidet
+              </span>
+              <span class="proof-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8c3-3 6-3 9 0M6 13c3-3 6-3 9 0M8 18c3-3 6-3 9 0" /></svg>
+                Active Perfume Mist
+              </span>
+            </div>
           </div>
         </div>
         
