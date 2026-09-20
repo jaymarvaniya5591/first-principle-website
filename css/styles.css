@@ -398,10 +398,9 @@ img {
 .hero__inner {
   position: relative;
   height: 100%;
-  /* Bar is flush at top:0, height 4.5rem (72px). 8.75rem (140px) keeps
-     roughly the same ~68px breathing room below it that the old floating
-     pill (bottom edge ~108px, padding-top 166px) had. */
-  padding-top: 8.75rem; /* 140px */
+  /* The bar ends at 4.5rem (72px). A 2rem pause keeps the eyebrow clearly
+     separate while reclaiming room for the proof rail on laptop screens. */
+  padding-top: 6.5rem; /* 104px */
   padding-bottom: 9.5rem; /* 152px */
   color: var(--white);
 }
@@ -419,12 +418,8 @@ img {
 /* Toilet + rock */
 .hero__toilet {
   position: absolute;
-  /* Shifted further left again per the reference layout - the product was
-     overflowing well past the viewport's own right edge before (measured:
-     left 648px + width 928px = 1576px on a 1440px viewport, 136px of it
-     off-screen), where the reference keeps the whole rock+product inside
-     the frame with room to spare. */
-  left: calc(50% - 8.5rem);
+  /* Small desktop adjustment; mobile keeps its own centered placement. */
+  left: calc(50% - 8.5rem + 24px);
   bottom: -6rem;
   width: 58rem;
   height: 38.66rem;
@@ -447,337 +442,66 @@ img {
   }
 }
 
-/* ---------- Cinematic mist ----------
-   The previous version's heights rose and fell as one smooth curve across
-   x (low -> rising -> peak -> tapering back down) - internally consistent,
-   but that smoothness is exactly what reads as "designed"/uniform rather
-   than the patchy, irregular banks in the reference image. This version
-   deliberately breaks the curve: heights bounce up and down non-
-   monotonically (see the actual vh values below - they do not sort), so
-   the silhouette reads as drifting patches of ground fog, not a single
-   graded shape. Still permanently capped by the ::before wash below,
-   which guarantees the crop line itself is never bare regardless of how
-   the puffs above it move. */
-.hero__mist {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 0;
-  z-index: 3;
-  pointer-events: none;
-  overflow: visible;
-  animation: heroMistReveal 1.8s ease-out 0.4s both;
-}
-/* Solid wash: this - not any single puff - is what guarantees the "barren
-   floor never revealed" requirement. It is not animated and does not
-   depend on any puff's position, so no drift amplitude or timing can ever
-   open a gap at the actual crop line. */
-.hero__mist::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 5vh;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.35) 60%,
-    #fff 100%
-  );
-}
-.hero__mist__puff {
-  position: absolute;
-  bottom: 0;
-  border-radius: 50%;
-  background: #fff;
-  transform: translateY(50%);
-}
-/* -- Copy column (0-35%): low and faint, but not flat - a small bump/dip
-   pair instead of a smooth taper, well clear of the CTA either way -- */
-.hero__mist__puff--1 {
-  left: -8%;
-  width: 18vw;
-  height: 4vh;
-  opacity: 0.15;
-  filter: blur(18px);
-}
-.hero__mist__puff--2 {
-  left: 12%;
-  width: 16vw;
-  height: 6vh; /* bump - not smaller than #1 */
-  opacity: 0.19;
-  filter: blur(17px);
-}
-.hero__mist__puff--3 {
-  left: 26%;
-  width: 16vw;
-  height: 3.5vh; /* dip */
-  opacity: 0.13;
-  filter: blur(16px);
-}
-/* -- Under the rock/product (35-100%): irregular peaks, not a bell curve.
-   Reading the heights in order: 8, 5, 10, 6.5, 9, 5 vh - up, down, up,
-   down, up, down. That non-monotonic pattern is the actual fix for
-   "uniform"; the rest (turbulence distortion, blur, behind-layer) all
-   already existed and were not the problem by themselves. -- */
-.hero__mist__puff--4 {
-  left: 38%;
-  width: 17vw;
-  height: 8vh;
-  opacity: 0.28;
-  filter: blur(15px);
-}
-.hero__mist__puff--5 {
-  left: 48%;
-  width: 15vw;
-  height: 5vh;
-  opacity: 0.2;
-  filter: blur(16px);
-}
-.hero__mist__puff--6 {
-  left: 58%;
-  width: 19vw;
-  height: 10vh;
-  opacity: 0.38;
-  filter: blur(13px);
-}
-.hero__mist__puff--7 {
-  left: 68%;
-  width: 16vw;
-  height: 6.5vh;
-  opacity: 0.24;
-  filter: blur(15px);
-}
-.hero__mist__puff--8 {
-  left: 79%;
-  width: 18vw;
-  height: 9vh;
-  opacity: 0.32;
-  filter: blur(14px);
-}
-.hero__mist__puff--9 {
-  left: 92%;
-  width: 15vw;
-  height: 5vh;
-  opacity: 0.2;
-  filter: blur(17px);
-}
-/* Two small, separate clouds drifting in open sky, away from the rock -
-   the reference shows distinct little clouds doing this, not every wisp
-   hugging the ground.
-
-   Rebuilt from a single flat circle (which read as a blur smudge, flagged
-   as an artifact) into an actual multi-lobe cloud silhouette: a base
-   ellipse plus two overlapping ::before/::after "bumps" of different
-   sizes at different heights, matching the classic layered-circle cloud-
-   icon construction - real lumpy structure for the turbulence filter to
-   distort, instead of one perfectly smooth circle with nothing for the
-   distortion to grab onto. filter is applied to the whole element, so it
-   warps the combined base+bumps shape as one silhouette. */
-.hero__mist__cloud {
-  position: absolute;
-  border-radius: 50%;
-  background: #fff;
-}
-.hero__mist__cloud::before,
-.hero__mist__cloud::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  background: #fff;
-}
-.hero__mist__cloud--10 {
-  left: 4%;
-  width: 6vw;
-  height: 2.6vh;
-  opacity: 0.34;
-  filter: url(#fp-cloud-distortion) blur(6px);
-  --ty: -190%;
-  transform: translateY(var(--ty));
-}
-.hero__mist__cloud--10::before {
-  width: 62%;
-  height: 190%;
-  left: -6%;
-  top: -110%;
-}
-.hero__mist__cloud--10::after {
-  width: 48%;
-  height: 150%;
-  left: 44%;
-  top: -80%;
-}
-.hero__mist__cloud--11 {
-  /* Was 58%, which sits at the same low height as the rock's own left edge
-     (measured live at 40%) - the cloud was landing on top of the rock
-     instead of floating separately from it. Moved left, clear of the
-     rock's span at this height. */
-  left: 24%;
-  width: 4.4vw;
-  height: 2vh;
-  opacity: 0.26;
-  filter: url(#fp-cloud-distortion) blur(6px);
-  --ty: -360%;
-  transform: translateY(var(--ty));
-}
-.hero__mist__cloud--11::before {
-  width: 58%;
-  height: 175%;
-  left: -4%;
-  top: -95%;
-}
-.hero__mist__cloud--11::after {
-  width: 44%;
-  height: 140%;
-  left: 46%;
-  top: -70%;
-}
-
-/* Turbulence distortion applied to four puffs spread across the irregular
-   pattern above (not four consecutive ones - deliberately so the organic
-   edges don't cluster in one spot), same technique as the navbar's glass
-   effect elsewhere in this file. Reduced blur on these specific puffs so
-   the distortion survives (confirmed via a throwaway high-contrast test
-   that heavy blur alone smooths it back to invisible). */
-.hero__mist__puff--4,
-.hero__mist__puff--6,
-.hero__mist__puff--8 {
-  filter: url(#fp-cloud-distortion) blur(7px);
-}
-.hero__mist__puff--2 {
-  filter: url(#fp-cloud-distortion) blur(9px);
-}
-
-/* Very slow, subtle horizontal drift so the bank reads as alive rather than
-   a frozen graphic. Amplitudes are small (6-10px) and periods are long
-   (55-95s) on purpose - anything faster reads as a moving graphic, not
-   atmosphere. */
-@keyframes mistDrift {
-  0%,
-  100% {
-    /* --ty defaults to the ground puffs' own translateY(50%); the two
-       floating puffs above override --ty to float clear of the ground
-       instead. */
-    transform: translateY(var(--ty, 50%)) translateX(0);
-  }
-  50% {
-    transform: translateY(var(--ty, 50%)) translateX(var(--drift, 8px));
-  }
-}
-.hero__mist__puff--1 {
-  --drift: 7px;
-  animation: mistDrift 78s ease-in-out infinite;
-}
-.hero__mist__puff--2 {
-  --drift: -6px;
-  animation: mistDrift 65s ease-in-out infinite;
-}
-.hero__mist__puff--3 {
-  --drift: 7px;
-  animation: mistDrift 82s ease-in-out infinite;
-}
-.hero__mist__puff--4 {
-  --drift: -8px;
-  animation: mistDrift 60s ease-in-out infinite;
-}
-.hero__mist__puff--5 {
-  --drift: 9px;
-  animation: mistDrift 58s ease-in-out infinite;
-}
-.hero__mist__puff--6 {
-  --drift: -10px;
-  animation: mistDrift 50s ease-in-out infinite;
-}
-.hero__mist__puff--7 {
-  --drift: 8px;
-  animation: mistDrift 62s ease-in-out infinite;
-}
-.hero__mist__puff--8 {
-  --drift: -9px;
-  animation: mistDrift 68s ease-in-out infinite;
-}
-.hero__mist__puff--9 {
-  --drift: 6px;
-  animation: mistDrift 74s ease-in-out infinite;
-}
-.hero__mist__cloud--10 {
-  --drift: 16px;
-  animation: mistDrift 45s ease-in-out infinite;
-}
-.hero__mist__cloud--11 {
-  --drift: -13px;
-  animation: mistDrift 52s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero__mist__puff,
-  .hero__mist__cloud {
-    animation: none !important;
-  }
-}
-
-/* ---------- Behind-the-rock mist ----------
-   Sits at z-index 1 (hero__bg is 0, hero__toilet is 2): straddles the
-   rock's own left edge so a sliver of each puff is covered by the opaque
-   product photo and the rest peeks out beside it - the one thing the
-   front-only mist above cannot do, and the concrete fix for "the back
-   should be covered too". Three puffs now (was two), staggered heights and
-   positions along that same edge, for more of a wrap than a single bump. */
+/* One inline textured scene: complete before JavaScript, never swapped. */
+.hero__mist,
 .hero__mist-behind {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
+  inset: auto 0 -1px;
   height: 0;
-  z-index: 1;
-  pointer-events: none;
   overflow: visible;
-  animation: heroMistReveal 2s ease-out 0.3s both;
+  pointer-events: none;
 }
-.hero__mist-behind__puff {
+.hero__mist-behind { z-index: 1; }
+.hero__mist { z-index: 3; }
+.hero__cloud-scene {
   position: absolute;
+  left: 0;
   bottom: 0;
-  border-radius: 50%;
-  background: #fff;
+  width: 100%;
+  height: 25vh;
+  pointer-events: none;
+  overflow: hidden;
 }
-.hero__mist-behind__puff--1 {
-  left: 30%;
-  width: 15vw;
-  height: 10vh;
-  opacity: 0.24;
-  filter: blur(21px);
-  --ty: 44%;
-  transform: translateY(var(--ty));
-  animation: mistDrift 85s ease-in-out infinite;
-  --drift: 7px;
+.hero__cloud-entrance {
+  animation: cloudRockEntrance 2s cubic-bezier(0.2, 0.8, 0.2, 1) .2s both;
 }
-.hero__mist-behind__puff--2 {
-  left: 37%;
-  width: 10vw;
-  height: 6.5vh;
-  opacity: 0.17;
-  filter: blur(18px);
-  --ty: 50%;
-  transform: translateY(var(--ty));
-  animation: mistDrift 70s ease-in-out infinite;
-  --drift: -6px;
+.hero__cloud-wind {
+  animation: cloudWind var(--wind-duration) linear var(--wind-delay) infinite;
+  animation-play-state: paused;
 }
-.hero__mist-behind__puff--3 {
-  left: 42%;
-  width: 12vw;
-  height: 8.5vh;
-  opacity: 0.2;
-  filter: blur(19px);
-  --ty: 47%;
-  transform: translateY(var(--ty));
-  animation: mistDrift 78s ease-in-out infinite;
-  --drift: 8px;
+.hero__cloud-shape {
+  transform-box: fill-box;
+  transform-origin: 50% 70%;
+  animation: cloudShape var(--shape-duration) ease-in-out var(--shape-delay) infinite;
+  animation-play-state: paused;
+}
+.clouds-live .hero__cloud-wind,
+.clouds-live .hero__cloud-shape { animation-play-state: running; }
+@keyframes cloudRockEntrance {
+  from { transform: translateX(var(--cloud-enter-x, 1600px)); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes cloudWind {
+  from { transform: translateX(0); }
+  to { transform: translateX(2560px); }
+}
+@keyframes cloudShape {
+  0%,100% { transform: scale(1) rotate(-.3deg); }
+  50% { transform: scale(1.035,1.025) rotate(.3deg); }
+}
+.clouds-paused .hero__cloud-wind,
+.clouds-paused .hero__cloud-shape,
+.clouds-still .hero__cloud-wind,
+.clouds-still .hero__cloud-shape {
+  animation-play-state: paused;
+}
+@media (max-width: 899px) {
+  .hero__cloud-scene { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero__mist-behind__puff {
-    animation: none !important;
-  }
+  .hero__cloud-entrance { animation: none; }
+  .hero__cloud-wind,
+  .hero__cloud-shape { animation-play-state: paused !important; }
 }
 
 /* Scroll-driven Fog Overlay */
@@ -963,12 +687,11 @@ img {
   display: flex;
   align-items: center;
   justify-self: start;
-  /* .topbar__inner has 3rem of left padding (Sapien-style inset). The hero
-     content block moved right again this round (closer to center overall),
-     landing its left edge at x=144.33 (measured live) while the logo's own
-     icon-mark was still at x=112.8 from the previous tuning - re-measured
-     and re-tuned here rather than left to drift out of alignment. */
+  /* Move the mark to the exact midpoint between its previous position and
+     the viewport's left edge. `min()` keeps that midpoint proportional both
+     below and above the inner container's 80rem maximum width. */
   margin-left: 1.47rem;
+  transform: translateX(calc(-25vw + min(20rem, 25vw) - 2.235rem));
 }
 .topbar__logo {
   display: block;
@@ -1055,25 +778,31 @@ img {
 }
 
 /* Hero content */
-/* ---------- Hero copy: headline / subhead / CTA scale ----------
-   Previously the headline was sized so "TOILETS" filled 98.3% of the 480px
-   content column - measured via canvas text metrics, not a guess - which is
-   the textbook symptom of a headline sized to "fit the box" rather than to a
-   deliberate scale. World-class hero references (Apple's 40-56px display
-   headlines at 600 weight with negative tracking; Dyson's 36-56px at weight
-   300; conversion research recommending at least a 2:1 headline:subhead
-   ratio with generous, non-competing space around each element) agree on one
-   thing regardless of size: the type is chosen on its own terms and the
-   layout gives it room, not the reverse. 10.625rem -> 8.75rem drops the fill
-   to 80.9% (measured the same way), still an enormous, dominant statement -
-   larger than any reference above - but with the column's remaining ~19%
-   now reading as intentional negative space instead of an accident of fit.
-   Both TOILETS and Redefined keep the same font-size (10.625rem -> 8.75rem
-   applied to both), preserving their existing size ratio to each other
-   exactly, per instruction. Tracking flips from +0.02em (loosened - the
-   opposite of how every premium reference treats large display type) to
-   -0.015em (tightened, matching Apple/Dyson's negative-tracking convention
-   at display scale). */
+/* ---------- Hero copy: composition ----------
+   Built as eyebrow, headline, one supporting line, assurance, one action and
+   proof. Six beats, each doing exactly one job, nothing repeated - the whole
+   column runs to about 25 words, which is the order of magnitude Apple's own
+   product heroes hold to.
+
+   Two structural decisions worth keeping:
+
+   1. The three credibility claims (urine analysis, electricity-free bidet, IIT
+      Kharagpur) ARE the subhead now. They previously sat under the CTA as 13px
+      chips at 60% white, which is where they went unread; promoting them to
+      the one supporting line is what makes them land, and it costs no extra
+      height because the line they replaced said much the same thing.
+   2. The price is now the button's resting message; warranty and returns stay
+      immediately above as quiet reassurance rather than competing actions.
+
+   Type scale follows the research consensus for desktop heroes: subhead
+   18-24px at ~1.5 line-height on a constrained measure, at least 2:1 against
+   the headline, negative tracking on display sizes. The headline sits far
+   above the usual 48-72px H1 range on purpose - it is a poster lockup, not a
+   paragraph heading - but everything under it is sized on its own terms.
+
+   Spacing is per-element on an 8px scale rather than one uniform flex `gap`,
+   because these six are not peers: the action needs more air around it than
+   the eyebrow needs under it. */
 .hero__content {
   position: relative;
   /* Shifted 2.5rem (40px) right of the original calc(50% - 40rem): with the
@@ -1083,27 +812,39 @@ img {
      A further 2rem (32px) added on top of that per this round's "move the
      whole section closer to center" ask. */
   margin-left: calc(50% - 35.5rem);
-  width: 30rem;
+  width: 32rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  /* 44px -> 24px: with the social-proof strip now a fourth element sharing
-     this same gap (copy -> CTA -> trust strip), the generous 44px spacing
-     that suited three elements was compounding into a much taller block
-     with four. Tightened so heading + subtext + CTA + trust strip together
-     land close to the height the first three used to take alone. */
-  gap: 1.5rem;
   z-index: 5;
   animation: heroSlideLeft 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s both;
 }
-.hero__copy {
+
+/* ---- 1. Eyebrow ----
+   Carries the category claim so the headline never has to, and the subhead
+   never has to repeat it. The short rule is what stops 11px tracked caps from
+   reading as a stray fragment floating above the lockup. */
+.hero__eyebrow {
   display: flex;
-  flex-direction: column;
-  gap: 1.125rem; /* 18px, down from 28px - same compression rationale as above */
-  width: 100%;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--f-now-text);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.66);
+}
+.hero__eyebrow::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.45);
 }
 
+/* ---- 2. Headline ---- */
 .hero__title {
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -1114,296 +855,323 @@ img {
   white-space: nowrap;
 }
 .hero__title-main {
-  /* 140px -> 116px: still a dominant display headline (well above any
-     reference cited earlier), but part of fitting a fourth element into
-     the space the first three used to occupy alone. */
-  font-size: 7.25rem;
+  font-size: 6.25rem;
   font-family: var(--f-anton);
   line-height: 0.9;
   letter-spacing: -0.015em;
 }
 .hero__title-script {
-  /* -2.875rem was tuned for the 140px size; -2.375rem holds the identical
-     proportional overlap (÷140×116) at the new size. */
-  margin-top: -2.375rem;
+  /* -2.375rem was tuned for the old 116px size; -2.05rem holds the identical
+     proportional overlap (/116x100) at the current one. */
+  margin-top: -2.05rem;
   margin-left: -0.25rem;
-  font-size: 7.25rem;
+  font-size: 6.25rem;
   font-family: var(--f-script);
   opacity: 0.5;
   line-height: 1;
 }
 
+/* ---- 3. Subhead ----
+   Three claims, three sentences, nine words. The first is the one nobody else
+   in the category can say, so it takes the white and the weight; the other two
+   ride at 82% so the line still reads as one thought rather than three chips
+   in a row. */
 .hero__sub {
-  max-width: 24rem;
+  margin-top: 1.25rem;
+  /* Wide enough that the natural break lands after the second sentence
+     ("...Electricity-free bidet." / "Engineered at IIT Kharagpur.") instead of
+     splitting a two-word claim across lines. `balance` is deliberately not
+     used here - it evens the two lines by length, which is exactly what
+     breaks "Electricity-free / bidet" apart. */
+  max-width: 30rem;
   font-family: var(--f-now-text);
-  /* 24px -> 20px -> 18px: matching the reference layout's much smaller
-     subtext-to-headline ratio - still inside the 18-24px desktop-subhead
-     range research backs, now at its lower edge on purpose. */
-  font-size: 1.125rem;
-  line-height: 1.5;
   font-weight: 400;
+  font-size: 1.1875rem;
+  line-height: 1.5;
   letter-spacing: -0.01em;
-  /* Was a hard <br> forcing an arbitrary break; balance lets the two lines
-     fall wherever reads best instead of wherever the markup happened to cut. */
-  text-wrap: balance;
+  color: rgba(255, 255, 255, 0.82);
+  text-wrap: pretty;
 }
 .hero__sub em {
+  font-style: normal;
   font-weight: 700;
-  font-style: italic;
+  color: var(--white);
 }
 
-/* ---------- Price button: redesigned from scratch ----------
-   The old design was a text pill plus a visually separate dark circle
-   bolted on the end (which is also where the reported oval-distortion bug
-   lived). Replaced with two established, researched interaction patterns
-   instead of another patch:
-
-   1. "Circle reveal" hover - the same technique behind Framer's "Circle to
-      fill CTA" component and widely used on Awwwards-tier product sites: a
-      small dark circle (.price-btn__fill), positioned exactly where the
-      old accent circle sat, scales up hugely on hover. `overflow: hidden`
-      on the pill clips that oversized circle back down to the pill's own
-      rounded shape, so the whole background sweeps from white to dark as
-      one continuous circular reveal instead of an abrupt color swap - the
-      label text crossfades to white in step via `color` transitions on
-      its own layer above the fill.
-   2. Magnetic pointer pull (js/main.js) - the whole button drifts a few
-      pixels toward the cursor within a small radius and springs back on
-      leave, gated behind pointer/reduced-motion checks so touch devices
-      and reduced-motion users get a plain static button. */
-.price-btn {
-  position: relative;
-  overflow: hidden; /* clips the oversized .price-btn__fill circle back to this pill's own shape */
+/* ---- 4. Assurance line ---- */
+.hero__price {
+  margin-top: 1rem;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  font-family: var(--f-now-text);
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.62);
+}
+.hero__price__lead {
+  display: none;
+  align-items: baseline;
+  gap: 0.3125rem;
+}
+.hero__price strong {
+  font-family: var(--f-neue);
+  font-weight: 500;
+  font-size: 1.0625rem;
+  color: var(--white);
+}
+.hero__price i {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.55;
+}
+.hero__price > i:first-of-type {
+  display: none;
+}
+
+/* ---- 5. Action ----
+   The footprint is deliberately fixed: hover animation is completely internal
+   and cannot move the surrounding layout. A full black capsule glides across
+   with transform-only motion, avoiding the repaints and edge aliasing of the
+   previous clip-path reveal. */
+.hero__cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
   justify-content: space-between;
-  width: 13rem;
+  gap: 0.75rem;
+  width: 16rem;
   height: 3.25rem;
-  padding: 0.25rem 0.25rem 0.25rem 1.375rem;
+  margin-top: 1.375rem;
+  padding: 0 1.25rem 0 1.5rem;
   border-radius: 999px;
   background: var(--white);
   color: var(--ink);
-  /* Set by js/main.js on pointermove for the magnetic pull; 0,0 at rest. */
-  transform: translate(var(--btn-x, 0), var(--btn-y, 0));
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-  box-shadow: 0 2px 10px rgba(17, 17, 17, 0.16);
+  border: 0;
+  transition: box-shadow 0.32s ease;
+  box-shadow: 0 2px 12px rgba(17, 17, 17, 0.16);
 }
-.price-btn:hover,
-.price-btn:focus-visible {
-  box-shadow: 0 6px 18px rgba(17, 17, 17, 0.24);
+.hero__cta:hover,
+.hero__cta:focus-visible {
+  box-shadow: 0 10px 26px rgba(17, 17, 17, 0.25);
 }
-.price-btn__fill {
+.hero__cta__fill {
   position: absolute;
-  top: 50%;
-  right: 0.25rem;
-  width: 2.75rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
+  /* Overscan prevents the white resting surface from peeking through the
+     anti-aliased edge when the moving layer reaches its final position. */
+  inset: -2px;
+  border-radius: inherit;
   background: var(--ink);
-  transform: translateY(-50%) scale(1);
-  transition: transform 0.55s cubic-bezier(0.65, 0, 0.35, 1);
-  z-index: 1;
+  transform: translate3d(-104%, 0, 0);
+  transition: transform 0.52s cubic-bezier(0.76, 0, 0.24, 1);
+  z-index: -1;
+  will-change: transform;
 }
-.price-btn:hover .price-btn__fill,
-.price-btn:focus-visible .price-btn__fill {
-  /* Comfortably covers the whole pill (measured: circle at the right edge
-     needs to reach the far top-left corner, ~188px away at this pill's
-     size vs. the circle's own 22px radius, so ~8.5x - 14x is a wide safety
-     margin that also holds up at the wider desktop pill width below). */
-  transform: translateY(-50%) scale(14);
+.hero__cta:hover .hero__cta__fill,
+.hero__cta:focus-visible .hero__cta__fill {
+  transform: translate3d(0, 0, 0);
 }
-.price-btn__label {
+.hero__cta__labels {
   position: relative;
-  z-index: 2;
+  display: grid;
+  align-items: center;
+  overflow: hidden;
+  height: 1.25rem;
+  flex: 1 1 auto;
+  font-family: var(--f-now-text);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
+.hero__cta__label {
+  grid-area: 1 / 1;
   display: flex;
   align-items: baseline;
-  gap: 0.3125rem;
-  white-space: nowrap;
-  line-height: 1;
-  font-family: var(--f-neue);
-}
-.price-btn__starting {
-  font-weight: 300;
-  font-size: 0.875rem;
-  color: var(--ink-70);
+  gap: 0.3rem;
   transition:
-    color 0.3s ease 0.05s,
-    opacity 0.3s ease 0.05s;
+    transform 0.42s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.22s ease,
+    color 0.22s ease;
 }
-.price-btn__amount {
-  font-weight: 500;
-  font-size: 1.1875rem;
-  transition: color 0.3s ease 0.05s;
+.hero__cta__label--price strong {
+  position: relative;
+  font-family: var(--f-neue);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
 }
-.price-btn:hover .price-btn__starting,
-.price-btn:focus-visible .price-btn__starting {
-  color: var(--white-60);
+.hero__cta__label--explore {
+  opacity: 0;
+  transform: translate3d(0, 120%, 0);
 }
-.price-btn:hover .price-btn__amount,
-.price-btn:focus-visible .price-btn__amount {
+.hero__cta:hover .hero__cta__label--price,
+.hero__cta:focus-visible .hero__cta__label--price {
+  opacity: 0;
+  transform: translate3d(0, -120%, 0);
   color: var(--white);
 }
-/* Arrow: no longer needs its own background chip - the .price-btn__fill
-   layer behind it already provides that, and expands from directly
-   underneath it. */
-.price-btn__arrow {
+.hero__cta:hover .hero__cta__label--explore,
+.hero__cta:focus-visible .hero__cta__label--explore {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  color: var(--white);
+}
+.hero__cta__arrow {
   position: relative;
-  z-index: 2;
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  aspect-ratio: 1;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  transition:
+    transform 0.45s cubic-bezier(0.65, 0, 0.35, 1),
+    color 0.3s ease;
+}
+.hero__cta__arrow svg {
+  width: 100%;
+  height: 100%;
+}
+.hero__cta:hover .hero__cta__arrow,
+.hero__cta:focus-visible .hero__cta__arrow {
+  transform: translateX(4px);
   color: var(--white);
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.price-btn__arrow svg {
-  width: 40%;
-  height: 40%;
-}
-.price-btn:hover .price-btn__arrow,
-.price-btn:focus-visible .price-btn__arrow {
-  /* Nudges further along its own down-right direction on hover, echoing
-     "this is the way the click takes you" rather than just sitting still
-     while the background changes around it. */
-  transform: translate(3px, 3px);
 }
 @media (prefers-reduced-motion: reduce) {
-  .price-btn,
-  .price-btn__fill,
-  .price-btn__arrow {
+  .hero__cta,
+  .hero__cta__fill,
+  .hero__cta__label,
+  .hero__cta__arrow {
     transition: none !important;
   }
 }
 
-/* Desktop-only: a touch more side padding, gap between label and circle. */
-@media (min-width: 900px) {
-  .price-btn {
-    width: 13.25rem;
-    padding: 0.25rem 0.25rem 0.25rem 1.5rem;
-    gap: 0.75rem;
+/* ---- 6. Trust rail ----
+   Real wordmarks, reduced to white silhouettes by scripts/build-logos.mjs.
+   The sources are gold (Taj, ITC) and black (Leela, Oberoi) and the Oberoi
+   file ships on an opaque white box; at full colour on a blue hero they would
+   both break the box and out-shout the CTA, which the 2026 trust-bar research
+   is explicit about. 80% white keeps the rail a frame around the action
+   rather than a competitor to it.
+
+   The hairline above is what separates proof from pitch - without it the marks
+   read as part of the copy block instead of as attribution. */
+.hero__proof {
+  position: relative;
+  margin-top: 1.875rem;
+  padding: 1.125rem 0.25rem 0.25rem 0;
+  width: 100%;
+  max-width: 32rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+.hero__proof__label {
+  font-family: var(--f-now-text);
+  font-weight: 400;
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.66);
+}
+.hero__proof__marks {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  list-style: none;
+  overflow: hidden;
+  border-radius: 0.25rem;
+}
+.hero__proof__marks::after {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% -35%;
+  width: 22%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  transform: skewX(-18deg);
+  animation: proofSweep 8s cubic-bezier(0.4, 0, 0.2, 1) 2.5s infinite;
+}
+.hero__proof__marks img {
+  display: block;
+  width: auto;
+  opacity: 0.9;
+  filter:
+    brightness(1.18)
+    contrast(1.12)
+    drop-shadow(0.35px 0 0 rgba(255, 255, 255, 0.72))
+    drop-shadow(-0.35px 0 0 rgba(255, 255, 255, 0.72))
+    drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  transform: translateY(0);
+  animation: proofBreathe 7s ease-in-out infinite;
+  transition: opacity 0.35s ease, filter 0.35s ease, transform 0.35s ease;
+}
+.hero__proof__marks .mark:nth-child(2) img { animation-delay: -5.25s; }
+.hero__proof__marks .mark:nth-child(3) img { animation-delay: -3.5s; }
+.hero__proof__marks .mark:nth-child(4) img { animation-delay: -1.75s; }
+.hero__proof__marks .mark:hover img {
+  opacity: 1;
+  filter:
+    brightness(1.28)
+    contrast(1.16)
+    drop-shadow(0.4px 0 0 rgba(255, 255, 255, 0.82))
+    drop-shadow(-0.4px 0 0 rgba(255, 255, 255, 0.82))
+    drop-shadow(0 0 0.5rem rgba(255, 255, 255, 0.3));
+  transform: translateY(-1px);
+}
+@keyframes proofBreathe {
+  0%, 70%, 100% {
+    opacity: 0.88;
+    filter:
+      brightness(1.16)
+      contrast(1.1)
+      drop-shadow(0.35px 0 0 rgba(255, 255, 255, 0.7))
+      drop-shadow(-0.35px 0 0 rgba(255, 255, 255, 0.7))
+      drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+  }
+  82% {
+    opacity: 1;
+    filter:
+      brightness(1.28)
+      contrast(1.14)
+      drop-shadow(0.4px 0 0 rgba(255, 255, 255, 0.82))
+      drop-shadow(-0.4px 0 0 rgba(255, 255, 255, 0.82))
+      drop-shadow(0 0 0.42rem rgba(255, 255, 255, 0.26));
   }
 }
-
-/* ---------- Hero trust strip: two tiers, not one crowded line ----------
-   Research (Web Anatomy's hero social-proof study, easenotify's D2C CRO
-   ranking) is explicit that stacking many proof *types* into a single line
-   dilutes the message, but separately validates combining ONE social-proof
-   signal with short product-credibility bullets (the 16|11 Labs reference:
-   "supporting bullets act as micro-proof points... practical benefits that
-   add credibility without clutter"). This is that split: row 1 is pure
-   social proof (rating + client logos, sized up per instruction), row 2 is
-   three short credibility chips, each copy-matched to something that
-   already exists elsewhere on this page rather than invented for this
-   strip - see the chip comments below. */
-.hero__social-proof {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5625rem;
-  margin-top: 0.25rem;
+@keyframes proofSweep {
+  0%, 58% { left: -35%; opacity: 0; }
+  63% { opacity: 0.6; }
+  76% { left: 115%; opacity: 0; }
+  100% { left: 115%; opacity: 0; }
 }
-.social-proof__main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0.625rem;
-  row-gap: 0.25rem;
+/* Optically balanced, not uniform: matched pixel heights would make the
+   single-line Oberoi script tower over the three stacked lockups. Sized so
+   each mark's dominant word sits at roughly the same cap height. */
+.mark--taj img {
+  height: 2.5rem;
 }
-.social-proof__stars {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.0625rem;
-  /* Gold/amber, not white - a plain white star row read as decorative
-     rather than an actual rating. */
-  color: #ffc94d;
-  transform: translateY(0.0625rem);
+.mark--leela img {
+  height: 2.375rem;
 }
-.social-proof__stars svg {
-  width: 0.9375rem; /* up from 0.75rem - row 1 sized up per instruction */
-  height: 0.9375rem;
+.mark--itc img {
+  height: 2.5rem;
 }
-.social-proof__rating-num {
-  font-family: var(--f-neue);
-  font-weight: 700;
-  font-size: 1rem; /* up from 0.8125rem */
-  color: var(--white);
-}
-.social-proof__divider {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--white-60);
-  align-self: center;
-}
-/* Logo row: shown together (not one rotating name at a time), since the
-   actual ask was visible hotel-chain logos. No official logo image files
-   exist yet, so each is a distinct wordmark-style text treatment rather
-   than a fabricated logo graphic - swap for real marks once available. */
-.social-proof__logos-label {
-  font-family: var(--f-now-text);
-  font-weight: 400;
-  font-size: 0.9375rem; /* up from 0.75rem */
-  color: var(--white-60);
-}
-.social-proof__logo {
-  font-family: var(--f-neue);
-  font-weight: 700;
-  font-size: 0.9375rem; /* up from 0.75rem */
-  letter-spacing: 0.05em;
-  color: var(--white);
-  opacity: 0.92;
-  margin-left: 0.5rem;
-}
-.social-proof__logo:first-of-type {
-  margin-left: 0.375rem;
-}
-/* One of the four rendered as a softer wordmark (not bold caps) so the row
-   reads as a set of distinct brand marks, not a single repeated style. */
-.social-proof__logo--script {
-  font-family: var(--f-script);
-  font-weight: 400;
-  font-size: 1.1875rem; /* up from 0.9375rem, proportional to the row's bump */
-  letter-spacing: 0;
-  opacity: 1;
-}
-
-/* Row 2: product-credibility chips.
-   - "Engineered at IIT Kharagpur" - the exact phrase already used as the
-     Technology section's subhead (index.html, id="technology"), so this is
-     consistent copy elevated to the hero, not a new claim.
-   - "Electricity-Free Bidet" - matches the "Non-Electric Operation" spec
-     already listed on the Vero product card; hydro-mechanical water
-     pressure drives the wash, no electricity needed.
-   - "Active Perfume Mist" - matches the "Perfume Mist" spec on the
-     Liva/Sora product cards and the "No Bad Smells. Ever." feature
-     already on this page (the mild-mist odour-neutralising system). */
-.social-proof__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.proof-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.6875rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  font-family: var(--f-now-text);
-  font-weight: 500;
-  font-size: 0.75rem;
-  color: var(--white);
-  white-space: nowrap;
-}
-.proof-chip svg {
-  width: 0.9375rem;
-  height: 0.9375rem;
-  flex: 0 0 auto;
-  opacity: 0.85;
+.mark--oberoi img {
+  height: 1.5rem;
+  /* Thinnest strokes of the four, so it needs the extra weight to hold the
+     same presence as the others. */
+  opacity: 0.95;
 }
 
 /* ==========================================================================
@@ -2354,10 +2122,13 @@ img {
     height: clamp(48rem, 100svh, 51.25rem);
     padding: 0;
   }
-  /* Desktop-only addition (this round's hero work); mobile's copy stack
-     wasn't part of this pass, so keep it out rather than let it land
-     unreviewed in the mobile flow. */
-  .hero__social-proof {
+  /* Desktop-only additions (this round's hero work); mobile's copy stack
+     wasn't part of this pass, so keep them out rather than let them land
+     unreviewed in the mobile flow. The price line is the exception - it is
+     not new information, it is the price that used to sit inside the mobile
+     CTA, so dropping it would lose something mobile already showed. */
+  .hero__eyebrow,
+  .hero__proof {
     display: none;
   }
   /* Desktop-only mist system; mobile keeps its existing clouds picture. */
@@ -2452,9 +2223,6 @@ img {
     width: auto;
     gap: 2rem;
   }
-  .hero__copy {
-    gap: 1.25rem;
-  }
   .hero__title {
     height: auto;
   }
@@ -2472,20 +2240,23 @@ img {
     line-height: 1.4;
   } /* 18 */
 
-  .price-btn {
-    width: 12.375rem;
-    height: 3rem; /* 198 x 48 */
-    padding: 0.125rem 0.125rem 0.125rem 1.875rem; /* exactly 2px top/right/bottom and 30px left */
+  .hero__cta {
+    width: auto;
+    height: 3rem;
+    padding: 0 1.5rem;
   }
-  .price-btn__starting {
-    font-size: 0.75rem;
+  .hero__price__lead {
+    display: inline-flex;
   }
-  .price-btn__amount {
-    font-size: 1rem;
+  .hero__price > i:first-of-type {
+    display: block;
   }
-  .price-btn__fill,
-  .price-btn__arrow {
-    width: 2.75rem;
+  .hero__cta__label--price {
+    display: none;
+  }
+  .hero__cta__label--explore {
+    opacity: 1;
+    transform: none;
   }
 
   /* ---- Section heads ---- */
@@ -2989,41 +2760,28 @@ img {
   }
 
   .hero__sub {
+    margin-top: 1.125rem !important;
     font-size: 1.125rem !important;
     line-height: 1.4 !important;
-    margin-top: 0.25rem !important;
+    color: var(--white) !important;
   }
 
-  /* CTA */
-  .price-btn {
-    width: 198px !important;
+  /* The price moved out of the CTA and onto its own line on desktop; mobile
+     follows rather than losing the number, but keeps it to one compact row -
+     the warranty and returns facts stay desktop-only. */
+  .hero__price {
+    margin-top: 0.875rem !important;
+    gap: 0.5rem !important;
+    font-size: 0.8125rem !important;
+  }
+  .hero__price strong {
+    font-size: 1rem !important;
+  }
+
+  .hero__cta {
     height: 48px !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding-left: 20px !important;
-    padding-right: 2px !important;
-    margin-top: 1rem !important;
-  }
-  .price-btn__label {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-  }
-  .price-btn__starting {
-    font-size: 12px !important;
-    font-weight: 300 !important;
-  }
-  .price-btn__amount {
-    font-size: 16px !important;
-    font-weight: 500 !important;
-  }
-  .price-btn__fill,
-  .price-btn__arrow {
-    width: 44px !important;
-    aspect-ratio: 1 !important;
-    flex: 0 0 44px !important;
+    margin-top: 1.25rem !important;
+    padding: 0 1.375rem !important;
   }
 
   /* Product */
@@ -3121,8 +2879,11 @@ img {
   .hero__sub {
     animation: mobTextSlideIn 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s backwards !important;
   }
-  .price-btn {
-    animation: mobTextSlideIn 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s backwards !important;
+  .hero__price {
+    animation: mobTextSlideIn 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.45s backwards !important;
+  }
+  .hero__cta {
+    animation: mobTextSlideIn 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s backwards !important;
   }
 
   .hero__toilet {
