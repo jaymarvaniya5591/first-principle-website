@@ -1,18 +1,11 @@
-// Layout offsets deliberately ignore the hero's entrance transforms.
-export function layoutBox(element,stage) {
-  let left=0,top=0,current=element;
-  while(current&&current!==stage){left+=current.offsetLeft;top+=current.offsetTop;current=current.offsetParent;}
-  return {left,top,right:left+element.offsetWidth,bottom:top+element.offsetHeight};
-}
+// Build-time design geometry measured from the approved master screenshot.
+// Runtime code never reads the viewport to reposition clouds.
+export const referenceCloudLayout = Object.freeze({
+  w: 1265, h: 585, layerH: 146.25,
+  left: 555.625, right: 1343.5, rockWidth: 825,
+  logoRight: 530, clearance: 53,
+});
 export const smoothstep=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
-export function cloudLayout(stage,product,content,proof,marks,label) {
-  const logos=layoutBox(marks,stage),caption=layoutBox(label,stage),rock=layoutBox(product,stage);
-  const w=stage.clientWidth,h=stage.clientHeight;
-  return {w,h,layerH:h*.25,left:rock.left+product.offsetWidth*.025,
-    right:rock.right-product.offsetWidth*.02,rockWidth:product.offsetWidth,
-    logoRight:Math.max(logos.right,caption.right),
-    clearance:Math.max(6,h-Math.max(logos.bottom,caption.bottom)-32)};
-}
 // Continuous height field; never release a rectangular cut-out at the rock.
 export function cloudCeiling(x,layout) {
   const {h,clearance,logoRight,left,right,rockWidth}=layout;

@@ -4,6 +4,8 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import sharp from 'sharp';
 import {build} from 'esbuild';
+import {referenceCloudLayout as layout,boundaryPath} from '../js/hero-cloud-layout.js';
+const sx=1600/layout.w,sy=220/layout.layerH;
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const assets=path.join(root,'assets/img/hero-clouds');
 const texture=async(name,size)=>'data:image/webp;base64,'+(await sharp(await readFile(path.join(assets,name))).resize(size,size,{fit:'inside'}).webp({quality:86,alphaQuality:100}).toBuffer()).toString('base64');
@@ -40,8 +42,16 @@ const definitions=`<defs>
   <linearGradient id="hero-cloud-seal" gradientUnits="userSpaceOnUse" x1="0" y1="154" x2="0" y2="219">${sealStops}</linearGradient>
 </defs>`;
 const svg=(layer,body)=>`<svg class="hero__cloud-scene hero__cloud-scene--${layer}" data-cloud-layer="${layer}" viewBox="0 0 1600 220" preserveAspectRatio="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
-const back=svg('back',definitions+`<g mask="url(#hero-cloud-envelope)">${pockets(false)}${wind(false)}</g>`);
-const front=svg('front',`<g mask="url(#hero-cloud-envelope)"><g mask="url(#hero-cloud-rock-density)">${fixedBank}${pockets(true)}${wind(true)}</g></g><g id="hero-cloud-floor"><rect x="0" y="154" width="1600" height="70" fill="url(#hero-cloud-seal)"/></g>`);
+// Bake the approved contour and product anchors into the unchanged artwork.
+const bake=markup=>markup
+  .replace('M0,159 L1600,159 L1600,224 L0,224 Z',boundaryPath(layout))
+  .replace('M0,174 L1600,174 L1600,224 L0,224 Z',boundaryPath(layout,15))
+  .replace('stdDeviation="5 5"','stdDeviation="'+(5*sx)+' '+(5*sy)+'"')
+  .replace('x1="595" x2="945"','x1="'+((layout.left-70)*sx)+'" x2="'+((layout.left+280)*sx)+'"')
+  .replaceAll('transform="translate(665 0)"','transform="translate('+(layout.left*sx)+' 0)"')
+  .replaceAll('transform="translate(1580 0)"','transform="translate('+(layout.right*sx)+' 0)"');
+const back=bake(svg('back',definitions+`<g mask="url(#hero-cloud-envelope)">${pockets(false)}${wind(false)}</g>`));
+const front=bake(svg('front',`<g mask="url(#hero-cloud-envelope)"><g mask="url(#hero-cloud-rock-density)">${fixedBank}${pockets(true)}${wind(true)}</g></g><g id="hero-cloud-floor"><rect x="0" y="154" width="1600" height="70" fill="url(#hero-cloud-seal)"/></g>`));
 const compiled=await build({entryPoints:[path.join(root,'js/hero-clouds.js')],bundle:true,write:false,format:'iife',minify:true,target:['chrome100','firefox100','safari15']});
 const init=`<script>${compiled.outputFiles[0].text.trim()}</script>`;
 const htmlPath=path.join(root,'index.html');

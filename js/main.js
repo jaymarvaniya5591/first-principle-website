@@ -1,49 +1,111 @@
-/* First Principle — landing page behaviour. No animations yet (added in a later phase). */
+/* First Principle — interactions and scroll animation; layout belongs to CSS. */
 (function () {
   "use strict";
 
-  var isDesktop = function () { return window.matchMedia("(min-width: 900px)").matches; };
-
-  /* ---------------- Hamburger visibility (responds to viewport changes) ---------------- */
-  var _btn = document.querySelector(".hamburger");
-  if (_btn) {
-    var mobileStyles = [
-      "display:flex", "flex-direction:column", "justify-content:center",
-      "align-items:center", "gap:6px", "position:fixed",
-      "top:20px", "right:20px", "width:48px", "height:48px",
-      "background:#111111", "border:none", "border-radius:12px",
-      "cursor:pointer", "z-index:9999"
-    ].join(";");
-    _btn.querySelectorAll("span").forEach(function (s) {
-      s.style.cssText = "display:block;width:24px;height:2px;background:#ffffff;border-radius:2px;";
-    });
-    var applyHamburgerDisplay = function () {
-      _btn.style.cssText = isDesktop() ? "display:none" : mobileStyles;
-    };
-    applyHamburgerDisplay();
-    window.matchMedia("(min-width: 900px)").addEventListener("change", applyHamburgerDisplay);
-  }
+  var desktopMedia = window.matchMedia("(min-width: 1100px)");
+  var isDesktop = function () { return desktopMedia.matches; };
+  var shortScreen = window.matchMedia("(max-height: 520px)");
+  var wideScreen = window.matchMedia("(min-aspect-ratio: 11 / 5)");
 
   /* ---------------- Mobile menu ---------------- */
   var burger = document.querySelector(".hamburger");
   var menu = document.getElementById("mobile-menu");
   if (burger && menu) {
-    var setMenu = function (open) {
-      menu.hidden = !open;
+    var menuBackground = Array.prototype.slice.call(document.querySelectorAll('.hero, main, .footer, .skip-link'));
+    var previousInert = [];
+    var previousOverflow = "";
+    var menuOpen = false;
+    var menuCloseTimer = 0;
+    var menuMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var measureMenuOrigin = function () {
+      var buttonRect = burger.getBoundingClientRect();
+      var panelRect = menu.getBoundingClientRect();
+      var x = buttonRect.left + buttonRect.width / 2 - panelRect.left;
+      var y = buttonRect.top + buttonRect.height / 2 - panelRect.top;
+      // Reach the farthest corner in every orientation, starting at the icon.
+      var radius = Math.ceil(Math.hypot(Math.max(x, panelRect.width - x), Math.max(y, panelRect.height - y))) + 1;
+      menu.style.setProperty('--menu-x', x + 'px');
+      menu.style.setProperty('--menu-y', y + 'px');
+      menu.style.setProperty('--menu-radius', radius + 'px');
+    };
+    var finishMenuClose = function () {
+      if (menuOpen) return;
+      window.clearTimeout(menuCloseTimer);
+      menu.hidden = true;
+      menu.inert = true;
+      menu.classList.remove('is-closing');
+      document.body.classList.remove('menu-open');
+      document.body.style.overflow = previousOverflow;
+      menuBackground.forEach(function (el, i) { el.inert = previousInert[i]; });
+      if (typeof requestFrame === "function") requestFrame();
+    };
+    var setMenu = function (open, restoreFocus, instant) {
+      if (open === menuOpen && !instant) return;
+      if (open && isDesktop()) return;
+      window.clearTimeout(menuCloseTimer);
+      // Capture page state only once, including when a closing motion reverses.
+      if (open && menu.hidden) {
+        previousOverflow = document.body.style.overflow;
+        previousInert = menuBackground.map(function (el) { return el.inert; });
+      }
+      menuOpen = open;
       burger.setAttribute("aria-expanded", String(open));
       burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
-      document.body.style.overflow = open ? "hidden" : "";
-      if (open) { var first = menu.querySelector("a"); if (first) first.focus({ preventScroll: true }); }
+      document.body.style.overflow = open ? "hidden" : previousOverflow;
+      if (open) {
+        var wasHidden = menu.hidden;
+        menu.hidden = false;
+        menu.inert = false;
+        document.body.classList.add('menu-open');
+        menuBackground.forEach(function (el) { el.inert = true; });
+        measureMenuOrigin();
+        menu.classList.remove('is-closing');
+        // Establish the collapsed pose before the first reveal. Later toggles
+        // reverse the current CSS transition rather than jumping to an endpoint.
+        if (wasHidden) window.getComputedStyle(menu).clipPath;
+        menu.classList.add('is-open');
+        var first = menu.querySelector("a");
+        if (first) first.focus({ preventScroll: true });
+      } else {
+        if (restoreFocus !== false) burger.focus({ preventScroll: true });
+        menu.inert = true;
+        menu.classList.add('is-closing');
+        menu.classList.remove('is-open');
+        if (instant || menuMotion.matches) finishMenuClose();
+        // transitionend is authoritative; the bounded fallback also handles
+        // canceled transitions, browser suspension and rapid repeated taps.
+        else menuCloseTimer = window.setTimeout(finishMenuClose, 360);
+      }
+      if (typeof requestFrame === "function") requestFrame();
     };
-    burger.addEventListener("click", function () { setMenu(menu.hidden); });
+    burger.addEventListener("click", function () { setMenu(!menuOpen); });
+    menu.addEventListener('transitionend', function (event) {
+      if (event.target === menu && event.propertyName === 'clip-path' && !menuOpen) finishMenuClose();
+    });
     menu.querySelectorAll("a").forEach(function (a) {
       a.addEventListener("click", function () { setMenu(false); });
     });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !menu.hidden) { setMenu(false); burger.focus(); }
+    document.querySelectorAll('.topbar__brand, .topbar__contact').forEach(function (a) {
+      a.addEventListener("click", function () { if (menuOpen) setMenu(false, false); });
     });
-    window.matchMedia("(min-width: 900px)").addEventListener("change", function (mq) {
-      if (mq.matches && !menu.hidden) setMenu(false);
+    document.addEventListener("keydown", function (e) {
+      if (!menuOpen) return;
+      if (e.key === "Escape") { e.preventDefault(); setMenu(false); }
+      if (e.key === "Tab") {
+        var controls = Array.prototype.slice.call(document.querySelectorAll('.topbar a[href], .topbar button, #mobile-menu a[href]')).filter(function (el) { return el.getClientRects().length; });
+        var first = controls[0], last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+    desktopMedia.addEventListener("change", function (mq) {
+      if (mq.matches && !menu.hidden) { setMenu(false, false, true); document.querySelector('.topbar__brand').focus({ preventScroll: true }); }
+    });
+    window.addEventListener('resize', function () {
+      if (!menu.hidden && !isDesktop()) window.requestAnimationFrame(measureMenuOrigin);
+    }, { passive: true });
+    menuMotion.addEventListener('change', function (event) {
+      if (event.matches && !menuOpen && !menu.hidden) finishMenuClose();
     });
   }
 
@@ -55,11 +117,8 @@
   var featureImgs = document.querySelectorAll(".features__img");
 
   if (featuresSection && featuresBody && featureList) {
-    featuresSection.style.height = "auto";
-    featuresSection.style.position = "static";
-
     var featuresMedia = document.getElementById("features-media");
-    var isMobileFeatures = function() { return window.matchMedia("(max-width: 899px)").matches; };
+    var isMobileFeatures = function() { return !isDesktop(); };
 
     // Move media panel into a given feature card (mobile only)
     function moveMobileMedia(li) {
@@ -111,8 +170,9 @@
     });
 
     // On resize to desktop: put media back where it belongs
-    window.matchMedia("(max-width: 899px)").addEventListener("change", function(e) {
-      if (!e.matches) restoreMedia();
+    desktopMedia.addEventListener("change", function(e) {
+      if (e.matches) restoreMedia();
+      else moveMobileMedia(featureItems.find(function(li) { return li.classList.contains("is-active"); }) || featureItems[0]);
     });
   }
 
@@ -229,40 +289,14 @@
   };
 
   if (whyScroll && track && whySticky) {
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      var whySlideEls = Array.prototype.slice.call(track.querySelectorAll(".slide"));
+    {
       var updateWhyScroll = function () {
         if (whyScroll.dataset.skipping === "true") return;
+        if (!isDesktop() || shortScreen.matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         var rect = whyScroll.getBoundingClientRect();
         var maxScroll = rect.height - window.innerHeight;
         var scrolled = -rect.top;
         if (maxScroll <= 0) return;
-
-        if (window.matchMedia("(max-width: 899px)").matches) {
-          // Mobile: vertical card-stack scroll hijack
-          var totalProgress = Math.max(0, Math.min(1, scrolled / maxScroll));
-          var numTransitions = whySlideEls.length - 1; // 4
-          var slideProgress = totalProgress * numTransitions;
-          var cur = Math.floor(slideProgress);
-          var frac = slideProgress - cur; // 0..1 within current transition
-
-          whySlideEls.forEach(function(slide, i) {
-            var y;
-            if (i <= cur) {
-              y = 0;                         // already settled on screen
-            } else if (i === cur + 1) {
-              y = (1 - frac) * 100;          // entering from bottom
-            } else {
-              y = 100;                       // waiting below screen
-            }
-            slide.style.transform = "translateY(" + y + "%)";
-          });
-
-          // Keep data-theme in sync
-          var activeIdx = Math.min(Math.round(totalProgress * numTransitions), whySlideEls.length - 1);
-          whySticky.setAttribute("data-theme", activeIdx % 2 === 0 ? "dark" : "light");
-          return;
-        }
 
         // Desktop: horizontal slide via CSS custom property
         var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
@@ -286,6 +320,7 @@
       };
       window.addEventListener("scroll", updateWhyScroll, { passive: true });
       window.addEventListener("resize", updateWhyScroll, { passive: true });
+      window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", updateWhyScroll);
       updateWhyScroll();
     }
     
@@ -363,15 +398,16 @@
         var whyScroll = document.querySelector(".why__scroll-container");
         if (whyScroll) whyScroll.dataset.skipping = "true";
         
-        var targetY = target.getBoundingClientRect().top + window.scrollY;
+        var headerOffset = !isDesktop() && targetId !== "#home" ? document.querySelector('.topbar').getBoundingClientRect().height + 12 : 0;
+        var targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
         var startY = window.scrollY;
         var difference = targetY - startY;
         var startTime = null;
-        var duration = 600; // 600ms is very fast and smooth
+        var duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 600;
         
         function step(time) {
           if (startTime === null) startTime = time;
-          var progress = Math.min((time - startTime) / duration, 1);
+          var progress = duration ? Math.min((time - startTime) / duration, 1) : 1;
           // easeInOutCubic
           var ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
           
@@ -478,44 +514,60 @@
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   var hero = document.getElementById("home");
+  // Both words share one persistent compositing layer. Wait for their actual
+  // faces before moving it; neither animation completion nor menu use resets it.
+  var phoneTitleRoot = document.documentElement;
+  var phoneTitleMedia = window.matchMedia("(width < 600px)");
+  var showStaticTitle = function () { phoneTitleRoot.dataset.phoneTitle = "static"; };
+  if (phoneTitleRoot.dataset.phoneTitle === "pending") {
+    if (document.fonts && !reduceMotion.matches) {
+      Promise.all([
+        document.fonts.load('72px "Anton"', 'TOILETS'),
+        document.fonts.load('80px "Billion Dreams"', 'Redefined')
+      ]).then(function (faces) {
+        if (phoneTitleRoot.dataset.phoneTitle !== "pending") return;
+        phoneTitleRoot.dataset.phoneTitle = faces.every(function (list) { return list.length > 0; }) && phoneTitleMedia.matches && !reduceMotion.matches ? "reveal" : "static";
+      }, showStaticTitle);
+    } else showStaticTitle();
+  }
+  phoneTitleMedia.addEventListener("change", showStaticTitle);
+  reduceMotion.addEventListener("change", function (event) { if (event.matches) showStaticTitle(); });
+  // Seal the one-time phone entrance so crossing responsive breakpoints does
+  // not replay it. Final CSS remains visible even if JavaScript is unavailable.
+  if (hero) {
+    var finishHeroEntrance = function () { hero.classList.add("hero--entered"); };
+    window.setTimeout(finishHeroEntrance, 2000);
+    window.matchMedia("(width < 600px)").addEventListener("change", finishHeroEntrance);
+  }
   var fogOverlay = document.querySelector(".hero__fog-overlay");
   var tech = document.getElementById("technology");
   var topbar = document.querySelector(".topbar");
-  var brandMobile = document.querySelector(".brand-mobile");
-  var hamburger = document.querySelector(".hamburger");
   var footer = document.querySelector(".footer");
   var clouds = document.querySelector(".footer__clouds");
   var footerInner = document.querySelector(".footer__inner");
 
-  var lastScrollY = window.scrollY;
-  var chromeHidden = false;
   var bodyScrolled = false;
   var frame = 0;
 
   /* Bottom edge of the fixed chrome. Used to tell whether the bar is sitting
      over the hero's flat sky (nothing behind it worth a glass treatment) or
      over real content (the fog's texture rising in, or the page beyond it) -
-     drives both the mobile brand-mark ink-flip and the desktop .topbar's
-     merge/glass toggle below. Cached because it only moves on resize, never
-     on scroll. */
+     drives the shared topbar's merge/glass toggle below. Re-measured on
+     resize and when enlarged text changes the header's height. */
   var chromeBottom = 110;
   var measureChrome = function () {
-    var el = topbar && topbar.offsetParent !== null ? topbar : brandMobile;
+    var el = topbar;
     if (el) {
       var r = el.getBoundingClientRect();
-      if (r.height) chromeBottom = r.top + r.height;
+      if (r.height) {
+        chromeBottom = r.top + r.height;
+        if (!isDesktop()) document.documentElement.style.setProperty('--mobile-header-height', r.height + 'px');
+        else document.documentElement.style.removeProperty('--mobile-header-height');
+      }
     }
   };
-
-  /* Mobile only: the hamburger and mobile brand mark still hide on scroll-down
-     the way they always have. The desktop .topbar is intentionally exempt -
-     it never hides, per the reference bar this was modelled on. */
-  var setChromeHidden = function (hidden) {
-    if (hidden === chromeHidden) return;
-    chromeHidden = hidden;
-    if (brandMobile) brandMobile.classList.toggle("is-hidden", hidden);
-    if (hamburger) hamburger.classList.toggle("is-hidden", hidden);
-  };
+  // Reflowing text and device safe areas can make the mobile header taller.
+  if (topbar && 'ResizeObserver' in window) new ResizeObserver(measureChrome).observe(topbar);
 
   /* ---------------- Topbar surface: mode (merge/glass) x theme (light/dark)
      Inside the hero, the bespoke fog-front geometry below is authoritative
@@ -538,6 +590,7 @@
   var topbarTheme = null;
   var applyTopbarSurface = function (mode, theme) {
     if (!topbar) return;
+    if (!isDesktop() && menu && !menu.hidden) { mode = "glass"; theme = "dark"; }
     if (mode !== topbarMode) {
       topbarMode = mode;
       topbar.setAttribute("data-mode", mode);
@@ -632,7 +685,8 @@
     if (heroRect) {
       var heroMax = heroRect.height - vh;
       if (heroMax > 0) heroP = Math.max(0, Math.min(1, -heroRect.top / heroMax));
-      if (fogOverlay && !still) {
+      var pinnedHero = isDesktop() && !shortScreen.matches && !wideScreen.matches && !still;
+      if (fogOverlay && pinnedHero) {
         // Set on the fog overlay rather than the hero, so the custom property
         // only invalidates the four fog layers instead of the whole hero tree.
         fogOverlay.style.setProperty("--scroll-p", heroP);
@@ -655,9 +709,12 @@
       var ACTIVATE_LEAD = 550;
       var stickyTop = Math.min(0, heroRect.bottom - vh);
       var whiteFront = stickyTop + vh * (1.5 - heroP);
-      var glassEngaged = bodyScrolled
+      var glassEngaged = !pinnedHero ? heroRect.bottom < chromeBottom : bodyScrolled
         ? whiteFront < chromeBottom + ACTIVATE_LEAD + 100 // wide band so it cannot flicker
         : whiteFront <= chromeBottom + ACTIVATE_LEAD;
+      // The flowing mobile hero gains glass on scroll, before its bottom
+      // reaches the bar. Separate entry/exit thresholds avoid flicker.
+      if (!isDesktop()) glassEngaged = bodyScrolled ? scrollY > 8 : scrollY > 24;
       if (glassEngaged !== bodyScrolled) {
         bodyScrolled = glassEngaged;
         document.body.classList.toggle("is-scrolled", glassEngaged);
@@ -667,7 +724,7 @@
       // finished resolving to opaque white at the bar - the actual page DOM
       // is what is visible there now, not the fog's own animated gradient/
       // image, so it is safe to hand off to the generic sampler below.
-      if (whiteFront <= chromeBottom) {
+      if ((!pinnedHero && heroRect.bottom <= chromeBottom) || (pinnedHero && whiteFront <= chromeBottom)) {
         sampleBelowHeroSurface();
       } else {
         // Still inside the hero or its fog transition: this bespoke
@@ -683,12 +740,6 @@
       var end = vh - 300; // 300px into viewport
       var techP = 1 - Math.max(0, Math.min(1, (techRect.top - end) / (start - end)));
       tech.style.setProperty("--tech-scroll-p", techP);
-    }
-
-    // Mobile: hide when scrolling down past 50px, show on any upward move.
-    if (scrollY !== lastScrollY) {
-      setChromeHidden(scrollY > 50 && scrollY > lastScrollY);
-      lastScrollY = scrollY;
     }
 
     if (footerRect) {

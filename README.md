@@ -13,8 +13,8 @@ Static landing page for First Principle smart toilets, built 1:1 from the Figma 
 
 ```
 index.html            # all sections (hero, features, why, collection, contact, footer)
-css/styles.css        # source stylesheet: tokens, desktop layout, mobile/tablet (<= 899px)
-css/styles.min.css    # minified build of styles.css (this is what index.html loads)
+css/styles.css        # source stylesheet, loaded by index.html
+css/styles.min.css    # equivalent minified distribution stylesheet
 js/main.js            # feature accordion, 6-product carousel, mobile menu, nav scroll-spy, contact form
 assets/fonts          # generated woff2 (sources in assets/fonts-src, git-ignored)
 assets/img            # generated responsive images (sources in assets/img-src + ../Website Assets)
@@ -27,7 +27,39 @@ vercel.json           # clean URLs, immutable cache for assets, security headers
 - Styles: edit `css/styles.css`, then `npm run css`.
 - Fonts: drop source files in `assets/fonts-src`, then `npm run fonts`.
 - Images: `npm run images` (reads `assets/img-src` and `../Website Assets`; product photos are picked up from `../Website Assets/Products/<name>.png` — liva, vero, aera, luma fall back to placeholders until supplied).
-- `npm run assets` runs all three.
+- `npm run assets` rebuilds fonts, images, clouds, and CSS.
+
+## Responsive layout
+
+The design reference is commit `2416abf` at a 1280 × 585 CSS viewport, matching
+the supplied 150% Windows / 100% Chrome screenshot. The measured content artboard
+is 1264.666667 × 585.333333 CSS pixels. These are design coordinates; there is no
+OS, display, or device-pixel-ratio detection in the website.
+
+- Desktop starts at 1100 CSS pixels. The hero artboard and header frame share a
+  1897px maximum width (1.5× the reference). Container units scale all internal
+  dimensions together. The text column, combined toilet/rock asset and SVG fog
+  retain the reference geometry; entrance transforms are on separate children.
+- The page backdrop fills the sticky pane. On taller windows the hero artboard
+  stays anchored at the bottom, moving the copy, product and fog as one group.
+  Short desktop windows use ordinary scrolling so the complete poster remains
+  reachable. The scroll-driven fog effect is retained where the pane fits.
+- Below 1100px, copy and product use normal-flow rows. Below 600px the compact
+  typography applies; tablet layouts use a wider reading measure. Section headers
+  stack between 1100px and 1200px when both desktop labels cannot fit safely.
+- Root font size is stable. Non-hero desktop dimensions preserve their measured
+  reference values; constrained grid/flex layouts handle available space.
+- The cloud envelope is baked into the SVG by `npm run clouds`. Runtime code only
+  pauses/resumes cloud animation; it does not measure or reposition the artwork.
+- `npm run css` uses esbuild because the previous minifier dropped range media
+  queries. Rebuild the minified file after every source stylesheet edit.
+- `npm run test:clouds` checks logo clearance, smooth mask geometry, embedded
+  artwork, transparent edges and the opaque fog seal without browser JavaScript.
+
+For visual regression, compare the reference viewport with fonts loaded and the
+entrance animations settled. Use `?clouds=still` on localhost to pause ambient
+cloud movement. Check both viewport dimensions and device pixel ratio; DPR alone
+does not reproduce the layout effects of Windows scaling or browser zoom.
 
 ## Local preview
 
