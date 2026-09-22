@@ -172,8 +172,12 @@
   var whyScroll = document.querySelector(".why__scroll-container");
   var whySticky = document.querySelector(".why__sticky");
   var track = document.querySelector(".why__track");
+  var whySection = document.getElementById('why-us');
+  var whyDesktop = window.matchMedia('(min-width:1100px), (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine)');
+  var whyReduced = window.matchMedia('(prefers-reduced-motion:reduce)');
+  var whyLayout = null;
 
-  /* Slides translate right-to-left (`translateX(progress * -400vw)`), so a
+  /* Slides translate right-to-left over their measured horizontal travel, so a
      new slide enters from the right and the old one exits to the left. That
      means a single "50% of the transition" snap is wrong for BOTH edges of
      the screen, in opposite directions: the skip button (far right) is the
@@ -198,20 +202,72 @@
     return null;
   };
 
-  if (whyScroll && track && whySticky) {
-    {
-      var updateWhyScroll = function () {
-        if (whyScroll.dataset.skipping === "true") return;
-        if (!isDesktop() || shortScreen.matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        var rect = whyScroll.getBoundingClientRect();
-        var maxScroll = rect.height - window.innerHeight;
-        var scrolled = -rect.top;
-        if (maxScroll <= 0) return;
+  if (whySection && whyScroll && track && whySticky) {
+    var whyIntro = track.querySelector('.slide--intro');
+    var originalSlides = Array.from(track.querySelectorAll('.slide:not(.slide--intro)'));
+    var originalThemes = originalSlides.map(function (slide) { return slide.dataset.navTheme; });
+    var desktopSlides = [whyIntro].concat(originalSlides.slice(1), originalSlides.slice(0, 1));
+    var whyOrderDesktop = false;
+    var whyMeasureFrame = 0;
+    var whyLightShift = 0;
+    var whyClamp = function (value, max) { return Math.max(0, Math.min(max, value)); };
+    // Sample actual neutral Oklab lightness, then encode sRGB colours once.
+    // A full colour surface preserves the grey range over both section backgrounds.
+    var whyToneSamples = Array.from({ length: 65 }, function (_, i) {
+      if (i === 0) return 0;
+      if (i === 64) return 1;
+      var t = i / 64, eased = t * t * (3 - 2 * t);
+      var blackLinear = Math.pow((17 / 255 + .055) / 1.055, 2.4);
+      var lightness = 1 + (Math.cbrt(blackLinear) - 1) * eased;
+      var linear = lightness * lightness * lightness;
+      var grey = 255 * (linear <= .0031308 ? 12.92 * linear : 1.055 * Math.pow(linear, 1 / 2.4) - .055);
+      return whyClamp((255 - grey) / 238, 1);
+    });
+    var whyToneDarkness = function (vertical) {
+      var sample = whyClamp((vertical - .08) / .58, 1) * 64;
+      var lower = Math.floor(sample), upper = Math.min(64, lower + 1);
+      return whyToneSamples[lower] + (whyToneSamples[upper] - whyToneSamples[lower]) * (sample - lower);
+    };
+    whySection.style.setProperty('--why-tone-stops', whyToneSamples.map(function (darkness, i) {
+      var grey = (255 - darkness * 238).toFixed(4);
+      return 'rgb(' + grey + ',' + grey + ',' + grey + ') ' + (8 + i * 58 / 64) + 'vh';
+    }).join(','));
+    whySection.style.setProperty('--why-grain-stops', whyToneSamples.map(function (darkness, i) {
+      return 'rgba(0,0,0,' + (4 * darkness * (1 - darkness)).toFixed(6) + ') ' + (8 + i * 58 / 64) + 'vh';
+    }).join(','));
 
-        // Desktop: horizontal slide via CSS custom property
-        var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-        whyScroll.style.setProperty('--why-progress', progress);
-        var currentSlide = Math.round(progress * 4);
+    var updateWhyScroll = function () {
+        if (!whyLayout) return;
+        // A resize changes the prelude and Technology geometry before the next
+        // measure. Keep the last painted position until that measure restores it.
+        if (whyLayout.width !== whySection.clientWidth || whyLayout.height !== window.innerHeight) {
+          requestWhyMeasure();
+          return;
+        }
+        whyLayout.lastTop = whyScroll.getBoundingClientRect().top;
+        if (whyLayout.horizontal) {
+          // A 12vh prelude plus 88vh overlap makes a one-viewport entrance.
+          var entranceTop = whyScroll.getBoundingClientRect().top;
+          var entranceProgress = whyClamp(1 - entranceTop / whyLayout.entrance, 1);
+          // Retreat the whole tonal surface, leaving a fully black viewport at
+          // pinning. No fades to black, competing overlays or independent clock.
+          var retreat = entranceProgress * entranceProgress * (3 - 2 * entranceProgress);
+          whyLightShift = -window.innerHeight * .5 * retreat;
+          whySection.style.setProperty('--why-light-shift', whyLightShift.toFixed(3) + 'px');
+          var reveal = whyClamp(1 - entranceTop / (whyLayout.entrance * .6), 1);
+          reveal = reveal * reveal * (3 - 2 * reveal);
+          whySection.style.setProperty('--why-reveal', reveal.toFixed(5));
+          // The reassurance follows the headline by a tenth of the entrance.
+          var noteReveal = whyClamp((entranceProgress - .5) / .5, 1);
+          noteReveal = noteReveal * noteReveal * (3 - 2 * noteReveal);
+          whySection.style.setProperty('--why-note-reveal', noteReveal.toFixed(5));
+          whySection.classList.toggle('why--entered', entranceTop <= 1);
+        }
+        if (whyScroll.dataset.skipping === 'true' || !whyLayout.horizontal) return;
+        var scrolled = -whyScroll.getBoundingClientRect().top;
+        var progress = whyClamp((scrolled - whyLayout.hold) / whyLayout.journey, 1);
+        whyScroll.style.setProperty('--why-x', (-progress * whyLayout.travel) + 'px');
+        var currentSlide = Math.round(progress * (desktopSlides.length - 1));
         // Sample precisely at the skip button's own position (see
         // themeOfSlideAt above) instead of a flat 50%-of-transition snap, so
         // its border/text colour flips exactly when the slide behind IT
@@ -227,10 +283,138 @@
             )
           : null;
         whySticky.setAttribute("data-theme", themeAtSkip || (currentSlide % 2 === 0 ? "dark" : "light"));
-      };
-      window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", updateWhyScroll);
+    };
+
+    var measureWhy = function () {
+      whyMeasureFrame = 0;
+      if (cancelWhyFallback) cancelWhyFallback();
+      var desktop = whyDesktop.matches;
+      var oldLayout = whyLayout;
+      var changedViewport = oldLayout && (oldLayout.width !== whySection.clientWidth || oldLayout.height !== window.innerHeight);
+      var oldTop = changedViewport && typeof oldLayout.lastTop === 'number' ? oldLayout.lastTop : whyScroll.getBoundingClientRect().top;
+      var entering = oldLayout && oldLayout.horizontal && oldTop > 0 && oldTop < oldLayout.entrance;
+      var inside = oldLayout && oldLayout.horizontal && oldTop <= 0 && -oldTop <= oldLayout.runway;
+      var oldProgress = inside ? whyClamp((-oldTop - oldLayout.hold) / oldLayout.journey, 1) : 0;
+      var activeSlide = inside ? desktopSlides[Math.round(oldProgress * (desktopSlides.length - 1))] : null;
+      var focused = track.contains(document.activeElement) ? document.activeElement : null;
+      if (desktop !== whyOrderDesktop) {
+        var ordered = desktop ? desktopSlides : originalSlides;
+        ordered.forEach(function (slide, i) {
+          track.appendChild(slide);
+          var theme = desktop ? (i % 2 ? 'light' : 'dark') : originalThemes[i];
+          slide.classList.toggle('slide--dark', theme === 'dark');
+          slide.classList.toggle('slide--light', theme === 'light');
+          slide.dataset.navTheme = theme;
+        });
+        whyOrderDesktop = desktop;
+        if (focused) focused.focus({ preventScroll: true });
+      }
+      whySection.setAttribute('aria-labelledby', desktop ? 'why-intro-title' : 'why-title');
+      whySection.style.setProperty('--why-unit', (whySection.clientWidth / 1280) + 'px');
+      // Start with flow so intrinsic content determines whether pinning is safe.
+      whySection.classList.remove('why--horizontal');
+      var bar = document.querySelector('.topbar');
+      var clearance = Math.max(72, bar ? bar.getBoundingClientRect().height + 24 : 72);
+      var fits = desktopSlides.every(function (slide) {
+        var inner = slide.querySelector('.slide__inner');
+        return inner.scrollHeight + clearance * 2 <= window.innerHeight
+          && inner.scrollWidth <= whySection.clientWidth - 48;
+      });
+      var horizontal = desktop && !whyReduced.matches && !shortScreen.matches && fits;
+      whySection.classList.toggle('why--horizontal', horizontal);
+      var firstLeft = desktopSlides[0].getBoundingClientRect().left;
+      var offsets = desktopSlides.map(function (slide) { return slide.getBoundingClientRect().left - firstLeft; });
+      var travel = horizontal ? offsets[offsets.length - 1] : 0;
+      var hold = window.innerHeight * .2;
+      var journey = window.innerHeight * 1.6 * (desktopSlides.length - 1);
+      var runway = journey + hold * 2;
+      var entrance = window.innerHeight;
+      whyLayout = { horizontal: horizontal, travel: travel, hold: hold, journey: journey, runway: runway, offsets: offsets, entrance: entrance, width: whySection.clientWidth, height: window.innerHeight };
+      whyScroll.style.setProperty('--why-height', (window.innerHeight + runway) + 'px');
+      if (!horizontal) {
+        whyScroll.style.removeProperty('--why-x');
+        whySection.style.removeProperty('--why-reveal');
+        whySection.style.removeProperty('--why-note-reveal');
+      }
+      track.tabIndex = horizontal ? 0 : -1;
+      if (horizontal) track.setAttribute('aria-roledescription', 'carousel');
+      else track.removeAttribute('aria-roledescription');
+      // Keep the same point in the story when the laptop is resized. On leaving
+      // the pinned layout, anchor the same article in the ordinary reading flow.
+      var layoutChanged = oldLayout && (oldLayout.horizontal !== horizontal || Math.abs(oldLayout.travel - travel) > 1 || oldLayout.journey !== journey);
+      if ((inside || entering) && layoutChanged && whyScroll.dataset.skipping !== 'true') {
+        if (window.siteScroll) window.siteScroll.cancel();
+        var destination = horizontal
+          ? window.scrollY + whyScroll.getBoundingClientRect().top + (entering ? -oldTop / oldLayout.entrance * entrance : (-oldTop / oldLayout.runway) * runway)
+          : window.scrollY + (activeSlide || whyIntro).getBoundingClientRect().top;
+        window.scrollTo({ top: destination, behavior: 'instant' });
+      }
       updateWhyScroll();
+      if (typeof requestFrame === 'function') requestFrame();
+    };
+    var requestWhyMeasure = function () {
+      if (!whyMeasureFrame) whyMeasureFrame = window.requestAnimationFrame(measureWhy);
+    };
+    whyDesktop.addEventListener('change', requestWhyMeasure);
+    whyReduced.addEventListener('change', requestWhyMeasure);
+    window.addEventListener('resize', requestWhyMeasure, { passive: true });
+    if (document.fonts) document.fonts.ready.then(requestWhyMeasure);
+    if ('ResizeObserver' in window) {
+      var whyObserver = new ResizeObserver(requestWhyMeasure);
+      desktopSlides.forEach(function (slide) { whyObserver.observe(slide.querySelector('.slide__inner')); });
     }
+    measureWhy();
+
+    // A direct desktop hash link should show the introduction, not its prelude.
+    window.addEventListener('load', function () {
+      var settleWhyHash = function () {
+        window.requestAnimationFrame(function () {
+          window.requestAnimationFrame(function () {
+            if (window.location.hash !== '#why-us' || !whyLayout.horizontal) return;
+            if (window.siteScroll) window.siteScroll.cancel();
+            window.scrollTo({ top: Math.ceil(window.scrollY + whyScroll.getBoundingClientRect().top), behavior: 'instant' });
+            if (window.siteScroll) window.siteScroll.cancel();
+            updateWhyScroll();
+          });
+        });
+      };
+      if (document.fonts) document.fonts.ready.then(settleWhyHash);
+      else settleWhyHash();
+    }, { once: true });
+
+    // Scaled laptop windows can use this presentation without Lenis. Keep
+    // their anchor/Skip journeys just as interruptible as the desktop controller.
+    var cancelWhyFallback = null;
+    var navigateWhy = function (target, done) {
+      if (cancelWhyFallback) cancelWhyFallback();
+      if (window.siteScroll && window.siteScroll.to(target, done)) return true;
+      if (whyReduced.matches) {
+        window.scrollTo({ top: target, behavior: 'instant' });
+        if (done) done();
+        return true;
+      }
+      var start = window.scrollY, started = null, navigationFrame = 0;
+      var finish = function () {
+        window.cancelAnimationFrame(navigationFrame);
+        cancelWhyFallback = null;
+        if (done) done();
+        if (typeof requestFrame === 'function') requestFrame();
+      };
+      cancelWhyFallback = finish;
+      var step = function (time) {
+        if (started === null) started = time;
+        var p = Math.min(1, (time - started) / 600);
+        var eased = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+        window.scrollTo({ top: start + (target - start) * eased, behavior: 'instant' });
+        if (p < 1) navigationFrame = window.requestAnimationFrame(step);
+        else finish();
+      };
+      navigationFrame = window.requestAnimationFrame(step);
+      return true;
+    };
+    ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(function (type) {
+      window.addEventListener(type, function () { if (cancelWhyFallback) cancelWhyFallback(); }, { capture: true, passive: true });
+    });
     
     var skipBtn = document.getElementById("skip-why");
     if (skipBtn) {
@@ -240,43 +424,26 @@
           whyScroll.dataset.skipping = "true";
           
           var targetY = nextSection.getBoundingClientRect().top + window.scrollY;
-          if (window.siteScroll && window.siteScroll.to(targetY, function () {
+          navigateWhy(targetY, function () {
             whyScroll.dataset.skipping = 'false';
             updateWhyScroll();
             if (typeof requestFrame === 'function') requestFrame();
-          })) return;
-          var startY = window.scrollY;
-          var difference = targetY - startY;
-          var startTime = null;
-          function step(time) {
-            if (startTime === null) startTime = time;
-            var progress = Math.min((time - startTime) / 600, 1);
-            var ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-            window.scrollTo(0, startY + difference * ease);
-            if (progress < 1) {
-              requestAnimationFrame(step);
-            } else {
-              whyScroll.dataset.skipping = "false"; 
-              updateWhyScroll();
-              // Force the topbar to re-sample its final resting surface
-              // directly, rather than relying only on a "scroll" event
-              // having been processed during the jump - see the matching
-              // note on the general anchor-click handler below.
-              if (typeof requestFrame === "function") requestFrame();
-            }
-          }
-          requestAnimationFrame(step);
+          });
         }
       });
     }
 
     track.addEventListener("keydown", function (e) {
-      if (!isDesktop()) return;
+      if (!whyLayout || !whyLayout.horizontal || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
         e.preventDefault();
-        var distance = window.innerHeight * (e.key === 'ArrowRight' ? 1 : -1);
-        if (window.siteScroll && window.siteScroll.to(window.scrollY + distance)) return;
-        window.scrollBy({ top: distance, behavior: 'smooth' });
+        var progress = whyClamp((-whyScroll.getBoundingClientRect().top - whyLayout.hold) / whyLayout.journey, 1);
+        var current = progress * (desktopSlides.length - 1);
+        var index = e.key === 'ArrowRight' ? Math.floor(current + .001) + 1 : Math.ceil(current - .001) - 1;
+        index = whyClamp(index, desktopSlides.length - 1);
+        var target = window.scrollY + whyScroll.getBoundingClientRect().top + whyLayout.hold
+          + whyLayout.offsets[index] / whyLayout.travel * whyLayout.journey;
+        navigateWhy(target);
       }
     });
   }
@@ -326,7 +493,11 @@
         var headerOffset = targetId === '#technology' && target.classList.contains('features--desktop') ? headerHeight
           : !isDesktop() && targetId !== "#home" ? headerHeight + 12 : 0;
         var targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
-        if (window.siteScroll && window.siteScroll.to(targetY, function () {
+        if (targetId === '#why-us' && whyLayout && whyLayout.horizontal) {
+          targetY = window.scrollY + whyScroll.getBoundingClientRect().top;
+        }
+        var navigate = whyDesktop.matches && typeof navigateWhy === 'function' ? navigateWhy : window.siteScroll && window.siteScroll.to;
+        if (navigate && navigate(targetY, function () {
           if (whyScroll) {
             whyScroll.dataset.skipping = 'false';
             window.dispatchEvent(new Event('scroll'));
@@ -571,33 +742,49 @@
     return bodyBg && getLuminance(bodyBg) > 0.58 ? "light" : "dark";
   };
   var topbarLogo = document.querySelector(".topbar__logo");
+  var whyNavInk = topbar ? Array.from(topbar.querySelectorAll('.nav__item, .topbar__contact, .hamburger')) : [];
 
   var sampleBelowHeroSurface = function () {
     if (!topbar) return;
 
-    /* The why-us section is a horizontal scroll-snap carousel: two flat-
-       coloured slides are often visible side by side mid-transition. Sample
-       at the LOGO's own actual position (not the viewport centre, and not a
-       generic global progress snap) so its own ink/filter flips exactly when
-       the slide truly behind IT changes - matching how `themeOfSlideAt`
-       above times the skip button off its own position instead. Slides move
-       right-to-left, so the logo (far left) is the last point a new slide
-       reaches; sampling there is deliberately the "safest, latest" trigger
-       for the whole bar, since by the time it fires, everything positioned
-       further right (the nav links) has already been under the new slide's
-       colour for a while - not the reverse. */
+    /* Two contrasting slides can share the screen. Sample the logo and each
+       control independently as the boundary passes beneath the fixed bar. */
     if (whyScroll) {
       var whyRect = whyScroll.getBoundingClientRect();
-      if (whyRect.top <= 0 && whyRect.bottom >= 0) {
+      if (whyLayout && whyLayout.horizontal && whyRect.top > 0 && whyRect.top < whyLayout.entrance && !(menu && !menu.hidden)) {
+        // Sample the actual moving colour surface; DOM hit testing cannot see
+        // the decorative plane behind the transparent introduction.
+        var washTheme = function (control) {
+          var rect = control.getBoundingClientRect();
+          var x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+          var sy = (y - whyRect.top + window.innerHeight * .2 - whyLightShift) / window.innerHeight;
+          var darkness = whyToneDarkness(sy);
+          var underneath = document.elementFromPoint(x, topbar.getBoundingClientRect().bottom + 8);
+          return sy >= .04 ? (darkness > .56 ? 'dark' : 'light') : inferBackgroundTheme(underneath);
+        };
+        applyTopbarSurface('merge', washTheme(topbarLogo || topbar));
+        whyNavInk.forEach(function (control) { control.dataset.whySurface = washTheme(control); });
+        return;
+      }
+      if (whyLayout && whyLayout.horizontal && whyRect.top <= 0 && whyRect.bottom >= window.innerHeight && !(menu && !menu.hidden)) {
         var barRect = topbar.getBoundingClientRect();
         var logoRect = topbarLogo ? topbarLogo.getBoundingClientRect() : null;
         var lx = logoRect ? Math.round(logoRect.left + logoRect.width / 2) : Math.round(barRect.left + 60);
         var ly = Math.round(barRect.bottom + 8);
         var themeAtLogo = themeOfSlideAt(lx, ly, null);
         applyTopbarSurface("merge", themeAtLogo || (whySticky ? whySticky.dataset.theme : "dark") || "dark");
+        // A seam can sit between the logo and links. Each control follows the
+        // surface directly beneath it rather than waiting for the far-left logo.
+        whyNavInk.forEach(function (control) {
+          var rect = control.getBoundingClientRect();
+          if (!rect.width) return;
+          var theme = themeOfSlideAt(rect.left + rect.width / 2, ly, null);
+          if (theme && control.dataset.whySurface !== theme) control.dataset.whySurface = theme;
+        });
         return;
       }
     }
+    whyNavInk.forEach(function (control) { if (control.dataset.whySurface) delete control.dataset.whySurface; });
 
     var r = topbar.getBoundingClientRect();
     var probeX = Math.round(window.innerWidth / 2);

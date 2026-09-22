@@ -1223,24 +1223,20 @@ img {
   margin-bottom:1.77776rem;
 }
 
-.why__scroll-container {
-  height:500vh;
-}
+.why__scroll-container { height:auto; }
 
 .why__sticky {
-  position:sticky;
+  position:relative;
   top:0;
-  height:100vh;
-  overflow:hidden;
+  height:auto;
+  overflow:visible;
 }
 
 .why__track {
-  display:flex;
-  will-change:transform;
+  display:block;
   outline:none;
-  width:500vw;
-  height:100svh;
-  transform:translateX(calc(var(--why-progress, 0)*-80%));
+  width:100%;
+  height:auto;
 }
 
 .why__track:focus-visible {
@@ -1252,9 +1248,10 @@ img {
   display:flex;
   align-items:center;
   justify-content:center;
-  flex:0 0 20%;
-  width:20%;
-  height:100svh;
+  width:100%;
+  min-height:100svh;
+  height:auto;
+  padding-block:5rem;
 }
 
 .slide--dark {
@@ -1276,6 +1273,7 @@ img {
 }
 
 .skip-btn {
+  display:none;
   position:absolute;
   bottom:2.2222rem;
   right:2.2222rem;
@@ -3567,4 +3565,128 @@ img {
   #technology.features--mobile .feature,
   #technology.features--mobile .feature__icon::after,
   #technology.features--mobile .feature__mobile-photo picture { transition:none; }
+}
+
+/* The introduction is laptop-only, including in the no-JavaScript flow. */
+#why-us .slide--intro { display:none; }
+
+/* Laptop Why us. A flat light field recedes with scroll; no autonomous loop. */
+@media (min-width:1100px), (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) {
+  /* Extend opaque white beyond fractional panel edges to cover raster seams. */
+  #technology .features__body { position:relative; }
+  #technology .features__body::after {
+    content:"";
+    position:absolute;
+    inset:auto 0 -2px;
+    height:calc(48 * var(--technology-unit) + 2px);
+    z-index:12;
+    background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.08) 20%,rgba(255,255,255,.4) 50%,rgba(255,255,255,.85) 80%,#fff calc(100% - 3px));
+    pointer-events:none;
+  }
+  #technology.features--enhanced .features__hint {
+    bottom:calc(42 * var(--technology-unit));
+    background:rgba(255,255,255,.32);
+    border:1px solid rgba(255,255,255,.42);
+    border-radius:calc(5 * var(--technology-unit));
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 2px 10px rgba(0,0,0,.025);
+    color:#555;
+  }
+  #why-us {
+    --why-unit:calc(100vw / 1280);
+    position:relative;
+    z-index:31;
+    padding-top:0;
+    background:transparent;
+    overflow:visible;
+  }
+  #why-us > .section-head { display:none; }
+  #why-us .slide--intro { display:flex; }
+  #why-us .slide--intro .slide__note { text-transform:none; max-width:720px; line-height:1.4; }
+  #why-us .slide__reassurance { color:rgba(255,255,255,.88); white-space:nowrap; }
+  #why-us .slide--intro .slide__inner { gap:2rem; }
+  #why-us.why--horizontal {
+    padding-top:12vh;
+    background:var(--ink);
+  }
+  #why-us.why--horizontal::before,
+  #why-us.why--horizontal::after {
+    content:"";
+    position:absolute;
+    inset:-8vh 0 auto;
+    height:130vh;
+    z-index:0;
+    pointer-events:none;
+    transform:translate3d(0,var(--why-light-shift,0px),0);
+  }
+  #why-us.why--horizontal::before {
+    /* Actual neutral colours, not black alpha over the departing photograph.
+       The ramp crosses into the transparent intro so its greys stay visible. */
+    background:linear-gradient(to bottom,var(--why-tone-stops));
+    mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.15625) 2vh,rgba(0,0,0,.5) 4vh,rgba(0,0,0,.84375) 6vh,#000 8vh);
+  }
+  #why-us.why--horizontal::after {
+    background:url('../assets/img/why-dither.png') repeat;
+    opacity:.004;
+    mask-image:linear-gradient(to bottom,var(--why-grain-stops));
+  }
+  #why-us.why--horizontal .why__scroll-container { position:relative; z-index:1; }
+  #why-us.why--horizontal .slide--intro { background:transparent; }
+  #why-us .slide {
+    width:100%;
+    min-height:100svh;
+    height:auto;
+    padding:5rem 24px;
+  }
+  #why-us .slide__inner {
+    width:61.77716rem;
+    max-width:100%;
+    gap:3.44441rem;
+    align-items:center;
+    text-align:center;
+  }
+  #why-us .slide__inner--wide { width:57.99942rem; gap:3.99996rem; }
+  #why-us .slide__inner--narrow .slide__title { width:44.444rem; max-width:100%; }
+  #why-us .slide__title { font-size:5.11106rem; line-height:1; }
+  #why-us .slide__note { width:auto; font-size:max(1.77776rem,15px); line-height:1.2; }
+  #why-us .pills { gap:.77777rem; flex-direction:row; flex-wrap:wrap; justify-content:center; }
+  #why-us .pill { gap:.55555rem; padding:.88888rem 1.44443rem; font-size:max(.88888rem,11px); }
+  #why-us .stats { gap:min(5.5555rem,7vw); }
+  #why-us .stat { width:15.22207rem; max-width:35vw; }
+  #why-us .stat__num { font-size:2.88886rem; color:inherit; }
+  #why-us .stat__label { font-size:max(1.77776rem,14px); line-height:1.47; color:var(--dim); }
+  #why-us .stat__divider { height:7.66659rem; background:currentColor; opacity:.4; }
+  #why-us .why__scroll-container { height:auto; overflow:visible; }
+  #why-us .why__sticky { position:relative; height:auto; overflow:visible; }
+  #why-us .why__track { position:relative; display:block; width:100%; height:auto; transform:none; }
+  #why-us .skip-btn { display:none; }
+  /* A distinct, gently staggered text entrance; the approved gradient is separate. */
+  #why-us.why--horizontal .slide--intro .slide__title {
+    opacity:var(--why-reveal,0);
+    transform:translate3d(0,calc((1 - var(--why-reveal,0)) * 48px),0);
+  }
+  #why-us.why--horizontal .slide--intro .slide__note {
+    opacity:var(--why-note-reveal,0);
+    transform:translate3d(0,calc((1 - var(--why-note-reveal,0)) * 24px),0);
+  }
+  #why-us.why--horizontal:not(.why--entered) .skip-btn { visibility:hidden; }
+  #why-us.why--horizontal .why__scroll-container { height:var(--why-height); }
+  #why-us.why--horizontal .why__sticky { position:sticky; top:0; height:100vh; overflow:hidden; }
+  #why-us.why--horizontal .why__track {
+    display:flex;
+    height:100vh;
+    transform:translate3d(var(--why-x,0px),0,0);
+    will-change:transform;
+    overflow:visible;
+  }
+  #why-us.why--horizontal .slide { flex:0 0 100%; height:100vh; min-height:0; padding:0 24px; }
+  #why-us.why--horizontal .skip-btn { display:block; }
+  #why-us .why__track:focus-visible { outline-color:#888; }
+  .topbar[data-mode] [data-why-surface="light"] { color:var(--ink); border-color:rgba(17,17,17,.3); transition:none; }
+  .topbar[data-mode] [data-why-surface="dark"] { color:var(--white); border-color:rgba(255,255,255,.3); transition:none; }
+  .topbar[data-mode] .nav__item[data-why-surface] { opacity:.82; }
+  .topbar[data-mode] .nav__item[data-why-surface]:hover,
+  .topbar[data-mode] .nav__item--active[data-why-surface] { opacity:1; }
+  #why-us.why--horizontal .skip-btn { transition:none; }
 }

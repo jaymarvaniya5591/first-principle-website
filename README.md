@@ -185,6 +185,75 @@ interrupts on new input, and becomes immediate with reduced motion. Closed
 regions are hidden and inert; buttons retain their original IDs and controls.
 Desktop and mobile selections survive layout changes independently.
 
+## Laptop Why us
+
+The laptop presentation uses Technology's desktop query, including scaled
+landscape fine-pointer windows. Its black introduction reads "Why First
+Principle?", with a dim "Why" and a white brand name. The existing 81.777px
+slide title and 28.444px note sizes are retained. The introduction note is
+sentence case, max-width 720px, line-height 1.4, with a 32px title gap. "We’re here." is softly highlighted in white.
+
+Technology has its own 48-unit white bottom feather, based on measured content
+width / 1280. It covers both photo and cards and never captures pointer input.
+A 2px white overdraw closes fractional panel seams; the feature hint sits
+42 units from the photo bottom in a translucent glass block, with a fine white
+border and static 10px backdrop blur. This lowers it 18 units without putting
+its text inside the opaque bottom feather.
+
+The separate Why wash travels over one viewport height (88vh overlap plus
+12vh prelude). The prelude is 80% shorter; entrance travel is 20% shorter.
+The headline fades in and rises 48px through the last 60% of the entrance.
+The supporting line follows through the last 50%, fading in and rising 24px.
+Both finish at the settled introduction and retrace on reverse scroll. Direct
+Why links show settled text; motion/fit fallbacks expose it immediately. This
+text-only animation is independent of the approved gradient and runway.
+
+The gradient is a single opaque colour surface: actual white, greys and #111,
+not a black mask over the photo. This fixes the muddy early darkening and the
+intro background hiding the lower gradient. The intro is transparent only in
+the horizontal presentation; its text remains above the gradient plane.
+
+The plane begins 8vh before Technology's bottom with a feather into white.
+Its neutral ramp spans 58vh, sampled at 65 points along a smooth Oklab-lightness
+curve. It extends into the intro, preserving intermediate greys without adding
+any document height. Scroll moves the plane up by 50vh*smoothstep(progress).
+The ramp finishes 4vh above the viewport at pinning, leaving exact #111 behind
+the settled introduction. Reverse scrolling retraces the same geometry.
+
+Navigation samples that same colour curve and transformed position. Static
+neutral dithering at 0.4%, gated by 4*d*(1-d), softens rendering bands while
+leaving the white and black endpoints clean. There are no moving lines,
+animated blur, autonomous animation, extra inertia or new dependencies.
+Rebuild the noise tile with `node scripts/build-why-noise.mjs` and CSS with
+`npm run css`.
+
+Design research: United Carriers' continuous gradient entrance (live site),
+Awwwards' MICA RINO background-transition reference, and W3C guidance on
+perceptual colour interpolation. The flat monochrome treatment is our adaptation:
+- https://unitedcarriers.com/
+- https://www.awwwards.com/inspiration/background-transition-mica-rino
+- https://www.w3.org/TR/css-color-4/#interpolation-space
+
+Desktop order is introduction, warranty, in-house service, returns, specialist
+focus, patents: dark/light alternating. Existing benefit article nodes are
+reordered and their original order/themes restored on mobile. The introduction
+is display:none outside the laptop query, including without JavaScript.
+
+Each horizontal journey takes 1.6 viewport heights, with 0.2 viewport heights
+held at both ends. Six slides occupy 9.4 viewport heights including the sticky
+screen, plus the 12vh entrance prelude. Measured slide offsets drive travel and
+arrow-key destinations. Desktop Why links land on the settled introduction.
+Skip and anchor journeys remain interruptible; resize preserves entrance or
+slide progress. Reduced motion, short windows and content that does not fit
+use ordinary vertical flow. Without JavaScript the static desktop introduction
+and all five benefits remain readable in source order, without the wash.
+
+Run `npm run test:why` for controller regressions: gradient endpoints,
+monotonicity, reveal, pacing, holds, reversal, arrows, resize, motion/fit fallbacks,
+mobile restoration and interrupted Skip. Browser checks cover 1280x585,
+1366x768, 1440x900 and 1024x600; 390x844 and 768x1024 are compared with the
+original mobile/tablet layout and visible reading order.
+
 ## Local preview
 
 `npm run serve` (or any static server) and open http://localhost:5592.
