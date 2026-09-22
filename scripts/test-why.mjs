@@ -71,25 +71,32 @@ const key=key=>track.events.keydown({key,preventDefault(){}});
 assert.deepEqual(order(),['intro','warranty','service','returns','focus','patents']);
 assert.deepEqual(visibleSlides().map(s=>s.dataset.navTheme),['dark','light','dark','light','dark','light']);
 assert.equal(context.whyLayout.horizontal,true);
+assert.equal(context.whyLayout.prelude,0,'desktop intro starts immediately after Technology');
 assert.ok(Math.abs(context.whyToneDarkness(.056))<1e-12,'surface starts at white');
-assert.equal(context.whyToneDarkness(.259),1,'wash meets the exact black slide');
+assert.equal(context.whyToneSamples.length,257,'desktop adds tonal detail across the wider ramp');
+assert.equal(context.whyToneDarkness(.665),1,'wash meets the exact black slide');
 assert.equal(context.whyToneDarkness(0),0,'top edge is transparent');
-for(let i=1;i<65;i++) assert.ok(context.whyToneSamples[i]>context.whyToneSamples[i-1],'lightness never reverses');
+for(let i=1;i<257;i++) assert.ok(context.whyToneSamples[i]>context.whyToneSamples[i-1],'lightness never reverses');
 assert.ok(context.whyToneSamples[1]<.02,'gentle white endpoint');
-assert.ok(context.whyToneSamples[63]>.99,'gentle black endpoint');
+assert.ok(context.whyToneSamples[255]>.99,'gentle black endpoint');
 paintAt(-900); assert.equal(Math.abs(context.whyLightShift),0,'Technology remains clear at entrance start');
 assert.match(section.style.getPropertyValue('--why-tone-stops'),/^rgb\(255.0000,255.0000,255.0000\) 5.600000vh/,'surface starts at real white');
-assert.match(section.style.getPropertyValue('--why-tone-stops'),/rgb\(17.0000,17.0000,17.0000\) 25.900000vh$/,'surface ends at exact slide black');
-// Keep the same quarter-tone colours while shortening their physical spacing.
+assert.match(section.style.getPropertyValue('--why-tone-stops'),/rgb\(17.0000,17.0000,17.0000\) 66.500000vh$/,'surface ends at exact slide black');
+// Preserve the colour curve while tripling its span inside the same layout.
 paintAt(-450);
-assert.ok(context.whyToneDarkness(.0904375)>.1 && context.whyToneDarkness(.1919375)<.92,'quarter tones retain the same mid-grey range at half the distance');
-assert.ok(Math.abs((context.whyTonePositions[64]-context.whyTonePositions[0]) / 40.6 - .5)<1e-10,'white-to-black window is exactly half its previous length');
-for (let i=0;i<65;i++) {
-  const t=i/64, previousPosition=5.6+58*(.4*t+.3*t*t);
-  assert.ok(Math.abs(context.whyTonePositions[i]-(5.6+(previousPosition-5.6)/2))<1e-10,'every stop preserves its relative position');
-  assert.ok(Math.abs(context.whyToneDarkness(context.whyTonePositions[i]/100)-context.whyToneSamples[i])<1e-10,'navigation samples the same colour as the rendered compressed surface');
+assert.ok(context.whyToneDarkness(.1593125)>.1 && context.whyToneDarkness(.4638125)<.92,'quarter tones retain the same mid-grey range');
+assert.ok(Math.abs((context.whyTonePositions[256]-context.whyTonePositions[0]) / 20.3 - 3)<1e-10,'desktop white-to-black window is exactly three times its previous length');
+for (let i=0;i<257;i++) {
+  const t=i/256, previousPosition=5.6+29*(.4*t+.3*t*t);
+  assert.ok(Math.abs(context.whyTonePositions[i]-(5.6+(previousPosition-5.6)*3))<1e-10,'every stop preserves its relative position');
+  assert.ok(Math.abs(context.whyToneDarkness(context.whyTonePositions[i]/100)-context.whyToneSamples[i])<1e-10,'navigation samples the same colour as the rendered expanded surface');
 }
-assert.ok((context.whyTonePositions[16]-context.whyTonePositions[0]) < (context.whyTonePositions[64]-context.whyTonePositions[48]),'compression removes more pale space than shadow detail');
+assert.ok((context.whyTonePositions[64]-context.whyTonePositions[0]) < (context.whyTonePositions[256]-context.whyTonePositions[192]),'shadow detail retains more physical space');
+const desktopShadowTail=context.whyTonePositions[256]-5.6-50;
+assert.ok(Math.abs(desktopShadowTail-10.9)<1e-10,'desktop shadow extends into the centred introduction');
+assert.ok(desktopShadowTail<100*context.whyLayout.hold/state.height,'the gradient clears during the opening reading hold');
+assert.ok(context.whyToneDarkness(.556)>.95,'the pinned screen starts dark enough for white navigation');
+const desktopSamples=Array.from(context.whyToneSamples);
 let lastEdge=Infinity;
 for(let i=0;i<=40;i++) {
   const progress=i/40;
@@ -146,8 +153,10 @@ assert.equal(context.whyLayout.horizontal,false,'enlarged content remains reacha
 state.contentHeight=350; state.desktop=false; context.measureWhy();
 state.width=390; state.height=844; state.stableHeight=844; context.measureWhy();
 assert.equal(context.whyLayout.stacked,true);
+assert.equal(context.whyLayout.prelude,.12*844,'mobile retains its original entrance spacing');
 const mobileToneStops=[...section.style.getPropertyValue('--why-tone-stops').matchAll(/\) ([\d.]+)px/g)].map(match=>Number(match[1]));
 assert.equal(mobileToneStops.length,65,'mobile renders every approved tone');
+for(let i=0;i<65;i++) assert.equal(context.whyToneSamples[i],desktopSamples[i*4],'desktop adds intermediate shades without changing the approved colours');
 assert.ok(Math.abs(mobileToneStops[0]-.056*844)<1e-6,'mobile retains the entry feather');
 assert.ok(Math.abs(mobileToneStops[64]-mobileToneStops[0]-.203*844)<1e-6,'mobile colour window uses half the previous length in stable viewport pixels');
 assert.equal(context.whyLayout.hold,0);
@@ -176,6 +185,8 @@ assert.equal(order().length,6,'all six slides remain readable in fallback');
 state.reduced=false; state.stableHeight=0; state.width=1440;
 state.desktop=true; context.measureWhy();
 assert.equal(context.whyLayout.horizontal,true,'desktop can be restored');
+assert.equal(context.whyToneSamples.length,257,'resizing back to desktop restores the detailed gradient');
+assert.equal(context.whyToneDarkness(.665),1,'restored desktop uses the wider gradient for navigation contrast');
 assert.deepEqual(order(),['intro','warranty','service','returns','focus','patents']);
 skip.events.click(); assert.equal(destination,9000); assert.equal(scroll.dataset.skipping,'false');
 window.siteScroll.to=()=>false;

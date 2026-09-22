@@ -210,8 +210,8 @@ A 2px white overdraw closes fractional panel seams; the feature hint sits
 border and static 10px backdrop blur. This lowers it 18 units without putting
 its text inside the opaque bottom feather.
 
-The separate Why wash travels over one viewport height (88vh overlap plus
-12vh prelude). The prelude is 80% shorter; entrance travel is 20% shorter.
+The separate Why wash travels over one viewport height. Desktop overlaps the
+full viewport; mobile retains its 88vh overlap plus 12vh prelude.
 The title reveals through two clipped phrase windows: "Why" from 42–90% of the
 entrance, then "First Principle?" from 48–96%, with cubic ease-out. Each phrase
 rises from below its baseline while becoming fully opaque. Padding protects
@@ -227,15 +227,23 @@ intro background hiding the lower gradient. The intro is transparent only in
 the horizontal presentation; its text remains above the gradient plane.
 
 The plane begins 5.6vh before Technology's bottom with a feather into white.
-Its neutral ramp spans 20.3vh, exactly half the previous 40.6vh white-to-black
-window on both desktop and mobile. All 65 approved Oklab-lightness colours and
-their relative spacing are preserved, with stop positions
-5.6 + 29*(0.4*t + 0.3*t*t) vh. Mobile resolves the same positions against its
-stable viewport height. The unchanged 5.6vh entry feather plus the ramp spans
-25.9vh. Scroll runway, title reveal and the separate Technology feather are
-unchanged. Scroll moves the plane up by 50vh*smoothstep(progress).
-The ramp finishes 41.7vh above the viewport at pinning, leaving exact #111 behind
-the settled introduction. Reverse scrolling retraces the same geometry.
+Its desktop neutral ramp spans 60.9vh, exactly three times the previous 20.3vh
+white-to-black window. It uses 257 Oklab-lightness samples, preserving the
+approved colours and relative spacing while adding intermediate shades. Desktop
+stop positions are 5.6 + 87*(0.4*t + 0.3*t*t) vh; the feather plus ramp is 66.5vh.
+Mobile retains all 65 approved stops across 20.3vh, at
+5.6 + 29*(0.4*t + 0.3*t*t), resolved against its stable viewport height.
+Scroll runway, title reveal and the separate Technology feather are unchanged.
+Scroll moves the plane up by 50vh*smoothstep(progress). At pinning the desktop
+ramp's final shadow extends 10.9vh into the introduction, clearing during the
+20vh opening reading hold. Mobile finishes 41.7vh above the viewport as before.
+Reverse scrolling retraces the same geometry. Navigation and grain masks use
+the active profile and the matching desktop/mobile prelude offset.
+
+The laptop introduction stays centred in its screen. Removing the 12vh prelude
+brings the entire screen closer to Technology instead of lifting its text.
+The unchanged 60.9vh gradient can extend into the transparent introduction;
+mobile and ordinary-flow fallbacks retain their previous spacing.
 
 Navigation samples that same colour curve and transformed position. Static
 neutral dithering at 0.4%, gated by 4*d*(1-d), softens rendering bands while
@@ -258,7 +266,7 @@ is display:none outside the laptop query, including without JavaScript.
 
 Each horizontal journey takes 1.6 viewport heights, with 0.2 viewport heights
 held at both ends. Six slides occupy 9.4 viewport heights including the sticky
-screen, plus the 12vh entrance prelude. Measured slide offsets drive travel and
+screen, without a desktop entrance prelude. Measured slide offsets drive travel and
 arrow-key destinations. Desktop Why links land on the settled introduction.
 Skip and anchor journeys remain interruptible; resize preserves entrance or
 slide progress. Reduced motion, short windows and content that does not fit

@@ -215,33 +215,40 @@
     var whyClamp = function (value, max) { return Math.max(0, Math.min(max, value)); };
     // Sample actual neutral Oklab lightness, then encode sRGB colours once.
     // A full colour surface preserves the grey range over both section backgrounds.
-    var whyToneSamples = Array.from({ length: 65 }, function (_, i) {
-      if (i === 0) return 0;
-      if (i === 64) return 1;
-      var t = i / 64, eased = t * t * (3 - 2 * t);
-      var blackLinear = Math.pow((17 / 255 + .055) / 1.055, 2.4);
-      var lightness = 1 + (Math.cbrt(blackLinear) - 1) * eased;
-      var linear = lightness * lightness * lightness;
-      var grey = 255 * (linear <= .0031308 ? 12.92 * linear : 1.055 * Math.pow(linear, 1 / 2.4) - .055);
-      return whyClamp((255 - grey) / 238, 1);
-    });
-    // Keep the same colours and relative stop spacing, with half the previous
-    // white-to-black distance: 40.6vh -> 20.3vh. The 5.6vh entry feather and
-    // the surface's scroll motion remain independent of that colour window.
-    var whyTonePositions = whyToneSamples.map(function (_, i) {
-      var t = i / 64;
-      return 5.6 + 29 * (.4 * t + .3 * t * t);
-    });
+    var createWhyTones = function (intervals, spread) {
+      var samples = Array.from({ length: intervals + 1 }, function (_, i) {
+        if (i === 0) return 0;
+        if (i === intervals) return 1;
+        var t = i / intervals, eased = t * t * (3 - 2 * t);
+        var blackLinear = Math.pow((17 / 255 + .055) / 1.055, 2.4);
+        var lightness = 1 + (Math.cbrt(blackLinear) - 1) * eased;
+        var linear = lightness * lightness * lightness;
+        var grey = 255 * (linear <= .0031308 ? 12.92 * linear : 1.055 * Math.pow(linear, 1 / 2.4) - .055);
+        return whyClamp((255 - grey) / 238, 1);
+      });
+      return { samples: samples, positions: samples.map(function (_, i) {
+        var t = i / intervals;
+        return 5.6 + spread * (.4 * t + .3 * t * t);
+      }) };
+    };
+    // Desktop spreads the existing 20.3vh ramp over 60.9vh, with four times
+    // as many sample intervals. Mobile retains its exact approved stops. Neither
+    // profile changes the entry feather, layout spacing or scroll motion.
+    var whyToneProfiles = { desktop: createWhyTones(256, 87), mobile: createWhyTones(64, 29) };
+    var whyToneSamples, whyTonePositions;
     var whyToneDarkness = function (vertical) {
       var position = vertical * 100;
       if (position <= whyTonePositions[0]) return 0;
-      if (position >= whyTonePositions[64]) return 1;
+      if (position >= whyTonePositions[whyTonePositions.length - 1]) return 1;
       var upper = whyTonePositions.findIndex(function (stop) { return stop >= position; });
       var lower = upper - 1;
       var fraction = (position - whyTonePositions[lower]) / (whyTonePositions[upper] - whyTonePositions[lower]);
       return whyToneSamples[lower] + (whyToneSamples[upper] - whyToneSamples[lower]) * fraction;
     };
     var setWhyTones = function (desktop, height) {
+      var profile = desktop ? whyToneProfiles.desktop : whyToneProfiles.mobile;
+      whyToneSamples = profile.samples;
+      whyTonePositions = profile.positions;
       var position = function (i) {
         return desktop ? whyTonePositions[i].toFixed(6) + 'vh' : (whyTonePositions[i] * height / 100).toFixed(6) + 'px';
       };
@@ -264,11 +271,12 @@
         }
         whyLayout.lastTop = whyScroll.getBoundingClientRect().top;
         if (whyLayout.animated) {
-          // A 12vh prelude plus 88vh overlap makes a one-viewport entrance.
+          // One viewport of entrance travel; desktop starts its centred intro
+          // immediately, while mobile retains its 12vh prelude.
           var entranceTop = whyScroll.getBoundingClientRect().top;
           var entranceProgress = whyClamp(1 - entranceTop / whyLayout.entrance, 1);
-          // Retreat the whole tonal surface, leaving a fully black viewport at
-          // pinning. No fades to black, competing overlays or independent clock.
+          // Retreat the whole tonal surface. Desktop's final shadow reaches
+          // into the intro, then clears during its opening reading hold.
           var retreat = entranceProgress * entranceProgress * (3 - 2 * entranceProgress);
           whyLightShift = -whyLayout.height * .5 * retreat;
           whySection.style.setProperty('--why-light-shift', whyLightShift.toFixed(3) + 'px');
@@ -356,7 +364,7 @@
       var journey = height * (desktop ? 1.6 : 1) * (whySlides.length - 1);
       var runway = journey + hold * 2;
       var entrance = height;
-      whyLayout = { animated: animated, horizontal: horizontal, stacked: stacked, travel: travel, hold: hold, journey: journey, runway: runway, offsets: offsets, entrance: entrance, width: whySection.clientWidth, height: height };
+      whyLayout = { animated: animated, horizontal: horizontal, stacked: stacked, travel: travel, hold: hold, journey: journey, runway: runway, offsets: offsets, entrance: entrance, prelude: desktop ? 0 : height * .12, width: whySection.clientWidth, height: height };
       whyScroll.style.setProperty('--why-height', (height + runway) + 'px');
       if (!animated) {
         whySection.style.removeProperty('--why-reveal');
@@ -792,7 +800,7 @@
         var washTheme = function (control) {
           var rect = control.getBoundingClientRect();
           var x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
-          var sy = (y - whyRect.top + whyLayout.height * .176 - whyLightShift) / whyLayout.height;
+          var sy = (y - whyRect.top + whyLayout.prelude + whyLayout.height * .056 - whyLightShift) / whyLayout.height;
           var darkness = whyToneDarkness(sy);
           var underneath = document.elementFromPoint(x, topbar.getBoundingClientRect().bottom + 8);
           return sy >= .028 ? (darkness > .56 ? 'dark' : 'light') : inferBackgroundTheme(underneath);
