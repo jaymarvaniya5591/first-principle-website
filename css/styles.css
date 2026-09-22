@@ -3567,8 +3567,58 @@ img {
   #technology.features--mobile .feature__mobile-photo picture { transition:none; }
 }
 
-/* The introduction is laptop-only, including in the no-JavaScript flow. */
-#why-us .slide--intro { display:none; }
+/* One reading order and introduction in every presentation, including no JS. */
+#why-us { position:relative; z-index:31; padding-top:0; overflow:visible; background:transparent; }
+#why-us .slide--intro { display:flex; }
+#why-us .why__viewport-probe { position:absolute; top:0; width:0; height:100svh; visibility:hidden; pointer-events:none; }
+#why-us .slide--intro .slide__inner { gap:32px; }
+#why-us .slide--intro .slide__note { width:100%; max-width:544px; font-size:16px; line-height:1.4; text-transform:none; }
+#why-us .slide__reassurance { color:rgba(255,255,255,.88); white-space:nowrap; }
+#why-us .slide__note { max-width:100%; }
+#why-us .stats { max-width:100%; }
+#why-us .stat { min-width:0; }
+#why-us .stat__divider { flex-shrink:0; }
+/* Reserve the feather below mobile controls, never over their text or hit areas. */
+#technology.features--mobile .features__body {
+  --technology-feather:clamp(32px,12.307692vw,64px);
+  --technology-floor:#f7f7f5;
+  position:relative; padding-bottom:var(--technology-feather); background:var(--technology-floor);
+}
+#technology.features--mobile .features__body:has(.feature:last-child.is-active) { --technology-floor:#111; }
+#technology.features--mobile .features__body::after {
+  content:""; position:absolute; inset:auto 0 -2px;
+  height:calc(var(--technology-feather) + 2px); pointer-events:none; z-index:12;
+  background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.08) 20%,rgba(255,255,255,.4) 50%,rgba(255,255,255,.85) 80%,#fff calc(100% - 3px));
+}
+/* Ritesh's full-frame upward covers, driven by the shared scroll controller. */
+#why-us.why--stacked { padding-top:calc(12 * var(--why-vh)); background:var(--ink); }
+#why-us.why--stacked::before,
+#why-us.why--stacked::after {
+  content:""; position:absolute; inset:calc(-5.6 * var(--why-vh)) 0 auto;
+  height:calc(130 * var(--why-vh)); z-index:0; pointer-events:none;
+  transform:translate3d(0,var(--why-light-shift,0px),0);
+}
+#why-us.why--stacked::before {
+  background:linear-gradient(to bottom,var(--why-tone-stops));
+  mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.15625) calc(1.4 * var(--why-vh)),rgba(0,0,0,.5) calc(2.8 * var(--why-vh)),rgba(0,0,0,.84375) calc(4.2 * var(--why-vh)),#000 calc(5.6 * var(--why-vh)));
+}
+#why-us.why--stacked::after { background:url('../assets/img/why-dither.png') repeat; opacity:.004; mask-image:linear-gradient(to bottom,var(--why-grain-stops)); }
+#why-us.why--stacked .why__scroll-container { position:relative; z-index:1; height:var(--why-height); overflow:visible; }
+#why-us.why--stacked .why__sticky { position:sticky; top:0; height:var(--why-stage-height); overflow:hidden; }
+#why-us.why--stacked .why__track { position:relative; width:100%; height:var(--why-stage-height); display:block; transform:none; overflow:visible; }
+#why-us.why--stacked .slide {
+  position:absolute; inset:0; width:100%; height:var(--why-stage-height); min-height:0;
+  padding:5rem 20px; overflow:hidden; z-index:var(--why-layer);
+  transform:translate3d(0,var(--why-card-y,100%),0); will-change:transform;
+}
+#why-us.why--stacked .slide--intro { background:transparent; }
+#why-us.why--stacked .skip-btn { display:none; }
+#why-us.why--stacked .intro__word-window { display:inline-block; vertical-align:top; overflow:hidden; padding-block:.1em; margin-block:-.1em; --intro-word-progress:var(--why-reveal,0); }
+#why-us.why--stacked .intro__word-window--brand { --intro-word-progress:var(--why-brand-reveal,0); }
+#why-us.why--stacked .intro__word { display:block; opacity:calc(.35 + .65 * var(--intro-word-progress)); transform:translate3d(0,calc((1 - var(--intro-word-progress)) * 125%),0); }
+#why-us.why--stacked .slide--intro .slide__note { opacity:var(--why-note-reveal,0); transform:translate3d(0,calc((1 - var(--why-note-reveal,0)) * 24px),0); }
+#why-us.why--stacked .why__track:focus-visible { outline-color:#888; }
+
 
 /* Laptop Why us. A flat light field recedes with scroll; no autonomous loop. */
 @media (min-width:1100px), (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) {
@@ -3603,7 +3653,7 @@ img {
   }
   #why-us > .section-head { display:none; }
   #why-us .slide--intro { display:flex; }
-  #why-us .slide--intro .slide__note { text-transform:none; max-width:720px; line-height:1.4; }
+  #why-us .slide--intro .slide__note { width:auto; font-size:max(1.77776rem,15px); text-transform:none; max-width:720px; line-height:1.4; }
   #why-us .slide__reassurance { color:rgba(255,255,255,.88); white-space:nowrap; }
   #why-us .slide--intro .slide__inner { gap:2rem; }
   #why-us.why--horizontal {
@@ -3696,10 +3746,11 @@ img {
   #why-us.why--horizontal .slide { flex:0 0 100%; height:100vh; min-height:0; padding:0 24px; }
   #why-us.why--horizontal .skip-btn { display:block; }
   #why-us .why__track:focus-visible { outline-color:#888; }
+  #why-us.why--horizontal .skip-btn { transition:none; }
+}
+
   .topbar[data-mode] [data-why-surface="light"] { color:var(--ink); border-color:rgba(17,17,17,.3); transition:none; }
   .topbar[data-mode] [data-why-surface="dark"] { color:var(--white); border-color:rgba(255,255,255,.3); transition:none; }
   .topbar[data-mode] .nav__item[data-why-surface] { opacity:.82; }
   .topbar[data-mode] .nav__item[data-why-surface]:hover,
   .topbar[data-mode] .nav__item--active[data-why-surface] { opacity:1; }
-  #why-us.why--horizontal .skip-btn { transition:none; }
-}

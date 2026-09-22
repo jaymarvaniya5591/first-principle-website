@@ -25,13 +25,13 @@ function node() {
 }
 const section=node(), track=node(), scroll=node(), sticky=node(), heading=node(), skip=node(), product=node();
 Object.defineProperty(section,'clientWidth',{get:()=>state.width});
-section.querySelector=()=>heading;
+section.querySelector=selector=>selector==='.why__viewport-probe'?{getBoundingClientRect:()=>({height:state.stableHeight||state.height})}:heading;
 heading.getBoundingClientRect=()=>({top:state.start-80-state.y});
 scroll.getBoundingClientRect=()=>({top:state.start-state.y});
 product.getBoundingClientRect=()=>({top:9000-state.y});
-const names=['patents','warranty','service','returns','focus'];
+const names=['warranty','service','returns','focus','patents'];
 const slides=names.map((name,i)=>{
-  const el=node(); el.name=name; el.dataset.navTheme=i%2?'light':'dark';
+  const el=node(); el.name=name; el.dataset.navTheme=i%2?'dark':'light';
   const inner={get scrollHeight(){return state.contentHeight;}, get scrollWidth(){return state.width-80;}};
   el.querySelector=()=>inner;
   el.getBoundingClientRect=()=>({
@@ -43,7 +43,7 @@ const slides=names.map((name,i)=>{
 const intro=node(); intro.name='intro'; intro.dataset.navTheme='dark'; intro.querySelector=slides[0].querySelector; intro.getBoundingClientRect=()=>({left:Number.parseFloat(scroll.style.getPropertyValue('--why-x')||'0'),top:state.start-state.y});
 track.children=[intro,...slides];
 track.querySelector=()=>intro;
-track.querySelectorAll=()=>track.children.filter(s=>s!==intro);
+track.querySelectorAll=()=>track.children;
 track.appendChild=el=>{track.children=track.children.filter(s=>s!==el).concat(el);};
 const document={
   activeElement:null, elementsFromPoint:()=>[],
@@ -62,7 +62,7 @@ const window={
 const context=vm.createContext({window,document,Array,Math,ResizeObserver:undefined,
   shortScreen:{get matches(){return state.height<=520;}}});
 vm.runInContext(code,context);
-const visibleSlides=()=>track.children.filter(s=>state.desktop || s!==intro);
+const visibleSlides=()=>track.children;
 const order=()=>visibleSlides().map(s=>s.name);
 const x=()=>Number.parseFloat(scroll.style.getPropertyValue('--why-x'));
 const paintAt=distance=>{state.y=state.start+distance;context.updateWhyScroll();};
@@ -139,8 +139,32 @@ assert.equal(context.whyLayout.horizontal,false,'short screens use flow');
 state.height=768; state.contentHeight=1000; context.measureWhy();
 assert.equal(context.whyLayout.horizontal,false,'enlarged content remains reachable');
 state.contentHeight=350; state.desktop=false; context.measureWhy();
-assert.deepEqual(order(),names,'mobile restores the original DOM order');
-assert.deepEqual(visibleSlides().map(s=>s.dataset.navTheme),['dark','light','dark','light','dark']);
+state.width=390; state.height=844; state.stableHeight=844; context.measureWhy();
+assert.equal(context.whyLayout.stacked,true);
+assert.equal(context.whyLayout.hold,0);
+assert.equal(Number.parseFloat(scroll.style.getPropertyValue('--why-height')),6*844);
+assert.deepEqual(order(),['intro',...names],'shared reading order on mobile');
+assert.deepEqual(visibleSlides().map(s=>s.dataset.navTheme),['dark','light','dark','light','dark','light']);
+const cardY=i=>parseFloat(track.children[i].style.getPropertyValue('--why-card-y'));
+for(let card=1;card<6;card++) for(const fraction of [0,.25,.5,.75,1]) {
+  paintAt((card-1+fraction)*844);
+  assert.ok(Math.abs(cardY(card)-(1-fraction)*100)<1e-8,'incoming card matches the original linear cover');
+  assert.equal(cardY(card-1),0,'previous card remains stationary');
+}
+paintAt(.5*844); assert.equal(cardY(1),50,'reverse uncovers the previous card');
+key('ArrowDown'); assert.equal(destination,state.start+844);
+key('ArrowUp'); assert.equal(destination,state.start);
+paintAt(2.4*844); const beforeToolbar=cardY(3);
+state.height=920; context.updateWhyScroll();
+assert.equal(context.whyLayout.height,844,'toolbar changes do not resize the stable stage');
+assert.equal(cardY(3),beforeToolbar);
+state.width=768; state.height=1024; state.stableHeight=1024; context.measureWhy();
+assert.ok(Math.abs(cardY(3)-60)<.001,'orientation preserves fractional card progress');
+state.reduced=true; context.measureWhy();
+assert.equal(context.whyLayout.animated,false);
+track.children.forEach(s=>assert.equal(s.style.getPropertyValue('--why-card-y'),''));
+assert.equal(order().length,6,'all six slides remain readable in fallback');
+state.reduced=false; state.stableHeight=0; state.width=1440;
 state.desktop=true; context.measureWhy();
 assert.equal(context.whyLayout.horizontal,true,'desktop can be restored');
 assert.deepEqual(order(),['intro','warranty','service','returns','focus','patents']);
@@ -160,4 +184,4 @@ state.reduced=true;
 skip.events.click();
 assert.equal(state.y,9000,'reduced-motion fallback navigation is immediate');
 assert.equal(frames.size,0);
-console.log('Why us: pacing, holds, reversal, keyboard, resize, motion/fit fallbacks, mobile restoration, Skip and interrupted native navigation passed.');
+console.log('Why us: pacing, holds, reversal, keyboard, resize, motion/fit fallbacks, mobile stacking, stable viewport, shared reading order, Skip and interrupted native navigation passed.');
