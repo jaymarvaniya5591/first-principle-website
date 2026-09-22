@@ -3577,6 +3577,8 @@ img {
 #why-us .slide__note { max-width:100%; }
 #why-us .stats { max-width:100%; }
 #why-us .stat { min-width:0; }
+#why-us .stat__num { white-space:nowrap; font-size:clamp(1.25rem,6.3vw,2rem); }
+#why-us .stat__coverage { display:none; }
 #why-us .stat__divider { flex-shrink:0; }
 /* Reserve the feather below mobile controls, never over their text or hit areas. */
 #technology.features--mobile .features__body {
@@ -3704,6 +3706,7 @@ img {
   #why-us .pill { gap:.55555rem; padding:.88888rem 1.44443rem; font-size:max(.88888rem,11px); }
   #why-us .stats { gap:min(5.5555rem,7vw); }
   #why-us .stat { width:15.22207rem; max-width:35vw; }
+  #why-us .stat__coverage { display:inline; }
   #why-us .stat__num { font-size:2.88886rem; color:inherit; }
   #why-us .stat__label { font-size:max(1.77776rem,14px); line-height:1.47; color:var(--dim); }
   #why-us .stat__divider { height:7.66659rem; background:currentColor; opacity:.4; }
