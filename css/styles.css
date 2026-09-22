@@ -3614,7 +3614,7 @@ img {
   #why-us.why--horizontal::after {
     content:"";
     position:absolute;
-    inset:-8vh 0 auto;
+    inset:-5.6vh 0 auto;
     height:130vh;
     z-index:0;
     pointer-events:none;
@@ -3624,7 +3624,7 @@ img {
     /* Actual neutral colours, not black alpha over the departing photograph.
        The ramp crosses into the transparent intro so its greys stay visible. */
     background:linear-gradient(to bottom,var(--why-tone-stops));
-    mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.15625) 2vh,rgba(0,0,0,.5) 4vh,rgba(0,0,0,.84375) 6vh,#000 8vh);
+    mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.15625) 1.4vh,rgba(0,0,0,.5) 2.8vh,rgba(0,0,0,.84375) 4.2vh,#000 5.6vh);
   }
   #why-us.why--horizontal::after {
     background:url('../assets/img/why-dither.png') repeat;
@@ -3661,10 +3661,23 @@ img {
   #why-us .why__sticky { position:relative; height:auto; overflow:visible; }
   #why-us .why__track { position:relative; display:block; width:100%; height:auto; transform:none; }
   #why-us .skip-btn { display:none; }
-  /* A distinct, gently staggered text entrance; the approved gradient is separate. */
-  #why-us.why--horizontal .slide--intro .slide__title {
-    opacity:var(--why-reveal,0);
-    transform:translate3d(0,calc((1 - var(--why-reveal,0)) * 48px),0);
+  /* Clip each phrase at its baseline: crisp type emerges instead of a dim
+     whole-heading fade. Negative margins preserve the original title metrics. */
+  #why-us.why--horizontal .intro__word-window {
+    display:inline-block;
+    vertical-align:top;
+    overflow:hidden;
+    padding-block:.1em;
+    margin-block:-.1em;
+    --intro-word-progress:var(--why-reveal,0);
+  }
+  #why-us.why--horizontal .intro__word-window--brand {
+    --intro-word-progress:var(--why-brand-reveal,0);
+  }
+  #why-us.why--horizontal .intro__word {
+    display:block;
+    opacity:calc(.35 + .65 * var(--intro-word-progress));
+    transform:translate3d(0,calc((1 - var(--intro-word-progress)) * 125%),0);
   }
   #why-us.why--horizontal .slide--intro .slide__note {
     opacity:var(--why-note-reveal,0);

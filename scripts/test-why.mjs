@@ -71,18 +71,20 @@ const key=key=>track.events.keydown({key,preventDefault(){}});
 assert.deepEqual(order(),['intro','warranty','service','returns','focus','patents']);
 assert.deepEqual(visibleSlides().map(s=>s.dataset.navTheme),['dark','light','dark','light','dark','light']);
 assert.equal(context.whyLayout.horizontal,true);
-assert.equal(context.whyToneDarkness(.08),0,'wash starts transparent');
-assert.equal(context.whyToneDarkness(.66),1,'wash meets the exact black slide');
+assert.ok(Math.abs(context.whyToneDarkness(.056))<1e-12,'surface starts at white');
+assert.equal(context.whyToneDarkness(.462),1,'wash meets the exact black slide');
 assert.equal(context.whyToneDarkness(0),0,'top edge is transparent');
 for(let i=1;i<65;i++) assert.ok(context.whyToneSamples[i]>context.whyToneSamples[i-1],'lightness never reverses');
 assert.ok(context.whyToneSamples[1]<.02,'gentle white endpoint');
 assert.ok(context.whyToneSamples[63]>.99,'gentle black endpoint');
 paintAt(-900); assert.equal(Math.abs(context.whyLightShift),0,'Technology remains clear at entrance start');
-assert.match(section.style.getPropertyValue('--why-tone-stops'),/^rgb\(255.0000,255.0000,255.0000\) 8vh/,'surface starts at real white');
-assert.match(section.style.getPropertyValue('--why-tone-stops'),/rgb\(17.0000,17.0000,17.0000\) 66vh$/,'surface ends at exact slide black');
-// At halfway, the tonal range spans .13 to .71 viewport, including the intro.
+assert.match(section.style.getPropertyValue('--why-tone-stops'),/^rgb\(255.0000,255.0000,255.0000\) 5.600000vh/,'surface starts at real white');
+assert.match(section.style.getPropertyValue('--why-tone-stops'),/rgb\(17.0000,17.0000,17.0000\) 46.200000vh$/,'surface ends at exact slide black');
+// Keep the same quarter-tone colours while shortening their physical spacing.
 paintAt(-450);
-assert.ok(context.whyToneDarkness(.225)>.1 && context.whyToneDarkness(.515)<.92,'quarter tones retain a broad mid-grey range');
+assert.ok(context.whyToneDarkness(.124875)>.1 && context.whyToneDarkness(.327875)<.92,'quarter tones retain a broad mid-grey range');
+assert.ok(Math.abs(context.whyTonePositions[64] / 66 - .7)<1e-10,'visible gradient window is 30% shorter');
+assert.ok((context.whyTonePositions[16]-context.whyTonePositions[0]) < (context.whyTonePositions[64]-context.whyTonePositions[48]),'compression removes more pale space than shadow detail');
 let lastEdge=Infinity;
 for(let i=0;i<=40;i++) {
   const progress=i/40;
@@ -103,11 +105,17 @@ paintAt(180+1440*5+90); assert.equal(x(),-6400,'closing reading allowance');
 paintAt(99999); assert.equal(x(),-6400,'clamp at the end');
 paintAt(-600); assert.equal(Math.abs(x()),0,'clamp before entry');
 assert.equal(section.style.getPropertyValue('--why-reveal'),'0.00000');
-paintAt(-270); assert.equal(section.style.getPropertyValue('--why-reveal'),'0.50000','entrance text appears earlier to avoid an empty black pause');
-assert.equal(section.style.getPropertyValue('--why-note-reveal'),'0.35200','supporting line follows the headline');
-paintAt(0); assert.equal(section.style.getPropertyValue('--why-reveal'),'1.00000');
-assert.equal(section.style.getPropertyValue('--why-note-reveal'),'1.00000','both lines settle before horizontal travel');
-paintAt(-270); assert.equal(section.style.getPropertyValue('--why-reveal'),'0.50000','entrance reverses');
+paintAt(-270);
+const titleAtMiddle=Number(section.style.getPropertyValue('--why-reveal'));
+const brandAtMiddle=Number(section.style.getPropertyValue('--why-brand-reveal'));
+const noteAtMiddle=Number(section.style.getPropertyValue('--why-note-reveal'));
+assert.ok(titleAtMiddle>brandAtMiddle && brandAtMiddle>noteAtMiddle && noteAtMiddle>0,'phrases and reassurance reveal in order');
+paintAt(0);
+for(const property of ['--why-reveal','--why-brand-reveal','--why-note-reveal']) {
+  assert.equal(section.style.getPropertyValue(property),'1.00000','all text settles before horizontal travel');
+}
+paintAt(-270);
+assert.deepEqual(['--why-reveal','--why-brand-reveal','--why-note-reveal'].map(k=>Number(section.style.getPropertyValue(k))),[titleAtMiddle,brandAtMiddle,noteAtMiddle],'the complete stagger retraces on reversal');
 paintAt(180+1440*.4); key('ArrowRight'); assert.equal(destination,1200+180+1440);
 key('ArrowLeft'); assert.equal(destination,1200+180);
 paintAt(50); context.measureWhy(); assert.equal(state.y,1250,'remeasure must not skip the opening hold');
@@ -123,6 +131,7 @@ assert.equal(context.whyLayout.horizontal,false,'reduced motion uses flow');
 assert.equal(scroll.style.getPropertyValue('--why-x'),'');
 assert.equal(section.style.getPropertyValue('--why-reveal'),'');
 assert.equal(section.style.getPropertyValue('--why-note-reveal'),'');
+assert.equal(section.style.getPropertyValue('--why-brand-reveal'),'');
 assert.equal(track.tabIndex,-1);
 assert.deepEqual(order(),['intro','warranty','service','returns','focus','patents']);
 state.reduced=false; state.height=500; context.measureWhy();

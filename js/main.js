@@ -223,17 +223,28 @@
       var grey = 255 * (linear <= .0031308 ? 12.92 * linear : 1.055 * Math.pow(linear, 1 / 2.4) - .055);
       return whyClamp((255 - grey) / 238, 1);
     });
+    // Preserve every approved colour; redistribute distance toward the darker
+    // tones. The pale end compresses most, with no abrupt change in spacing.
+    // 5.6vh feather + 40.6vh ramp = 46.2vh, 30% shorter than the 66vh original.
+    var whyTonePositions = whyToneSamples.map(function (_, i) {
+      var t = i / 64;
+      return 5.6 + 58 * (.4 * t + .3 * t * t);
+    });
     var whyToneDarkness = function (vertical) {
-      var sample = whyClamp((vertical - .08) / .58, 1) * 64;
-      var lower = Math.floor(sample), upper = Math.min(64, lower + 1);
-      return whyToneSamples[lower] + (whyToneSamples[upper] - whyToneSamples[lower]) * (sample - lower);
+      var position = vertical * 100;
+      if (position <= whyTonePositions[0]) return 0;
+      if (position >= whyTonePositions[64]) return 1;
+      var upper = whyTonePositions.findIndex(function (stop) { return stop >= position; });
+      var lower = upper - 1;
+      var fraction = (position - whyTonePositions[lower]) / (whyTonePositions[upper] - whyTonePositions[lower]);
+      return whyToneSamples[lower] + (whyToneSamples[upper] - whyToneSamples[lower]) * fraction;
     };
     whySection.style.setProperty('--why-tone-stops', whyToneSamples.map(function (darkness, i) {
       var grey = (255 - darkness * 238).toFixed(4);
-      return 'rgb(' + grey + ',' + grey + ',' + grey + ') ' + (8 + i * 58 / 64) + 'vh';
+      return 'rgb(' + grey + ',' + grey + ',' + grey + ') ' + whyTonePositions[i].toFixed(6) + 'vh';
     }).join(','));
     whySection.style.setProperty('--why-grain-stops', whyToneSamples.map(function (darkness, i) {
-      return 'rgba(0,0,0,' + (4 * darkness * (1 - darkness)).toFixed(6) + ') ' + (8 + i * 58 / 64) + 'vh';
+      return 'rgba(0,0,0,' + (4 * darkness * (1 - darkness)).toFixed(6) + ') ' + whyTonePositions[i].toFixed(6) + 'vh';
     }).join(','));
 
     var updateWhyScroll = function () {
@@ -254,11 +265,15 @@
           var retreat = entranceProgress * entranceProgress * (3 - 2 * entranceProgress);
           whyLightShift = -window.innerHeight * .5 * retreat;
           whySection.style.setProperty('--why-light-shift', whyLightShift.toFixed(3) + 'px');
-          var reveal = whyClamp(1 - entranceTop / (whyLayout.entrance * .6), 1);
-          reveal = reveal * reveal * (3 - 2 * reveal);
+          // Phrases rise through a fixed baseline with a soft deceleration.
+          // One scroll clock preserves direct reversal and interrupted navigation.
+          var reveal = whyClamp((entranceProgress - .42) / .48, 1);
+          reveal = 1 - Math.pow(1 - reveal, 3);
           whySection.style.setProperty('--why-reveal', reveal.toFixed(5));
-          // The reassurance follows the headline by a tenth of the entrance.
-          var noteReveal = whyClamp((entranceProgress - .5) / .5, 1);
+          var brandReveal = whyClamp((entranceProgress - .48) / .48, 1);
+          brandReveal = 1 - Math.pow(1 - brandReveal, 3);
+          whySection.style.setProperty('--why-brand-reveal', brandReveal.toFixed(5));
+          var noteReveal = whyClamp((entranceProgress - .62) / .38, 1);
           noteReveal = noteReveal * noteReveal * (3 - 2 * noteReveal);
           whySection.style.setProperty('--why-note-reveal', noteReveal.toFixed(5));
           whySection.classList.toggle('why--entered', entranceTop <= 1);
@@ -335,6 +350,7 @@
         whyScroll.style.removeProperty('--why-x');
         whySection.style.removeProperty('--why-reveal');
         whySection.style.removeProperty('--why-note-reveal');
+        whySection.style.removeProperty('--why-brand-reveal');
       }
       track.tabIndex = horizontal ? 0 : -1;
       if (horizontal) track.setAttribute('aria-roledescription', 'carousel');
@@ -757,10 +773,10 @@
         var washTheme = function (control) {
           var rect = control.getBoundingClientRect();
           var x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
-          var sy = (y - whyRect.top + window.innerHeight * .2 - whyLightShift) / window.innerHeight;
+          var sy = (y - whyRect.top + window.innerHeight * .176 - whyLightShift) / window.innerHeight;
           var darkness = whyToneDarkness(sy);
           var underneath = document.elementFromPoint(x, topbar.getBoundingClientRect().bottom + 8);
-          return sy >= .04 ? (darkness > .56 ? 'dark' : 'light') : inferBackgroundTheme(underneath);
+          return sy >= .028 ? (darkness > .56 ? 'dark' : 'light') : inferBackgroundTheme(underneath);
         };
         applyTopbarSurface('merge', washTheme(topbarLogo || topbar));
         whyNavInk.forEach(function (control) { control.dataset.whySurface = washTheme(control); });

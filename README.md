@@ -202,22 +202,28 @@ its text inside the opaque bottom feather.
 
 The separate Why wash travels over one viewport height (88vh overlap plus
 12vh prelude). The prelude is 80% shorter; entrance travel is 20% shorter.
-The headline fades in and rises 48px through the last 60% of the entrance.
-The supporting line follows through the last 50%, fading in and rising 24px.
-Both finish at the settled introduction and retrace on reverse scroll. Direct
-Why links show settled text; motion/fit fallbacks expose it immediately. This
-text-only animation is independent of the approved gradient and runway.
+The title reveals through two clipped phrase windows: "Why" from 42–90% of the
+entrance, then "First Principle?" from 48–96%, with cubic ease-out. Each phrase
+rises from below its baseline while becoming fully opaque. Padding protects
+descenders; negative margins preserve the settled headline size and position.
+The reassurance follows at 62–100%, fading in and rising 24px. All movement is
+scroll-linked and retraces on reversal, with no independent clock or blur.
+Direct Why links show settled text; motion/fit fallbacks expose it immediately.
+The approved gradient, runway and typography are unchanged.
 
 The gradient is a single opaque colour surface: actual white, greys and #111,
 not a black mask over the photo. This fixes the muddy early darkening and the
 intro background hiding the lower gradient. The intro is transparent only in
 the horizontal presentation; its text remains above the gradient plane.
 
-The plane begins 8vh before Technology's bottom with a feather into white.
-Its neutral ramp spans 58vh, sampled at 65 points along a smooth Oklab-lightness
-curve. It extends into the intro, preserving intermediate greys without adding
+The plane begins 5.6vh before Technology's bottom with a feather into white.
+Its neutral ramp spans 40.6vh. All 65 approved Oklab-lightness colours are
+preserved, with stop positions 5.6 + 58*(0.4*t + 0.3*t*t) vh. This smoothly
+compresses the pale end most and keeps more space for mid/dark tones. The
+combined 46.2vh window is 30% shorter than the approved 66vh window; the
+scroll runway, title reveal and separate Technology feather are unchanged. It extends into the intro, preserving intermediate greys without adding
 any document height. Scroll moves the plane up by 50vh*smoothstep(progress).
-The ramp finishes 4vh above the viewport at pinning, leaving exact #111 behind
+The ramp finishes 21.4vh above the viewport at pinning, leaving exact #111 behind
 the settled introduction. Reverse scrolling retraces the same geometry.
 
 Navigation samples that same colour curve and transformed position. Static
