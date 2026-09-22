@@ -48,8 +48,8 @@ OS, display, or device-pixel-ratio detection in the website.
 - Below 1100px, copy and product use normal-flow rows. Below 600px the compact
   typography applies; tablet layouts use a wider reading measure. Section headers
   stack between 1100px and 1200px when both desktop labels cannot fit safely.
-- Root font size is stable. Non-hero desktop dimensions preserve their measured
-  reference values; constrained grid/flex layouts handle available space.
+- Root font size is stable. Technology has its own proportional reference unit
+  (see below); other non-hero sections use constrained grid/flex layouts.
 - The cloud envelope is baked into the SVG by `npm run clouds`. Runtime code only
   pauses/resumes cloud animation; it does not measure or reposition the artwork.
 - `npm run css` uses esbuild because the previous minifier dropped range media
@@ -102,6 +102,59 @@ For visual regression, compare the reference viewport with fonts loaded and the
 entrance animations settled. Use `?clouds=still` on localhost to pause ambient
 cloud movement. Check both viewport dimensions and device pixel ratio; DPR alone
 does not reproduce the layout effects of Windows scaling or browser zoom.
+
+## Desktop technology explorer
+
+Technology uses the approved 1280×585 CSS viewport as a proportional reference,
+matching the 150% Windows / 100% Chrome view. Like the hero's scene unit, one
+`--technology-unit` scales all type, spacing, padding and controls together. It
+equals the section's measured content width divided by 1280; no OS, zoom or DPR
+detection is used. At reference size the heading/card/description/supporting
+type is 36/20/15/17px, with equal 20px gaps above and below the heading. These
+values scale continuously; there is no abrupt short-window typography override.
+
+The full-width 46/54 grid aligns the heading and supporting line over their
+respective panels. The section measures the actual header and heading heights,
+then fits five row units into the remaining viewport. The photo and cards share
+the bottom edge with no bottom padding or height cap. One card starts expanded
+and takes exactly two row units; each other card takes one. If less than 340
+reference units of panel height remain, the list uses readable document flow.
+
+The explorer applies at 1100px and above, and also on landscape mouse/trackpad
+windows at least 600px wide with an aspect ratio of at least 4:3. This prevents
+Windows scaling or Chrome zoom from turning a laptop into the touch accordion.
+Phones, touch tablets below 1100px, and narrow portrait windows retain the
+existing accordion and embedded image. The JS, CSS and responsive image sizes
+share this layout condition. A small photo hint fades after the first interaction.
+
+The original typography mix is retained: Helvetica Neue for headings and feature
+titles, Helvetica Now Display for descriptions and other body copy, and Helvetica
+Now Text for navigation. The Technology heading uses slightly relaxed tracking
+(-0.02em). The hero retains its original font families and layout.
+
+`js/technology.js` owns hover/focus/click selection, decoded image swaps, and internal
+scrolling. The first card opens by default. Desktop always keeps one card open:
+scrolling, leaving a card, clicking it again, or pressing Escape does not collapse
+it. Selecting a different card replaces it and its image. Hover selection requires
+actual pointer movement so animated or scrolling rows cannot select themselves
+under a stationary cursor. Mobile retains its existing click-to-toggle behavior.
+
+Desktop wheel input over the cards scrolls their panel, releasing excess to the
+page at either end. The entire photo scrolls the page normally, including its
+edge beside the cards. There is no mixed zone or photo-specific slowdown.
+Internal card scrolling activates only while the complete panel
+fits below the navigation and above the viewport bottom. During entry from the
+hero or return from the next section, wheel input moves only the page until the
+panel is fully visible. This also applies with reduced motion, without Lenis.
+The existing Lenis controller's relative-scroll API handles page movement without processing the
+same wheel event twice. Zoom gestures and horizontal input remain native.
+
+Technology nav clicks and direct fragment links share the measured header offset,
+including scaled desktop windows below the site's navigation breakpoint.
+Resizing or zooming while aligned at Technology keeps that entrance below the
+header as the hero above changes height; it does not pull back a departing user.
+Reduced motion removes interpolation. Without JavaScript the desktop list and
+descriptions remain in normal flow. Rebuild CSS after changing the source.
 
 ## Local preview
 

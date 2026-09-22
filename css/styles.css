@@ -1062,6 +1062,8 @@ img {
   will-change:transform,opacity;
 }
 
+.features__hint { display:none; }
+
 .features {
   padding-top:7.7777rem;
 }
@@ -3280,4 +3282,237 @@ img {
     opacity:var(--clarity-detail,1);
     transform:translate3d(0,calc((1 - var(--clarity-detail,1)) * 16px),0);
   }
+}
+
+/* Technology uses the approved 1280 x 585 composition as a proportional
+   coordinate system. One unit scales type, spacing and controls together;
+   the photo/list still fill the actual remaining browser height. A landscape
+   mouse/trackpad window keeps this layout even when OS/browser scaling exposes
+   fewer than 1100 CSS pixels. Touch/mobile presentation remains independent. */
+@media (min-width:1100px), (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) {
+  #technology {
+    --technology-unit:calc(100vw / 1280);
+    --technology-panel:720px;
+    --technology-row:calc(var(--technology-panel) / 5);
+    --technology-inset:calc(38.4 * var(--technology-unit));
+    --technology-gap:calc(20 * var(--technology-unit));
+    min-height:calc(100svh - var(--technology-header,96px));
+    padding-top:var(--technology-gap);
+    padding-bottom:0;
+    scroll-margin-top:var(--technology-header,96px);
+  }
+  #technology .section-head {
+    display:grid;
+    grid-template-columns:minmax(0,46fr) minmax(0,54fr);
+    width:100%;
+    max-width:none;
+    min-height:0;
+    gap:0;
+    margin:0 0 var(--technology-gap);
+    padding:0;
+    align-items:center;
+  }
+  #technology .section-head__title {
+    padding:0 calc(24 * var(--technology-unit));
+    font-family:var(--f-neue);
+    font-size:calc(36 * var(--technology-unit));
+    line-height:1.15;
+    white-space:normal;
+    text-align:center;
+    text-wrap:balance;
+    letter-spacing:-.02em;
+  }
+  #technology .section-head__sub {
+    width:100%;
+    max-width:none;
+    padding:0 calc(28 * var(--technology-unit));
+    margin:0;
+    font-size:calc(17 * var(--technology-unit));
+    line-height:1.5;
+    white-space:normal;
+    text-align:center;
+    text-wrap:balance;
+    color:#444;
+  }
+  #technology.features--enhanced .features__hint {
+    display:block;
+    position:absolute;
+    z-index:2;
+    left:calc(16 * var(--technology-unit));
+    bottom:calc(16 * var(--technology-unit));
+    margin:0;
+    padding:calc(5 * var(--technology-unit)) calc(9 * var(--technology-unit));
+    border-radius:calc(3 * var(--technology-unit));
+    background:rgba(255,255,255,.78);
+    pointer-events:none;
+    font-family:var(--f-now-text);
+    font-size:calc(11 * var(--technology-unit));
+    line-height:1.5;
+    letter-spacing:.01em;
+    color:#626262;
+    transition:opacity 180ms ease-out;
+  }
+  #technology.features--explored .features__hint { opacity:0; }
+  #technology .features__body {
+    display:grid;
+    grid-template-columns:minmax(0,46fr) minmax(0,54fr);
+    align-items:start;
+    width:100%;
+    max-width:none;
+    margin:0;
+    gap:0;
+  }
+  #technology .features__media {
+    display:block;
+    position:sticky;
+    top:calc(var(--technology-header,96px) + var(--technology-gap));
+    height:calc(438 * var(--technology-unit));
+    max-height:none;
+    background:#ece9e5;
+  }
+  #technology.features--enhanced:not(.features--flow) .features__media {
+    position:relative;
+    top:auto;
+    height:var(--technology-panel);
+    contain:layout paint;
+  }
+  #technology .features__img {
+    visibility:visible;
+    transition:opacity 160ms ease-out;
+    pointer-events:none;
+    z-index:0;
+  }
+  #technology .features__img.is-active { z-index:1; }
+  #technology .features__img img {
+    object-fit:cover;
+    object-position:center;
+    transform:none;
+  }
+  #technology .features__list {
+    display:block;
+    position:relative;
+    height:auto;
+    min-width:0;
+    overflow:visible;
+    overflow-anchor:none;
+    scroll-behavior:auto;
+    scroll-snap-type:none;
+    scrollbar-width:thin;
+    scrollbar-color:#aaa #ececec;
+    background:#f5f5f3;
+    overscroll-behavior:auto;
+  }
+  #technology .features__list::-webkit-scrollbar { display:block; width:max(3px,calc(5 * var(--technology-unit))); }
+  #technology .features__list::-webkit-scrollbar-track { background:#ececec; }
+  #technology .features__list::-webkit-scrollbar-thumb { background:#aaa; border-radius:3px; }
+  #technology.features--enhanced:not(.features--flow) .features__list {
+    height:var(--technology-panel);
+    overflow-y:auto;
+    overflow-x:hidden;
+    contain:layout paint;
+  }
+  #technology .feature {
+    height:auto;
+    min-height:calc(104 * var(--technology-unit));
+    padding:calc(16 * var(--technology-unit)) 0;
+    gap:calc(10 * var(--technology-unit));
+    border:0;
+    border-bottom:1px solid #d9d9d6;
+    background:#f5f5f3;
+    color:var(--ink);
+    justify-content:center;
+    transition:height 200ms cubic-bezier(.2,.7,.2,1),background-color 160ms ease-out;
+    overflow:hidden;
+  }
+  #technology .feature__btn,
+  #technology .feature.is-active .feature__btn {
+    height:auto;
+    min-height:calc(25 * var(--technology-unit));
+    padding:0 var(--technology-inset);
+    margin:0;
+    gap:calc(24 * var(--technology-unit));
+    cursor:pointer;
+    transition:none;
+  }
+  #technology .feature__title {
+    font-size:calc(20 * var(--technology-unit));
+    line-height:1.25;
+    letter-spacing:-.025em;
+    white-space:normal;
+    color:inherit;
+    transition:color 160ms ease-out;
+  }
+  #technology .feature__icon {
+    display:block;
+    position:relative;
+    width:calc(18 * var(--technology-unit));
+    height:calc(18 * var(--technology-unit));
+    flex:0 0 calc(18 * var(--technology-unit));
+    margin:0;
+    opacity:.6;
+    background:none;
+    mask:none;
+  }
+  #technology .feature__icon::before,
+  #technology .feature__icon::after {
+    content:"";
+    display:block;
+    position:absolute;
+    background:currentColor;
+    left:calc(2 * var(--technology-unit));
+    right:calc(2 * var(--technology-unit));
+    top:calc(8 * var(--technology-unit));
+    height:1px;
+    transition:transform 160ms ease-out;
+  }
+  #technology .feature__icon::after { transform:rotate(90deg); }
+  #technology .feature.is-active .feature__icon::after { transform:rotate(0); }
+  #technology .feature__desc,
+  #technology .feature.is-active .feature__desc {
+    display:block;
+    width:100%;
+    max-width:calc(54ch + var(--technology-inset) * 2);
+    padding:0 var(--technology-inset);
+    margin:0;
+    font-size:calc(15 * var(--technology-unit));
+    line-height:1.4;
+    color:inherit;
+    opacity:1;
+    transform:none;
+    transition:opacity 120ms ease-out;
+  }
+  #technology .feature.is-active { color:#fff; background:#111; }
+  #technology .feature.is-active .feature__desc { color:#bcbcbc; }
+  #technology.features--enhanced .feature:not(.is-active) {
+    height:var(--technology-row);
+    min-height:0;
+    padding:0;
+    gap:0;
+  }
+  #technology.features--enhanced .feature:not(.is-active) .feature__btn {
+    height:calc(var(--technology-row) - 1px);
+  }
+  #technology.features--enhanced .feature:not(.is-active) .feature__desc {
+    position:absolute;
+    visibility:hidden;
+    opacity:0;
+    pointer-events:none;
+  }
+  #technology.features--enhanced:not(.features--flow) .feature.is-active {
+    height:calc(var(--technology-row) * 2);
+    min-height:0;
+  }
+  #technology.features--flow .feature.is-active { min-height:calc(200 * var(--technology-unit)); }
+  #technology.features--flow .features__body { align-items:stretch; }
+  #technology.features--flow .features__media { position:relative; top:0; height:auto; min-height:calc(340 * var(--technology-unit)); }
+  #technology .feature__btn:focus-visible { outline-offset:-5px; }
+  #technology .features__list:focus-visible { outline-offset:-3px; }
+  #technology.features--enhanced:not(.features--ready) .feature { transition:none; }
+}
+@media (prefers-reduced-motion:reduce) {
+  #technology .feature,
+  #technology .feature__title,
+  #technology .feature__desc,
+  #technology .features__img,
+  #technology .feature__icon::after { transition:none; }
 }

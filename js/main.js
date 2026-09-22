@@ -109,97 +109,7 @@
     });
   }
 
-  /* ---------------- Features accordion (Scroll-Driven / Click-Driven) ---------------- */
-  var featuresSection = document.getElementById("technology");
-  var featuresBody = document.querySelector(".features__body");
-  var featureList = document.querySelector(".features__list");
-  var featureItems = Array.prototype.slice.call(document.querySelectorAll(".features__list .feature"));
-  var featureImgs = document.querySelectorAll(".features__img");
-
-  if (featuresSection && featuresBody && featureList) {
-    var featuresMedia = document.getElementById("features-media");
-    var isMobileFeatures = function() { return !isDesktop(); };
-
-    // Move media panel into a given feature card (mobile only)
-    function moveMobileMedia(li) {
-      if (!featuresMedia || !li) return;
-      if (!li.contains(featuresMedia)) {
-        li.insertBefore(featuresMedia, li.firstChild);
-      }
-    }
-
-    // Restore media panel to its original position in features body (desktop)
-    function restoreMedia() {
-      if (!featuresMedia || !featuresBody) return;
-      if (!featuresBody.contains(featuresMedia) || featuresMedia.parentElement !== featuresBody) {
-        featuresBody.insertBefore(featuresMedia, featuresBody.firstChild);
-      }
-    }
-
-    // Initialize first feature as active
-    activateFeatureScroll(0);
-
-    // On mobile: move media into the first card on init
-    if (isMobileFeatures()) {
-      moveMobileMedia(featureItems[0]);
-    }
-
-    // Desktop scroll spy (skip on mobile — click-only on mobile)
-    window.addEventListener("scroll", function() {
-      if (isMobileFeatures()) return;
-      var triggerY = window.innerHeight * 0.4;
-      var bestIndex = 0;
-      featureItems.forEach(function(li, i) {
-        var rect = li.getBoundingClientRect();
-        if (rect.top <= triggerY) bestIndex = i;
-      });
-      activateFeatureScroll(bestIndex);
-    }, { passive: true });
-
-    // Click interaction (mobile: open card with image inside; desktop: also works as accordion)
-    featureItems.forEach(function(li, i) {
-      li.style.cursor = "pointer";
-      li.addEventListener("click", function() {
-        if (li.classList.contains("is-active")) {
-          activateFeatureScroll(-1);
-        } else {
-          activateFeatureScroll(i);
-          if (isMobileFeatures()) moveMobileMedia(li);
-        }
-      });
-    });
-
-    // On resize to desktop: put media back where it belongs
-    desktopMedia.addEventListener("change", function(e) {
-      if (e.matches) restoreMedia();
-      else moveMobileMedia(featureItems.find(function(li) { return li.classList.contains("is-active"); }) || featureItems[0]);
-    });
-  }
-
-  function activateFeatureScroll(index) {
-    var indexStr = String(index);
-    featureItems.forEach(function (li) {
-      var on = li.dataset.feature === indexStr;
-      if (on !== li.classList.contains("is-active")) {
-        li.classList.toggle("is-active", on);
-        var btn = li.querySelector(".feature__btn");
-        if (btn) {
-          btn.setAttribute("aria-expanded", String(on));
-          btn.tabIndex = on ? -1 : 0;
-        }
-      }
-    });
-    
-    // Only update images and layout if we are opening a feature.
-    if (index !== -1) {
-      featureImgs.forEach(function (pic) {
-        var on = pic.dataset.feature === indexStr;
-        if (on !== pic.classList.contains("is-active")) {
-          pic.classList.toggle("is-active", on);
-        }
-      });
-    }
-  }
+  // Technology interactions live in technology.js; page scrolling never selects a card.
 
   /* ---------------- Collection carousel (6 products, 3 visible on desktop) ---------------- */
   var carousel = document.querySelector(".carousel");
@@ -412,7 +322,9 @@
         var whyScroll = document.querySelector(".why__scroll-container");
         if (whyScroll) whyScroll.dataset.skipping = "true";
         
-        var headerOffset = !isDesktop() && targetId !== "#home" ? document.querySelector('.topbar').getBoundingClientRect().height + 12 : 0;
+        var headerHeight = document.querySelector('.topbar').getBoundingClientRect().height;
+        var headerOffset = targetId === '#technology' && target.classList.contains('features--desktop') ? headerHeight
+          : !isDesktop() && targetId !== "#home" ? headerHeight + 12 : 0;
         var targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
         if (window.siteScroll && window.siteScroll.to(targetY, function () {
           if (whyScroll) {

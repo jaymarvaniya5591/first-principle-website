@@ -32,6 +32,8 @@
         return node.matches('textarea,select,[contenteditable="true"],.mobile-menu,[data-lenis-prevent]');
       },
       virtualScroll: function (input) {
+        // The technology panel already routed this input between its two scrollers.
+        if (input.event.defaultPrevented) return false;
         if (input.event.type !== 'wheel' || input.event.ctrlKey) return;
         finishNavigation();
         var amount = Math.abs(input.deltaY);
@@ -51,6 +53,23 @@
   window.siteScroll = {
     get active() { return !!instance; },
     onFrame: function (render) { listeners.push(render); },
+    cancel: function () {
+      finishNavigation();
+      if (instance) instance.scrollTo(instance.actualScroll, { immediate: true });
+    },
+    // Delta is already normalized by the caller. Keep one owner of page inertia.
+    by: function (delta) {
+      finishNavigation();
+      if (!instance) {
+        window.scrollBy({ top: delta, behavior: 'instant' });
+        return;
+      }
+      var ahead = instance.targetScroll - instance.animatedScroll;
+      if (Math.abs(ahead) > 1 && Math.sign(delta) !== Math.sign(ahead)) {
+        instance.scrollTo(instance.actualScroll, { immediate: true });
+      }
+      instance.scrollTo(instance.targetScroll + delta, { lerp: .18 });
+    },
     to: function (target, done) {
       if (!instance) return false;
       finishNavigation();
