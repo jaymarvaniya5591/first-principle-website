@@ -744,9 +744,29 @@
   // data-mode/data-theme forever.
   var topbarMode = null;
   var topbarTheme = null;
-  var applyTopbarSurface = function (mode, theme) {
+  var hasTopbarContent = function () {
+    var rect = topbar.getBoundingClientRect();
+    // Inspect the foremost page element, never content hidden behind a solid
+    // section. Sampling inside the bar catches content before it exits below.
+    return [.08, .24, .4, .56, .72, .88, .96].some(function (fraction) {
+      return [.25, .75].some(function (row) {
+        var stack = document.elementsFromPoint(rect.left + rect.width * fraction, rect.top + rect.height * row);
+        var el = stack.find(function (node) { return !node.closest('.topbar, .mobile-menu, .skip-link'); });
+        if (!el || el.closest('.hero__bg, .hero__mist-behind, .hero__clouds, .hero__fog-overlay')) return false;
+        return !!el.closest('h1, h2, h3, h4, p, button, a, li, figure, picture, img, video, canvas, svg, .features__media, .feature__btn, .stats, .pills');
+      });
+    });
+  };
+  var applyTopbarSurface = function (mode, theme, perControl) {
     if (!topbar) return;
-    if (!isDesktop() && menu && !menu.hidden) { mode = "glass"; theme = "dark"; }
+    if (isDesktop() && mode === 'merge' && hasTopbarContent()) mode = 'glass';
+    if (!isDesktop() && menu && !menu.hidden) { mode = "glass"; theme = "dark"; perControl = false; }
+    // A shared surface must release individual Why-slide colours, including
+    // direct returns to Home that bypass the below-hero sampler. Do this even
+    // when the cached shared theme has not changed.
+    if (!perControl && whyNavInk) whyNavInk.forEach(function (control) {
+      if (control.dataset.whySurface) delete control.dataset.whySurface;
+    });
     if (mode !== topbarMode) {
       topbarMode = mode;
       topbar.setAttribute("data-mode", mode);
@@ -794,7 +814,8 @@
        control independently as the boundary passes beneath the fixed bar. */
     if (whyScroll) {
       var whyRect = whyScroll.getBoundingClientRect();
-      if (whyLayout && whyLayout.animated && whyRect.top > 0 && whyRect.top < whyLayout.entrance && !(menu && !menu.hidden)) {
+      var whySurfaceTop = whyLayout ? whyRect.top - whyLayout.prelude - whyLayout.height * .056 + whyLightShift : Infinity;
+      if (whyLayout && whyLayout.animated && whyRect.top > 0 && whyRect.top < whyLayout.entrance && (!isDesktop() || whySurfaceTop < topbar.getBoundingClientRect().bottom) && !(menu && !menu.hidden)) {
         // Sample the actual moving colour surface; DOM hit testing cannot see
         // the decorative plane behind the transparent introduction.
         var washTheme = function (control) {
@@ -805,7 +826,7 @@
           var underneath = document.elementFromPoint(x, topbar.getBoundingClientRect().bottom + 8);
           return sy >= .028 ? (darkness > .56 ? 'dark' : 'light') : inferBackgroundTheme(underneath);
         };
-        applyTopbarSurface('merge', washTheme(topbarLogo || topbar));
+        applyTopbarSurface('merge', washTheme(topbarLogo || topbar), true);
         whyNavInk.forEach(function (control) { control.dataset.whySurface = washTheme(control); });
         return;
       }
@@ -815,7 +836,7 @@
         var lx = logoRect ? Math.round(logoRect.left + logoRect.width / 2) : Math.round(barRect.left + 60);
         var ly = whyLayout.stacked && logoRect ? logoRect.top + logoRect.height / 2 : Math.round(barRect.bottom + 8);
         var themeAtLogo = themeOfSlideAt(lx, ly, null);
-        applyTopbarSurface("merge", themeAtLogo || (whySticky ? whySticky.dataset.theme : "dark") || "dark");
+        applyTopbarSurface("merge", themeAtLogo || (whySticky ? whySticky.dataset.theme : "dark") || "dark", true);
         // A seam can sit between the logo and links. Each control follows the
         // surface directly beneath it rather than waiting for the far-left logo.
         whyNavInk.forEach(function (control) {
@@ -827,8 +848,6 @@
         return;
       }
     }
-    whyNavInk.forEach(function (control) { if (control.dataset.whySurface) delete control.dataset.whySurface; });
-
     var r = topbar.getBoundingClientRect();
     var probeX = Math.round(window.innerWidth / 2);
     var probeY = Math.round(r.bottom + 8); // just past the bar's own pixels
@@ -893,7 +912,7 @@
           document.body.classList.toggle('is-scrolled', glass);
         }
         if (techRect.top <= 0) sampleBelowHeroSurface();
-        else applyTopbarSurface('merge', lightInk ? 'light' : 'dark');
+        else applyTopbarSurface(isDesktop() && techRect.top - cloudDepth < chromeBottom ? 'glass' : 'merge', lightInk ? 'light' : 'dark');
       } else {
         // Short viewports and reduced motion retain the normal-flow handoff.
         lastClarity = null;

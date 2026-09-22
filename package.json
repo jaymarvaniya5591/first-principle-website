@@ -11,6 +11,7 @@
     "clouds": "node scripts/build-clouds.mjs",
     "test:clouds": "node scripts/test-cloud-layout.mjs",
     "test:why": "node scripts/test-why.mjs",
+    "test:nav": "node scripts/test-nav.mjs",
     "assets": "npm run fonts && npm run images && npm run clouds && npm run css",
     "serve": "node scripts/serve.mjs"
   },

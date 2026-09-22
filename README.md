@@ -82,6 +82,12 @@ a little texture, which dissolves as the section approaches the top.
   hero is fully restored at the top. The grade uses no blur.
 - Navigation switches contrast as the white surface arrives and highlights
   Technology when it occupies the majority of the viewport.
+- Desktop glass appears when the incoming cloud reaches the header or visible
+  text/imagery passes beneath it; plain hero sky stays clear. The Why gradient
+  takes over header styling only when its actual surface reaches the bar.
+  Individual Why-slide ink overrides are cleared on every return to a shared
+  section theme, including direct Home links. `npm run test:nav` covers these
+  resets, glass activation and the transition boundary.
 - No WebGL, new image assets or full-page transform wrapper.
 - Desktop wheel input uses locally vendored Lenis 1.3.26 (MIT). The settings
   in js/smooth-scroll.js use frame-rate-independent damping, a soft limit on
