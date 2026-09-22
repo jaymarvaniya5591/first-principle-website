@@ -3518,19 +3518,13 @@ img {
 /* The detail region is transparent to the approved desktop card layout. */
 .feature__detail, .feature__detail-inner { display:contents; }
 .feature__detail[hidden] { display:none!important; }
-.features__mobile-intro,
 .feature__mobile-photo, .feature__next { display:none; }
 
 /* The controller uses the same input/geometry condition as the desktop explorer. */
-#technology.features--mobile { padding-top:12px; padding-bottom:0; overflow-anchor:none; }
+#technology.features--mobile { padding-top:24px; padding-bottom:0; overflow-anchor:none; }
 #technology.features--mobile .section-head { display:block; width:100%; max-width:600px; margin:0 auto 12px; padding:0 20px; }
 #technology.features--mobile .section-head__title { font:400 1.875rem/1.15 var(--f-neue); letter-spacing:-.02em; white-space:normal; text-align:left; text-wrap:balance; }
 #technology.features--mobile .section-head__sub { margin:10px 0 0; padding:0; max-width:none; font:400 .9375rem/1.45 var(--f-neue); color:#595957; white-space:normal; text-align:left; }
-#technology.features--mobile .features__mobile-intro { display:block; width:100%; max-width:600px; margin:0 auto; }
-#technology.features--mobile .features__browse { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0 12px; padding:0 20px 8px; color:#686865; font:400 .75rem/1.4 var(--f-now-text); }
-#technology.features--mobile .features__browse p { margin:0; }
-#technology.features--mobile .features__skip { display:inline-flex; align-items:center; min-height:44px; gap:8px; color:#41413f; text-decoration:none; touch-action:manipulation; }
-#technology.features--mobile .features__skip:active { color:#000; }
 #technology.features--mobile .features__body,
 #technology.features--mobile .features__list { display:block; width:100%; max-width:600px; height:auto; margin:0 auto; padding:0; overflow:visible; contain:none; scroll-snap-type:none; }
 #technology.features--mobile #features-media { display:none; }
