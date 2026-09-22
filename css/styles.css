@@ -3575,6 +3575,7 @@ img {
 #why-us .slide--intro .slide__note { width:100%; max-width:544px; font-size:16px; line-height:1.4; text-transform:none; }
 #why-us .slide__reassurance { color:rgba(255,255,255,.88); white-space:nowrap; }
 #why-us .slide__note { max-width:100%; }
+#why-us .slide__note, #why-us .pill { text-transform:none; }
 #why-us .stats { max-width:100%; }
 #why-us .stat { min-width:0; }
 #why-us .stat__num { white-space:nowrap; font-size:clamp(1.25rem,6.3vw,2rem); }
