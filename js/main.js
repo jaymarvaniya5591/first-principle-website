@@ -225,12 +225,12 @@
       var grey = 255 * (linear <= .0031308 ? 12.92 * linear : 1.055 * Math.pow(linear, 1 / 2.4) - .055);
       return whyClamp((255 - grey) / 238, 1);
     });
-    // Preserve every approved colour; redistribute distance toward the darker
-    // tones. The pale end compresses most, with no abrupt change in spacing.
-    // 5.6vh feather + 40.6vh ramp = 46.2vh, 30% shorter than the 66vh original.
+    // Keep the same colours and relative stop spacing, with half the previous
+    // white-to-black distance: 40.6vh -> 20.3vh. The 5.6vh entry feather and
+    // the surface's scroll motion remain independent of that colour window.
     var whyTonePositions = whyToneSamples.map(function (_, i) {
       var t = i / 64;
-      return 5.6 + 58 * (.4 * t + .3 * t * t);
+      return 5.6 + 29 * (.4 * t + .3 * t * t);
     });
     var whyToneDarkness = function (vertical) {
       var position = vertical * 100;

@@ -158,9 +158,19 @@ descriptions remain in normal flow. Rebuild CSS after changing the source.
 
 ## Mobile technology overview
 
+Below 600px, the introduction uses a two-line 32px heading, 20px side gutters,
+64–88px top spacing and 48–72px before the cards, scaled with viewport height.
+Both outer gaps become 40px on viewports shorter than 600px. The first feature
+remains open. Desktop typography and presentation are unchanged.
+
+On phones, the four hotel logos form a quiet, always-visible row above the hero
+title, without the "Specified by" label or a disclosure. Tablet and desktop
+retain the original rail. The layout also works without JavaScript.
+
 The same Technology controller switches to a native-scrolling overview on touch
-and narrow layouts. The first feature opens by default, with its photo above
-its title and description; there is no duplicate introductory image. The other
+and narrow layouts. "No Bad Smells. Ever." is first and opens by default on both
+desktop and mobile. On mobile it appears with its title and
+description above its photo; there is no duplicate introductory image. The other
 six rows start closed. Content is centered within 600px on tablets. Type uses rem units, natural
 wrapping, and the existing Helvetica pairing. The hero transition is unchanged.
 
@@ -169,12 +179,12 @@ at a time, and tapping it again closes it. Switching rows first compensates for
 an earlier row closing, then moves only enough to reveal the complete selected
 card. An already visible card stays put. Images use less height on short screens,
 without shrinking text; if enlarged text still cannot fit, the title is aligned
-below navigation with normal scrolling available. The explicit Next feature
-action aligns the next card below navigation. A subtle exploration hint and one
-skip link sit above the list; there is no redundant link at the bottom.
+below navigation with normal scrolling available. There are no Next feature
+buttons; visitors select the feature headings directly.
 Viewport assistance lasts 180ms, is interrupted by new input, and is immediate
-with reduced motion. Browser toolbar height changes do not resize images during
-a swipe; the next selection uses the current visual viewport. No mobile wheel routing,
+with reduced motion. A shrinking viewport resizes the image and keeps an already
+visible card in view; growing viewport space does not enlarge it mid-swipe.
+Every selection uses the current visual viewport. No mobile wheel routing,
 internal list scrolling, hover selection, or scroll-driven feature changes run.
 
 The first image loads as the section approaches. Other detail images live in inert templates until selected, then use the existing
@@ -209,7 +219,7 @@ descenders; negative margins preserve the settled headline size and position.
 The reassurance follows at 62–100%, fading in and rising 24px. All movement is
 scroll-linked and retraces on reversal, with no independent clock or blur.
 Direct Why links show settled text; motion/fit fallbacks expose it immediately.
-The approved gradient, runway and typography are unchanged.
+The gradient colours, scroll runway and typography are preserved.
 
 The gradient is a single opaque colour surface: actual white, greys and #111,
 not a black mask over the photo. This fixes the muddy early darkening and the
@@ -217,13 +227,14 @@ intro background hiding the lower gradient. The intro is transparent only in
 the horizontal presentation; its text remains above the gradient plane.
 
 The plane begins 5.6vh before Technology's bottom with a feather into white.
-Its neutral ramp spans 40.6vh. All 65 approved Oklab-lightness colours are
-preserved, with stop positions 5.6 + 58*(0.4*t + 0.3*t*t) vh. This smoothly
-compresses the pale end most and keeps more space for mid/dark tones. The
-combined 46.2vh window is 30% shorter than the approved 66vh window; the
-scroll runway, title reveal and separate Technology feather are unchanged. It extends into the intro, preserving intermediate greys without adding
-any document height. Scroll moves the plane up by 50vh*smoothstep(progress).
-The ramp finishes 21.4vh above the viewport at pinning, leaving exact #111 behind
+Its neutral ramp spans 20.3vh, exactly half the previous 40.6vh white-to-black
+window on both desktop and mobile. All 65 approved Oklab-lightness colours and
+their relative spacing are preserved, with stop positions
+5.6 + 29*(0.4*t + 0.3*t*t) vh. Mobile resolves the same positions against its
+stable viewport height. The unchanged 5.6vh entry feather plus the ramp spans
+25.9vh. Scroll runway, title reveal and the separate Technology feather are
+unchanged. Scroll moves the plane up by 50vh*smoothstep(progress).
+The ramp finishes 41.7vh above the viewport at pinning, leaving exact #111 behind
 the settled introduction. Reverse scrolling retraces the same geometry.
 
 Navigation samples that same colour curve and transformed position. Static

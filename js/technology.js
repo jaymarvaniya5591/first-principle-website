@@ -151,14 +151,14 @@
 
   function sizeMobilePhoto(index) {
     var photo = mobilePhotos[index];
-    if (photo.hidden) return;
     var card = cards[index], description = card.querySelector('.feature__desc');
-    var next = card.querySelector('.feature__next'), bounds = mobileBounds();
+    var bounds = mobileBounds();
     var textHeight = buttons[index].getBoundingClientRect().height + description.getBoundingClientRect().height
-      + parseFloat(getComputedStyle(description).marginBottom) + (next ? next.getBoundingClientRect().height : 0) + 1;
+      + parseFloat(getComputedStyle(description).marginBottom) + 1;
     var natural = card.clientWidth * .75;
-    // Text and targets never shrink. Compact images keep their full subject visible.
-    var height = Math.min(natural, Math.max(144, bounds.bottom - bounds.top - textHeight));
+    // Reserve the title and description first; the image fills the remaining
+    // visible space. Only extreme text zoom/landscape falls back to page flow.
+    var height = Math.min(natural, Math.max(96, bounds.bottom - bounds.top - textHeight));
     photo.style.height = height + 'px';
     photo.classList.toggle('is-compact', height < natural - 1);
   }
@@ -182,14 +182,14 @@
     mobileViewFrame = requestAnimationFrame(step);
   }
 
-  function mobileDestination(index, sequential) {
+  function mobileDestination(index) {
     var rect = cards[index].getBoundingClientRect(), bounds = mobileBounds();
     if (rect.height <= bounds.bottom - bounds.top + 1) {
-      var top = sequential ? bounds.top : Math.max(bounds.top, Math.min(rect.top, bounds.bottom - rect.height));
+      var top = Math.max(bounds.top, Math.min(rect.top, bounds.bottom - rect.height));
       return scrollY + rect.top - top;
     }
     // Very short landscape views or enlarged text prioritize the title and
-    // description; the photo remains immediately above in native page flow.
+    // description; the photo follows immediately below in native page flow.
     return scrollY + buttons[index].getBoundingClientRect().top - bounds.top;
   }
 
@@ -205,12 +205,15 @@
       if (desktop.matches || request !== mobileRequest || mobileActive !== index) return;
       var rect = cards[index].getBoundingClientRect(), bounds = mobileBounds();
       var visible = rect.top < bounds.bottom && rect.bottom > bounds.top;
+      var wasHidden = photo.hidden;
       photo.hidden = !ready;
       photo.classList.toggle('is-ready', ready);
+      if (ready) sizeMobilePhoto(index);
       // Failed media must not leave a tall empty frame or a fixed animation height.
-      if (!ready) {
+      // A successful retry must fit the newly restored photo as well.
+      if (!ready || wasHidden) {
         finishDetail(index);
-        if (visible) moveMobileView(mobileDestination(index, false));
+        if (visible) moveMobileView(mobileDestination(index));
       }
     });
   }
@@ -221,7 +224,7 @@
     savedAnchor = null;
   }
 
-  function selectMobile(index, sequential) {
+  function selectMobile(index) {
     var target = index >= 0 ? index : mobileActive;
     if (target < 0) return;
     cancelMobileView();
@@ -244,10 +247,13 @@
     var rect = cards[target].getBoundingClientRect();
     var shift = rect.top - before;
     if (Math.abs(shift) > .5) window.scrollBy({ top: shift, behavior: 'instant' });
-    var destination = index >= 0 ? mobileDestination(index, sequential) : scrollY;
+    var destination = index >= 0 ? mobileDestination(index) : scrollY;
     animateDetail(target, from);
     moveMobileView(destination);
-    if (sequential) buttons[target].focus({ preventScroll: true });
+    if (mobileLayout) {
+      var bounds = mobileBounds();
+      mobileLayout.available = bounds.bottom - bounds.top;
+    }
     if (index >= 0) loadMobileImage(index);
     anchorTimer = setTimeout(releaseAnchor, reduced.matches ? 0 : 220);
   }
@@ -260,12 +266,19 @@
     measureFrame = 0;
     if (!desktop.matches) {
       var width = list.clientWidth, headingHeight = heading.getBoundingClientRect().height;
-      // Browser toolbar height changes must not resize the image mid-swipe.
-      if (!mobileLayout || mobileLayout.width !== width || mobileLayout.heading !== headingHeight) {
+      var bounds = mobileBounds(), available = bounds.bottom - bounds.top;
+      var rect = mobileActive >= 0 ? cards[mobileActive].getBoundingClientRect() : null;
+      var wasFullyVisible = rect && mobileLayout && rect.top >= bounds.top - 1
+        && rect.bottom <= bounds.top + mobileLayout.available + 1;
+      // Shrinking viewports must keep an already visible card in view. Growing
+      // browser chrome space never enlarges its image during an ordinary swipe.
+      if (!mobileLayout || mobileLayout.width !== width || mobileLayout.heading !== headingHeight
+          || available < mobileLayout.available - 1) {
         cancelMobileView();
         details.forEach(function (_, i) { finishDetail(i); });
         if (mobileActive >= 0) sizeMobilePhoto(mobileActive);
-        mobileLayout = { width: width, heading: headingHeight };
+        mobileLayout = { width: width, heading: headingHeight, available: available };
+        if (wasFullyVisible) moveMobileView(mobileDestination(mobileActive));
       }
       return;
     }
@@ -369,11 +382,7 @@
       setActive(i, true);
     });
     buttons[i].addEventListener('click', function () {
-      if (!desktop.matches) selectMobile(mobileActive === i ? -1 : i, false);
-    });
-    var next = card.querySelector('[data-next-feature]');
-    if (next) next.addEventListener('click', function () {
-      if (!desktop.matches) selectMobile(Number(next.dataset.nextFeature), true);
+      if (!desktop.matches) selectMobile(mobileActive === i ? -1 : i);
     });
   });
   section.addEventListener('keydown', function (event) {
@@ -451,6 +460,7 @@
     window.addEventListener(name, cancelMobileView, { passive: true });
   });
   window.addEventListener('resize', requestMeasure, { passive: true });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', requestMeasure, { passive: true });
   new ResizeObserver(requestMeasure).observe(heading);
   new ResizeObserver(requestMeasure).observe(header);
   reconcile();

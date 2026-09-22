@@ -72,18 +72,23 @@ assert.deepEqual(order(),['intro','warranty','service','returns','focus','patent
 assert.deepEqual(visibleSlides().map(s=>s.dataset.navTheme),['dark','light','dark','light','dark','light']);
 assert.equal(context.whyLayout.horizontal,true);
 assert.ok(Math.abs(context.whyToneDarkness(.056))<1e-12,'surface starts at white');
-assert.equal(context.whyToneDarkness(.462),1,'wash meets the exact black slide');
+assert.equal(context.whyToneDarkness(.259),1,'wash meets the exact black slide');
 assert.equal(context.whyToneDarkness(0),0,'top edge is transparent');
 for(let i=1;i<65;i++) assert.ok(context.whyToneSamples[i]>context.whyToneSamples[i-1],'lightness never reverses');
 assert.ok(context.whyToneSamples[1]<.02,'gentle white endpoint');
 assert.ok(context.whyToneSamples[63]>.99,'gentle black endpoint');
 paintAt(-900); assert.equal(Math.abs(context.whyLightShift),0,'Technology remains clear at entrance start');
 assert.match(section.style.getPropertyValue('--why-tone-stops'),/^rgb\(255.0000,255.0000,255.0000\) 5.600000vh/,'surface starts at real white');
-assert.match(section.style.getPropertyValue('--why-tone-stops'),/rgb\(17.0000,17.0000,17.0000\) 46.200000vh$/,'surface ends at exact slide black');
+assert.match(section.style.getPropertyValue('--why-tone-stops'),/rgb\(17.0000,17.0000,17.0000\) 25.900000vh$/,'surface ends at exact slide black');
 // Keep the same quarter-tone colours while shortening their physical spacing.
 paintAt(-450);
-assert.ok(context.whyToneDarkness(.124875)>.1 && context.whyToneDarkness(.327875)<.92,'quarter tones retain a broad mid-grey range');
-assert.ok(Math.abs(context.whyTonePositions[64] / 66 - .7)<1e-10,'visible gradient window is 30% shorter');
+assert.ok(context.whyToneDarkness(.0904375)>.1 && context.whyToneDarkness(.1919375)<.92,'quarter tones retain the same mid-grey range at half the distance');
+assert.ok(Math.abs((context.whyTonePositions[64]-context.whyTonePositions[0]) / 40.6 - .5)<1e-10,'white-to-black window is exactly half its previous length');
+for (let i=0;i<65;i++) {
+  const t=i/64, previousPosition=5.6+58*(.4*t+.3*t*t);
+  assert.ok(Math.abs(context.whyTonePositions[i]-(5.6+(previousPosition-5.6)/2))<1e-10,'every stop preserves its relative position');
+  assert.ok(Math.abs(context.whyToneDarkness(context.whyTonePositions[i]/100)-context.whyToneSamples[i])<1e-10,'navigation samples the same colour as the rendered compressed surface');
+}
 assert.ok((context.whyTonePositions[16]-context.whyTonePositions[0]) < (context.whyTonePositions[64]-context.whyTonePositions[48]),'compression removes more pale space than shadow detail');
 let lastEdge=Infinity;
 for(let i=0;i<=40;i++) {
@@ -141,6 +146,10 @@ assert.equal(context.whyLayout.horizontal,false,'enlarged content remains reacha
 state.contentHeight=350; state.desktop=false; context.measureWhy();
 state.width=390; state.height=844; state.stableHeight=844; context.measureWhy();
 assert.equal(context.whyLayout.stacked,true);
+const mobileToneStops=[...section.style.getPropertyValue('--why-tone-stops').matchAll(/\) ([\d.]+)px/g)].map(match=>Number(match[1]));
+assert.equal(mobileToneStops.length,65,'mobile renders every approved tone');
+assert.ok(Math.abs(mobileToneStops[0]-.056*844)<1e-6,'mobile retains the entry feather');
+assert.ok(Math.abs(mobileToneStops[64]-mobileToneStops[0]-.203*844)<1e-6,'mobile colour window uses half the previous length in stable viewport pixels');
 assert.equal(context.whyLayout.hold,0);
 assert.equal(Number.parseFloat(scroll.style.getPropertyValue('--why-height')),6*844);
 assert.deepEqual(order(),['intro',...names],'shared reading order on mobile');

@@ -215,7 +215,7 @@
                reads far larger than a stacked lockup at the same pixel height. -->
           <div class="hero__proof">
             <p class="hero__proof__label">Specified by</p>
-            <ul class="hero__proof__marks" role="list">
+            <ul class="hero__proof__marks" id="hero-hotel-logos" role="list" aria-label="Hotels specifying First Principle">
               <li class="mark mark--taj"><img src="assets/img/logos/taj-white.png" width="201" height="176" alt="Taj Hotels" decoding="async" /></li>
               <li class="mark mark--leela"><img src="assets/img/logos/leela-white.png" width="268" height="176" alt="The Leela Palaces, Hotels and Resorts" decoding="async" /></li>
               <li class="mark mark--itc"><img src="assets/img/logos/itc-white.png" width="328" height="176" alt="ITC Hotels" decoding="async" /></li>
@@ -250,7 +250,12 @@
     <div class="features__body">
       <div class="features__media" id="features-media">
         <p class="features__hint" id="features-hint">Hover a feature to explore</p>
-        <picture class="features__img is-active" data-feature="0">
+        <picture class="features__img is-active" data-feature="2">
+          <source type="image/avif" srcset="assets/img/feature-odour-800.avif 800w, assets/img/feature-odour-1254.avif 1254w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
+          <source type="image/webp" srcset="assets/img/feature-odour-800.webp 800w, assets/img/feature-odour-1254.webp 1254w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
+          <img src="assets/img/feature-odour-800.jpg" srcset="assets/img/feature-odour-800.jpg 800w, assets/img/feature-odour-1254.jpg 1254w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" width="800" height="800" alt="Fragrance mist dispensing inside the bowl" loading="lazy" decoding="async" />
+        </picture>
+        <picture class="features__img" data-feature="0">
           <source type="image/avif" srcset="assets/img/feature-health-checkup-800.avif 800w, assets/img/feature-health-checkup-1024.avif 1024w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
           <source type="image/webp" srcset="assets/img/feature-health-checkup-800.webp 800w, assets/img/feature-health-checkup-1024.webp 1024w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
           <img src="assets/img/feature-health-checkup-800.jpg" srcset="assets/img/feature-health-checkup-800.jpg 800w, assets/img/feature-health-checkup-1024.jpg 1024w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" width="800" height="800" alt="Cutaway of the toilet showing the built-in urine analysis module" loading="lazy" decoding="async" />
@@ -259,11 +264,6 @@
           <source type="image/avif" srcset="assets/img/feature-uv-800.avif 800w, assets/img/feature-uv-1600.avif 1600w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
           <source type="image/webp" srcset="assets/img/feature-uv-800.webp 800w, assets/img/feature-uv-1600.webp 1600w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
           <img src="assets/img/feature-uv-800.jpg" srcset="assets/img/feature-uv-800.jpg 800w, assets/img/feature-uv-1600.jpg 1600w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" width="800" height="800" alt="UV light sterilising the bowl" loading="lazy" decoding="async" />
-        </picture>
-        <picture class="features__img" data-feature="2">
-          <source type="image/avif" srcset="assets/img/feature-odour-800.avif 800w, assets/img/feature-odour-1254.avif 1254w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
-          <source type="image/webp" srcset="assets/img/feature-odour-800.webp 800w, assets/img/feature-odour-1254.webp 1254w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
-          <img src="assets/img/feature-odour-800.jpg" srcset="assets/img/feature-odour-800.jpg 800w, assets/img/feature-odour-1254.jpg 1254w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" width="800" height="800" alt="Fragrance mist dispensing inside the bowl" loading="lazy" decoding="async" />
         </picture>
         <picture class="features__img" data-feature="3">
           <source type="image/avif" srcset="assets/img/feature-germ-800.avif 800w, assets/img/feature-germ-1024.avif 1024w" sizes="(min-width:1100px) 46vw, (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) 46vw, 100vw" />
@@ -288,8 +288,26 @@
       </div>
 
       <ul class="features__list" role="list" aria-label="Features">
-        <li class="feature is-active" data-feature="0">
-          <button class="feature__btn" type="button" id="feature-btn-0" aria-expanded="true" aria-controls="feature-panel-0">
+        <li class="feature is-active" data-feature="2">
+          <button class="feature__btn" type="button" id="feature-btn-2" aria-expanded="true" aria-controls="feature-panel-2">
+            <span class="feature__title">No Bad Smells. Ever.</span>
+            <span class="feature__icon" aria-hidden="true"></span>
+          </button>
+          <div class="feature__detail" id="feature-panel-2" role="region" aria-labelledby="feature-btn-2">
+            <div class="feature__detail-inner">
+              <p class="feature__desc">The moment you sit, a mild mist starts dispensing — neutralising odour before it even builds.</p>
+              <div class="feature__mobile-photo">
+                <template><picture>
+          <source type="image/avif" srcset="assets/img/feature-odour-800.avif 800w, assets/img/feature-odour-1254.avif 1254w" sizes="(max-width:600px) 100vw, 600px" />
+          <source type="image/webp" srcset="assets/img/feature-odour-800.webp 800w, assets/img/feature-odour-1254.webp 1254w" sizes="(max-width:600px) 100vw, 600px" />
+          <img src="assets/img/feature-odour-800.jpg" srcset="assets/img/feature-odour-800.jpg 800w, assets/img/feature-odour-1254.jpg 1254w" sizes="(max-width:600px) 100vw, 600px" width="800" height="800" alt="Fragrance mist dispensing inside the bowl" loading="lazy" decoding="async" />
+        </picture></template>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="feature" data-feature="0">
+          <button class="feature__btn" type="button" id="feature-btn-0" aria-expanded="false" aria-controls="feature-panel-0">
             <span class="feature__title">Daily Health Checkup</span>
             <span class="feature__icon" aria-hidden="true"></span>
           </button>
@@ -303,7 +321,6 @@
           <img src="assets/img/feature-health-checkup-800.jpg" srcset="assets/img/feature-health-checkup-800.jpg 800w, assets/img/feature-health-checkup-1024.jpg 1024w" sizes="(max-width:600px) 100vw, 600px" width="800" height="800" alt="Cutaway of the toilet showing the built-in urine analysis module" loading="lazy" decoding="async" />
         </picture></template>
               </div>
-              <button class="feature__next" type="button" data-next-feature="1" aria-label="Next feature: Active UV Sterilization">Next feature <span aria-hidden="true">→</span></button>
             </div>
           </div>
         </li>
@@ -322,26 +339,6 @@
           <img src="assets/img/feature-uv-800.jpg" srcset="assets/img/feature-uv-800.jpg 800w, assets/img/feature-uv-1600.jpg 1600w" sizes="(max-width:600px) 100vw, 600px" width="800" height="800" alt="UV light sterilising the bowl" loading="lazy" decoding="async" />
         </picture></template>
               </div>
-              <button class="feature__next" type="button" data-next-feature="2" aria-label="Next feature: No Bad Smells. Ever.">Next feature <span aria-hidden="true">→</span></button>
-            </div>
-          </div>
-        </li>
-        <li class="feature" data-feature="2">
-          <button class="feature__btn" type="button" id="feature-btn-2" aria-expanded="false" aria-controls="feature-panel-2">
-            <span class="feature__title">No Bad Smells. Ever.</span>
-            <span class="feature__icon" aria-hidden="true"></span>
-          </button>
-          <div class="feature__detail" id="feature-panel-2" role="region" aria-labelledby="feature-btn-2">
-            <div class="feature__detail-inner">
-              <p class="feature__desc">The moment you sit, a mild mist starts dispensing — neutralising odour before it even builds.</p>
-              <div class="feature__mobile-photo">
-                <template><picture>
-          <source type="image/avif" srcset="assets/img/feature-odour-800.avif 800w, assets/img/feature-odour-1254.avif 1254w" sizes="(max-width:600px) 100vw, 600px" />
-          <source type="image/webp" srcset="assets/img/feature-odour-800.webp 800w, assets/img/feature-odour-1254.webp 1254w" sizes="(max-width:600px) 100vw, 600px" />
-          <img src="assets/img/feature-odour-800.jpg" srcset="assets/img/feature-odour-800.jpg 800w, assets/img/feature-odour-1254.jpg 1254w" sizes="(max-width:600px) 100vw, 600px" width="800" height="800" alt="Fragrance mist dispensing inside the bowl" loading="lazy" decoding="async" />
-        </picture></template>
-              </div>
-              <button class="feature__next" type="button" data-next-feature="3" aria-label="Next feature: Germ-Resistant Within">Next feature <span aria-hidden="true">→</span></button>
             </div>
           </div>
         </li>
@@ -360,7 +357,6 @@
           <img src="assets/img/feature-germ-800.jpg" srcset="assets/img/feature-germ-800.jpg 800w, assets/img/feature-germ-1024.jpg 1024w" sizes="(max-width:600px) 100vw, 600px" width="800" height="800" alt="Silver-infused ceramic surface" loading="lazy" decoding="async" />
         </picture></template>
               </div>
-              <button class="feature__next" type="button" data-next-feature="4" aria-label="Next feature: Hands-Free Wash">Next feature <span aria-hidden="true">→</span></button>
             </div>
           </div>
         </li>
@@ -379,7 +375,6 @@
           <img src="assets/img/feature-handsfree-800.jpg" srcset="assets/img/feature-handsfree-800.jpg 800w, assets/img/feature-handsfree-1600.jpg 1600w" sizes="(max-width:600px) 100vw, 600px" width="800" height="800" alt="Hands-free wash nozzle" loading="lazy" decoding="async" />
         </picture></template>
               </div>
-              <button class="feature__next" type="button" data-next-feature="5" aria-label="Next feature: Constipation Aid">Next feature <span aria-hidden="true">→</span></button>
             </div>
           </div>
         </li>
@@ -398,7 +393,6 @@
           <img src="assets/img/feature-constipation-800.jpg" srcset="assets/img/feature-constipation-800.jpg 800w, assets/img/feature-constipation-1024.jpg 1024w" sizes="(max-width:600px) 100vw, 600px" width="800" height="800" alt="Heated seat with gentle micro-vibration" loading="lazy" decoding="async" />
         </picture></template>
               </div>
-              <button class="feature__next" type="button" data-next-feature="6" aria-label="Next feature: Flushes Itself">Next feature <span aria-hidden="true">→</span></button>
             </div>
           </div>
         </li>

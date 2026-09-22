@@ -3518,7 +3518,7 @@ img {
 /* The detail region is transparent to the approved desktop card layout. */
 .feature__detail, .feature__detail-inner { display:contents; }
 .feature__detail[hidden] { display:none!important; }
-.feature__mobile-photo, .feature__next { display:none; }
+.feature__mobile-photo { display:none; }
 
 /* The controller uses the same input/geometry condition as the desktop explorer. */
 #technology.features--mobile { padding-top:24px; padding-bottom:0; overflow-anchor:none; }
@@ -3532,7 +3532,7 @@ img {
 #technology.features--mobile .feature { display:grid; grid-template-columns:minmax(0,1fr); align-content:start; height:auto; min-height:0; padding:0; margin:0; border:0; border-bottom:1px solid #dededb; background:#f7f7f5; color:#111; scroll-snap-align:none; overflow:hidden; transition:background-color 140ms,color 140ms; }
 #technology.features--mobile .feature.is-active { background:#111; color:#fff; border-bottom-color:#30302e; gap:0; }
 #technology.features--mobile .feature__btn,
-#technology.features--mobile .feature.is-active .feature__btn { display:flex; grid-row:2; align-items:center; justify-content:space-between; width:100%; min-height:64px; height:auto; margin:0; padding:18px 20px; gap:16px; color:inherit; cursor:pointer; touch-action:manipulation; transition:none; }
+#technology.features--mobile .feature.is-active .feature__btn { display:flex; grid-row:1; align-items:center; justify-content:space-between; width:100%; min-height:64px; height:auto; margin:0; padding:18px 20px; gap:16px; color:inherit; cursor:pointer; touch-action:manipulation; transition:none; }
 #technology.features--mobile .feature__btn:active { background:rgba(128,128,128,.1); }
 #technology.features--mobile .feature__title { font:500 1.25rem/1.3 var(--f-neue); letter-spacing:-.02em; white-space:normal; color:inherit; transition:none; }
 #technology.features--mobile .feature__icon { display:block; position:relative; width:18px; height:18px; flex:0 0 18px; margin:0; background:none; mask:none; opacity:.6; transition:none; }
@@ -3543,22 +3543,51 @@ img {
 #technology.features--mobile .feature__detail,
 #technology.features--mobile .feature__detail-inner { display:contents; }
 #technology.features--mobile .feature__desc,
-#technology.features--mobile .feature.is-active .feature__desc { display:block; grid-row:3; width:100%; max-width:none; margin:0 0 20px; padding:0 20px; font:400 .9375rem/1.5 var(--f-display); color:#c5c5c2; opacity:1; visibility:visible; transform:none; transition:none; }
-#technology.features--mobile .feature__mobile-photo { display:block; grid-row:1; position:relative; width:100%; aspect-ratio:4/3; background:#eeece8; overflow:hidden; }
+#technology.features--mobile .feature.is-active .feature__desc { display:block; grid-row:2; width:100%; max-width:none; margin:0 0 24px; padding:0 20px; font:400 .9375rem/1.5 var(--f-display); color:#c5c5c2; opacity:1; visibility:visible; transform:none; transition:none; }
+#technology.features--mobile .feature__mobile-photo { display:block; grid-row:3; position:relative; width:100%; aspect-ratio:4/3; background:#eeece8; overflow:hidden; }
 #technology.features--mobile .feature__mobile-photo[hidden] { display:none; }
 #technology.features--mobile .feature__mobile-photo picture,
 #technology.features--mobile .feature__mobile-photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
 #technology.features--mobile .feature__mobile-photo picture { opacity:0; transition:opacity 140ms; }
 #technology.features--mobile .feature__mobile-photo.is-ready picture { opacity:1; }
 #technology.features--mobile .feature__mobile-photo.is-compact img { object-fit:contain; }
-#technology.features--mobile .feature__next { display:flex; grid-row:4; align-items:center; justify-content:space-between; width:100%; min-height:56px; padding:14px 20px; border:0; background:none; color:#eee; font:400 .875rem/1.5 var(--f-now-text); text-align:left; text-decoration:none; cursor:pointer; touch-action:manipulation; }
-#technology.features--mobile .feature__next:active { background:#242423; }
-#technology.features--mobile .feature__btn:focus-visible,
-#technology.features--mobile .feature__next:focus-visible { outline-offset:-5px; }
+#technology.features--mobile .feature__btn:focus-visible { outline-offset:-5px; }
 @media (prefers-reduced-motion:reduce) {
   #technology.features--mobile .feature,
   #technology.features--mobile .feature__icon::after,
   #technology.features--mobile .feature__mobile-photo picture { transition:none; }
+}
+
+/* Quiet hotel signatures precede the phone headline. Extra space gives
+   Technology an editorial introduction without enlarging its typography. */
+@media (width < 600px) {
+  .hero__proof { order:0; width:100%; max-width:300px; margin:0 0 24px; gap:0; animation:none; }
+  .hero__proof__label { display:none; }
+  .hero__proof__marks { grid-template-columns:repeat(4,minmax(0,1fr)); height:26px; gap:clamp(12px,4vw,20px); }
+  .hero__proof__marks .mark img { opacity:.8; filter:none; }
+  .hero__proof__marks :is(.mark--leela,.mark--itc,.mark--oberoi) img { filter:none; }
+  .hero__proof__marks .mark--taj img { height:22px; }
+  .hero__proof__marks .mark--leela img { height:22px; }
+  .hero__proof__marks .mark--itc img { height:24px; }
+  .hero__proof__marks .mark--oberoi img { height:16px; }
+  #technology, #technology.features--mobile { padding-top:clamp(64px,9svh,88px); }
+  #technology .section-head, #technology.features--mobile .section-head {
+    margin:0 auto clamp(48px,8svh,72px); padding:0 20px;
+  }
+  #technology .section-head__title, #technology.features--mobile .section-head__title {
+    font-size:32px; line-height:1.15;
+  }
+  #technology .section-head__title > .muted,
+  #technology .section-head__title > strong { display:block; }
+  #technology .section-head__title > strong { margin-top:6px; font-size:inherit; line-height:inherit; }
+  #technology .section-head__sub, #technology.features--mobile .section-head__sub {
+    margin-top:20px; max-width:30ch; font-size:15px;
+  }
+}
+@media (width < 600px) and (height < 600px) {
+  .hero__proof { margin-bottom:16px; }
+  #technology, #technology.features--mobile { padding-top:40px; }
+  #technology .section-head, #technology.features--mobile .section-head { margin-bottom:40px; }
 }
 
 /* One reading order and introduction in every presentation, including no JS. */
