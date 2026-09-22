@@ -8,11 +8,14 @@
     "fonts": "node scripts/build-fonts.mjs",
     "images": "node scripts/build-images.mjs",
     "css": "node scripts/build-css.mjs",
-    "assets": "npm run fonts && npm run images && npm run css",
-    "serve": "npx --yes serve -l 8765 ."
+    "clouds": "node scripts/build-clouds.mjs",
+    "test:clouds": "node scripts/test-cloud-layout.mjs",
+    "assets": "npm run fonts && npm run images && npm run clouds && npm run css",
+    "serve": "node scripts/serve.mjs"
   },
   "devDependencies": {
     "csso": "^5.0.5",
+    "esbuild": "0.28.2",
     "fontkit": "^2.0.4",
     "opentype.js": "^2.0.0",
     "sharp": "^0.34.3",

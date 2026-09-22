@@ -1,49 +1,111 @@
-/* First Principle — landing page behaviour. No animations yet (added in a later phase). */
+/* First Principle — interactions and scroll animation; layout belongs to CSS. */
 (function () {
   "use strict";
 
-  var isDesktop = function () { return window.matchMedia("(min-width: 900px)").matches; };
-
-  /* ---------------- Hamburger visibility (responds to viewport changes) ---------------- */
-  var _btn = document.querySelector(".hamburger");
-  if (_btn) {
-    var mobileStyles = [
-      "display:flex", "flex-direction:column", "justify-content:center",
-      "align-items:center", "gap:6px", "position:fixed",
-      "top:20px", "right:20px", "width:48px", "height:48px",
-      "background:#111111", "border:none", "border-radius:12px",
-      "cursor:pointer", "z-index:9999"
-    ].join(";");
-    _btn.querySelectorAll("span").forEach(function (s) {
-      s.style.cssText = "display:block;width:24px;height:2px;background:#ffffff;border-radius:2px;";
-    });
-    var applyHamburgerDisplay = function () {
-      _btn.style.cssText = isDesktop() ? "display:none" : mobileStyles;
-    };
-    applyHamburgerDisplay();
-    window.matchMedia("(min-width: 900px)").addEventListener("change", applyHamburgerDisplay);
-  }
+  var desktopMedia = window.matchMedia("(min-width: 1100px)");
+  var isDesktop = function () { return desktopMedia.matches; };
+  var shortScreen = window.matchMedia("(max-height: 520px)");
+  var wideScreen = window.matchMedia("(min-aspect-ratio: 11 / 5)");
 
   /* ---------------- Mobile menu ---------------- */
   var burger = document.querySelector(".hamburger");
   var menu = document.getElementById("mobile-menu");
   if (burger && menu) {
-    var setMenu = function (open) {
-      menu.hidden = !open;
+    var menuBackground = Array.prototype.slice.call(document.querySelectorAll('.hero, main, .footer, .skip-link'));
+    var previousInert = [];
+    var previousOverflow = "";
+    var menuOpen = false;
+    var menuCloseTimer = 0;
+    var menuMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var measureMenuOrigin = function () {
+      var buttonRect = burger.getBoundingClientRect();
+      var panelRect = menu.getBoundingClientRect();
+      var x = buttonRect.left + buttonRect.width / 2 - panelRect.left;
+      var y = buttonRect.top + buttonRect.height / 2 - panelRect.top;
+      // Reach the farthest corner in every orientation, starting at the icon.
+      var radius = Math.ceil(Math.hypot(Math.max(x, panelRect.width - x), Math.max(y, panelRect.height - y))) + 1;
+      menu.style.setProperty('--menu-x', x + 'px');
+      menu.style.setProperty('--menu-y', y + 'px');
+      menu.style.setProperty('--menu-radius', radius + 'px');
+    };
+    var finishMenuClose = function () {
+      if (menuOpen) return;
+      window.clearTimeout(menuCloseTimer);
+      menu.hidden = true;
+      menu.inert = true;
+      menu.classList.remove('is-closing');
+      document.body.classList.remove('menu-open');
+      document.body.style.overflow = previousOverflow;
+      menuBackground.forEach(function (el, i) { el.inert = previousInert[i]; });
+      if (typeof requestFrame === "function") requestFrame();
+    };
+    var setMenu = function (open, restoreFocus, instant) {
+      if (open === menuOpen && !instant) return;
+      if (open && isDesktop()) return;
+      window.clearTimeout(menuCloseTimer);
+      // Capture page state only once, including when a closing motion reverses.
+      if (open && menu.hidden) {
+        previousOverflow = document.body.style.overflow;
+        previousInert = menuBackground.map(function (el) { return el.inert; });
+      }
+      menuOpen = open;
       burger.setAttribute("aria-expanded", String(open));
       burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
-      document.body.style.overflow = open ? "hidden" : "";
-      if (open) { var first = menu.querySelector("a"); if (first) first.focus({ preventScroll: true }); }
+      document.body.style.overflow = open ? "hidden" : previousOverflow;
+      if (open) {
+        var wasHidden = menu.hidden;
+        menu.hidden = false;
+        menu.inert = false;
+        document.body.classList.add('menu-open');
+        menuBackground.forEach(function (el) { el.inert = true; });
+        measureMenuOrigin();
+        menu.classList.remove('is-closing');
+        // Establish the collapsed pose before the first reveal. Later toggles
+        // reverse the current CSS transition rather than jumping to an endpoint.
+        if (wasHidden) window.getComputedStyle(menu).clipPath;
+        menu.classList.add('is-open');
+        var first = menu.querySelector("a");
+        if (first) first.focus({ preventScroll: true });
+      } else {
+        if (restoreFocus !== false) burger.focus({ preventScroll: true });
+        menu.inert = true;
+        menu.classList.add('is-closing');
+        menu.classList.remove('is-open');
+        if (instant || menuMotion.matches) finishMenuClose();
+        // transitionend is authoritative; the bounded fallback also handles
+        // canceled transitions, browser suspension and rapid repeated taps.
+        else menuCloseTimer = window.setTimeout(finishMenuClose, 360);
+      }
+      if (typeof requestFrame === "function") requestFrame();
     };
-    burger.addEventListener("click", function () { setMenu(menu.hidden); });
+    burger.addEventListener("click", function () { setMenu(!menuOpen); });
+    menu.addEventListener('transitionend', function (event) {
+      if (event.target === menu && event.propertyName === 'clip-path' && !menuOpen) finishMenuClose();
+    });
     menu.querySelectorAll("a").forEach(function (a) {
       a.addEventListener("click", function () { setMenu(false); });
     });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !menu.hidden) { setMenu(false); burger.focus(); }
+    document.querySelectorAll('.topbar__brand, .topbar__contact').forEach(function (a) {
+      a.addEventListener("click", function () { if (menuOpen) setMenu(false, false); });
     });
-    window.matchMedia("(min-width: 900px)").addEventListener("change", function (mq) {
-      if (mq.matches && !menu.hidden) setMenu(false);
+    document.addEventListener("keydown", function (e) {
+      if (!menuOpen) return;
+      if (e.key === "Escape") { e.preventDefault(); setMenu(false); }
+      if (e.key === "Tab") {
+        var controls = Array.prototype.slice.call(document.querySelectorAll('.topbar a[href], .topbar button, #mobile-menu a[href]')).filter(function (el) { return el.getClientRects().length; });
+        var first = controls[0], last = controls[controls.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+    desktopMedia.addEventListener("change", function (mq) {
+      if (mq.matches && !menu.hidden) { setMenu(false, false, true); document.querySelector('.topbar__brand').focus({ preventScroll: true }); }
+    });
+    window.addEventListener('resize', function () {
+      if (!menu.hidden && !isDesktop()) window.requestAnimationFrame(measureMenuOrigin);
+    }, { passive: true });
+    menuMotion.addEventListener('change', function (event) {
+      if (event.matches && !menuOpen && !menu.hidden) finishMenuClose();
     });
   }
 
@@ -55,11 +117,8 @@
   var featureImgs = document.querySelectorAll(".features__img");
 
   if (featuresSection && featuresBody && featureList) {
-    featuresSection.style.height = "auto";
-    featuresSection.style.position = "static";
-
     var featuresMedia = document.getElementById("features-media");
-    var isMobileFeatures = function() { return window.matchMedia("(max-width: 899px)").matches; };
+    var isMobileFeatures = function() { return !isDesktop(); };
 
     // Move media panel into a given feature card (mobile only)
     function moveMobileMedia(li) {
@@ -111,8 +170,9 @@
     });
 
     // On resize to desktop: put media back where it belongs
-    window.matchMedia("(max-width: 899px)").addEventListener("change", function(e) {
-      if (!e.matches) restoreMedia();
+    desktopMedia.addEventListener("change", function(e) {
+      if (e.matches) restoreMedia();
+      else moveMobileMedia(featureItems.find(function(li) { return li.classList.contains("is-active"); }) || featureItems[0]);
     });
   }
 
@@ -202,50 +262,63 @@
   var whyScroll = document.querySelector(".why__scroll-container");
   var whySticky = document.querySelector(".why__sticky");
   var track = document.querySelector(".why__track");
+
+  /* Slides translate right-to-left (`translateX(progress * -400vw)`), so a
+     new slide enters from the right and the old one exits to the left. That
+     means a single "50% of the transition" snap is wrong for BOTH edges of
+     the screen, in opposite directions: the skip button (far right) is the
+     FIRST point the new slide's leading edge reaches, so a 50%-based switch
+     fires far too late for it; the topbar's logo (far left) is the LAST
+     point the old slide vacates, so the same 50% switch fires too early for
+     it. Each needs its own trigger, timed to when the seam actually reaches
+     that element's own position - not a shared, averaged guess.
+
+     `elementsFromPoint` (plural) is used rather than `elementFromPoint`
+     because sampling right at the skip button's own coordinates would just
+     return the skip button itself; walking the full stack finds the actual
+     slide underneath it. */
+  var themeOfSlideAt = function (x, y, excludeSelector) {
+    var stack = document.elementsFromPoint(x, y);
+    for (var i = 0; i < stack.length; i++) {
+      var el = stack[i];
+      if (excludeSelector && el.closest && el.closest(excludeSelector)) continue;
+      var themed = el.closest ? el.closest("[data-nav-theme]") : null;
+      if (themed) return themed.dataset.navTheme;
+    }
+    return null;
+  };
+
   if (whyScroll && track && whySticky) {
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      var whySlideEls = Array.prototype.slice.call(track.querySelectorAll(".slide"));
+    {
       var updateWhyScroll = function () {
         if (whyScroll.dataset.skipping === "true") return;
+        if (!isDesktop() || shortScreen.matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         var rect = whyScroll.getBoundingClientRect();
         var maxScroll = rect.height - window.innerHeight;
         var scrolled = -rect.top;
         if (maxScroll <= 0) return;
 
-        if (window.matchMedia("(max-width: 899px)").matches) {
-          // Mobile: vertical card-stack scroll hijack
-          var totalProgress = Math.max(0, Math.min(1, scrolled / maxScroll));
-          var numTransitions = whySlideEls.length - 1; // 4
-          var slideProgress = totalProgress * numTransitions;
-          var cur = Math.floor(slideProgress);
-          var frac = slideProgress - cur; // 0..1 within current transition
-
-          whySlideEls.forEach(function(slide, i) {
-            var y;
-            if (i <= cur) {
-              y = 0;                         // already settled on screen
-            } else if (i === cur + 1) {
-              y = (1 - frac) * 100;          // entering from bottom
-            } else {
-              y = 100;                       // waiting below screen
-            }
-            slide.style.transform = "translateY(" + y + "%)";
-          });
-
-          // Keep data-theme in sync
-          var activeIdx = Math.min(Math.round(totalProgress * numTransitions), whySlideEls.length - 1);
-          whySticky.setAttribute("data-theme", activeIdx % 2 === 0 ? "dark" : "light");
-          return;
-        }
-
         // Desktop: horizontal slide via CSS custom property
         var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
         whyScroll.style.setProperty('--why-progress', progress);
         var currentSlide = Math.round(progress * 4);
-        whySticky.setAttribute("data-theme", currentSlide % 2 === 0 ? "dark" : "light");
+        // Sample precisely at the skip button's own position (see
+        // themeOfSlideAt above) instead of a flat 50%-of-transition snap, so
+        // its border/text colour flips exactly when the slide behind IT
+        // changes - not whenever the overall transition happens to cross its
+        // midpoint, which is a different moment for an element sitting at
+        // the far right edge of a right-to-left sliding track.
+        var skipRect = skipBtn ? skipBtn.getBoundingClientRect() : null;
+        var themeAtSkip = skipRect
+          ? themeOfSlideAt(
+              Math.round(skipRect.left + skipRect.width / 2),
+              Math.round(skipRect.top + skipRect.height / 2),
+              ".skip-btn"
+            )
+          : null;
+        whySticky.setAttribute("data-theme", themeAtSkip || (currentSlide % 2 === 0 ? "dark" : "light"));
       };
-      window.addEventListener("scroll", updateWhyScroll, { passive: true });
-      window.addEventListener("resize", updateWhyScroll, { passive: true });
+      window.matchMedia("(prefers-reduced-motion: reduce)").addEventListener("change", updateWhyScroll);
       updateWhyScroll();
     }
     
@@ -257,6 +330,11 @@
           whyScroll.dataset.skipping = "true";
           
           var targetY = nextSection.getBoundingClientRect().top + window.scrollY;
+          if (window.siteScroll && window.siteScroll.to(targetY, function () {
+            whyScroll.dataset.skipping = 'false';
+            updateWhyScroll();
+            if (typeof requestFrame === 'function') requestFrame();
+          })) return;
           var startY = window.scrollY;
           var difference = targetY - startY;
           var startTime = null;
@@ -270,6 +348,11 @@
             } else {
               whyScroll.dataset.skipping = "false"; 
               updateWhyScroll();
+              // Force the topbar to re-sample its final resting surface
+              // directly, rather than relying only on a "scroll" event
+              // having been processed during the jump - see the matching
+              // note on the general anchor-click handler below.
+              if (typeof requestFrame === "function") requestFrame();
             }
           }
           requestAnimationFrame(step);
@@ -279,8 +362,12 @@
 
     track.addEventListener("keydown", function (e) {
       if (!isDesktop()) return;
-      if (e.key === "ArrowRight") { e.preventDefault(); window.scrollBy({ top: window.innerHeight, behavior: 'smooth' }); }
-      if (e.key === "ArrowLeft") { e.preventDefault(); window.scrollBy({ top: -window.innerHeight, behavior: 'smooth' }); }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        var distance = window.innerHeight * (e.key === 'ArrowRight' ? 1 : -1);
+        if (window.siteScroll && window.siteScroll.to(window.scrollY + distance)) return;
+        window.scrollBy({ top: distance, behavior: 'smooth' });
+      }
     });
   }
 
@@ -290,6 +377,13 @@
     var sectionIds = navItems.map(function (a) { return a.dataset.section; });
     var visible = {};
     var setActiveNav = function (id) {
+      // The hero's scroll runway sits underneath Technology. Count the
+      // visible white surface, rather than that hidden overlapping box.
+      if (clarityEnabled && tech) {
+        var boundary = tech.getBoundingClientRect();
+        if (boundary.top > window.innerHeight * .5) id = 'home';
+        else if (boundary.bottom > window.innerHeight * .5) id = 'technology';
+      }
       navItems.forEach(function (a) { a.classList.toggle("nav__item--active", a.dataset.section === id); });
     };
     // Create an array of thresholds from 0 to 1 with 0.05 increments
@@ -318,15 +412,23 @@
         var whyScroll = document.querySelector(".why__scroll-container");
         if (whyScroll) whyScroll.dataset.skipping = "true";
         
-        var targetY = target.getBoundingClientRect().top + window.scrollY;
+        var headerOffset = !isDesktop() && targetId !== "#home" ? document.querySelector('.topbar').getBoundingClientRect().height + 12 : 0;
+        var targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
+        if (window.siteScroll && window.siteScroll.to(targetY, function () {
+          if (whyScroll) {
+            whyScroll.dataset.skipping = 'false';
+            window.dispatchEvent(new Event('scroll'));
+          }
+          if (typeof requestFrame === 'function') requestFrame();
+        })) return;
         var startY = window.scrollY;
         var difference = targetY - startY;
         var startTime = null;
-        var duration = 600; // 600ms is very fast and smooth
+        var duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 600;
         
         function step(time) {
           if (startTime === null) startTime = time;
-          var progress = Math.min((time - startTime) / duration, 1);
+          var progress = duration ? Math.min((time - startTime) / duration, 1) : 1;
           // easeInOutCubic
           var ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
           
@@ -340,6 +442,15 @@
               whyScroll.dataset.skipping = "false";
               window.dispatchEvent(new Event('scroll'));
             }
+            // Belt-and-suspenders: explicitly force the topbar to re-sample
+            // its resting surface (mode/theme/logo colour) right here, rather
+            // than relying solely on the synthetic "scroll" event above
+            // having been fully processed. This is the exact jump this bar
+            // fix targets - clicking a nav link (e.g. "Product") from the
+            // very top of the page lands far down the document in one 600ms
+            // hop, and the topbar should reflect exactly where it landed
+            // without requiring the user to scroll again first.
+            if (typeof requestFrame === "function") requestFrame();
           }
         }
         requestAnimationFrame(step);
@@ -414,111 +525,315 @@
     });
   }
 
-  /* ---------------- Hero Scroll Transition ---------------- */
+  /* ---------------- Scroll-driven effects ----------------
+     One scroll listener and one rAF per frame, with every measurement taken
+     before any style is written. Previously the hero transition, the
+     Technology reveal, the nav hide and the footer parallax each registered
+     their own unthrottled listener, and each interleaved getBoundingClientRect
+     with style writes — so a single scroll event forced layout several times
+     over. Visual output is unchanged; only the scheduling differs. */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
   var hero = document.getElementById("home");
-  if (hero && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    var updateScroll = function () {
-      var scrollY = window.scrollY;
-      if (hero && scrollY > hero.offsetHeight - 100) {
-        document.body.classList.add('is-scrolled');
-      } else {
-        document.body.classList.remove('is-scrolled');
-      }
-
-      var rect = hero.getBoundingClientRect();
-      var scrolled = -rect.top;
-      var maxScroll = rect.height - window.innerHeight;
-      if (maxScroll > 0) {
-        var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-        hero.style.setProperty('--scroll-p', progress);
-      }
-    };
-    window.addEventListener("scroll", updateScroll, { passive: true });
-    window.addEventListener("resize", updateScroll, { passive: true });
-    updateScroll();
+  // Both words share one persistent compositing layer. Wait for their actual
+  // faces before moving it; neither animation completion nor menu use resets it.
+  var phoneTitleRoot = document.documentElement;
+  var phoneTitleMedia = window.matchMedia("(width < 600px)");
+  var showStaticTitle = function () { phoneTitleRoot.dataset.phoneTitle = "static"; };
+  if (phoneTitleRoot.dataset.phoneTitle === "pending") {
+    if (document.fonts && !reduceMotion.matches) {
+      Promise.all([
+        document.fonts.load('72px "Anton"', 'TOILETS'),
+        document.fonts.load('80px "Billion Dreams"', 'Redefined')
+      ]).then(function (faces) {
+        if (phoneTitleRoot.dataset.phoneTitle !== "pending") return;
+        phoneTitleRoot.dataset.phoneTitle = faces.every(function (list) { return list.length > 0; }) && phoneTitleMedia.matches && !reduceMotion.matches ? "reveal" : "static";
+      }, showStaticTitle);
+    } else showStaticTitle();
   }
-
-  /* ---------------- Technology Reveal Transition ---------------- */
+  phoneTitleMedia.addEventListener("change", showStaticTitle);
+  reduceMotion.addEventListener("change", function (event) { if (event.matches) showStaticTitle(); });
+  // Seal the one-time phone entrance so crossing responsive breakpoints does
+  // not replay it. Final CSS remains visible even if JavaScript is unavailable.
+  if (hero) {
+    var finishHeroEntrance = function () { hero.classList.add("hero--entered"); };
+    window.setTimeout(finishHeroEntrance, 2000);
+    window.matchMedia("(width < 600px)").addEventListener("change", finishHeroEntrance);
+  }
   var tech = document.getElementById("technology");
-  if (tech && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    var updateTechScroll = function () {
-      var rect = tech.getBoundingClientRect();
-      var start = window.innerHeight; // entering viewport
-      var end = window.innerHeight - 300; // 300px into viewport
-      // Calculate progress 0 to 1
-      var progress = 1 - Math.max(0, Math.min(1, (rect.top - end) / (start - end)));
-      tech.style.setProperty('--tech-scroll-p', progress);
-    };
-    window.addEventListener("scroll", updateTechScroll, { passive: true });
-    window.addEventListener("resize", updateTechScroll, { passive: true });
-    updateTechScroll();
-  }
-
-  /* ---------------- Nav hide on scroll down ---------------- */
-  var nav = document.querySelector(".nav");
-  var brandPill = document.querySelector(".brand-pill");
-  var brandMobile = document.querySelector(".brand-mobile");
-  var hamburger = document.querySelector(".hamburger");
-  
-  if (nav || brandPill) {
-    var lastScrollY = window.scrollY;
-    window.addEventListener("scroll", function() {
-      var currentScrollY = window.scrollY;
-      
-      // We only want to trigger hide when scrolled past a small threshold (e.g., 50px)
-      // to ensure it is fully visible at the absolute top of the Hero.
-      if (currentScrollY > 50 && currentScrollY > lastScrollY) {
-        // Scrolling DOWN
-        if (nav) nav.classList.add("is-hidden");
-        if (brandPill) brandPill.style.transform = "translateY(-250%)";
-        if (brandMobile) brandMobile.style.transform = "translateY(-250%)";
-        if (hamburger) hamburger.style.transform = "translateY(-250%)";
-      } else {
-        // Scrolling UP or at top
-        if (nav) nav.classList.remove("is-hidden");
-        if (brandPill) brandPill.style.transform = "translateY(0)";
-        if (brandMobile) brandMobile.style.transform = "translateY(0)";
-        if (hamburger) hamburger.style.transform = "translateY(0)";
-      }
-      
-      lastScrollY = currentScrollY;
-    }, { passive: true });
-  }
-
-  /* ---------------- Footer Cinematic Reveal ---------------- */
+  var topbar = document.querySelector(".topbar");
   var footer = document.querySelector(".footer");
   var clouds = document.querySelector(".footer__clouds");
   var footerInner = document.querySelector(".footer__inner");
-  if (footer && clouds && footerInner) {
-    var updateFooterParallax = function() {
-      var rect = footer.getBoundingClientRect();
-      var start = window.innerHeight;
-      var maxScroll = rect.height;
-      var scrolled = start - rect.top; 
-      
-      if (scrolled > 0 && scrolled <= start + maxScroll) {
-        var progress = Math.max(0, Math.min(1, scrolled / maxScroll));
-        var footerY = (1 - progress) * 100; 
-        var cloudY = (1 - progress) * 200; 
-        
-        footerInner.style.transform = "translateY(" + footerY + "px)";
-        clouds.style.transform = "translateY(" + cloudY + "px)";
-        footerInner.style.opacity = progress;
-        clouds.style.opacity = progress;
-      } else if (scrolled > start + maxScroll) {
+
+  var bodyScrolled = false;
+  var frame = 0;
+  var clarityEnabled = false;
+  var lastClarity = null;
+  var clarityMobileViewport = 0;
+  var clarityScene = hero && hero.querySelector('.hero__sticky');
+  var measureClarity = function () {
+    clarityEnabled = !!hero && getComputedStyle(hero).getPropertyValue('--clarity-enabled').trim() === '1';
+    if (clarityEnabled && !isDesktop() && clarityScene) {
+      // The computed minimum is 100svh. Mobile browser chrome may change
+      // innerHeight during a swipe; a stable viewport keeps the grade continuous.
+      clarityMobileViewport = parseFloat(getComputedStyle(clarityScene).minHeight) || window.innerHeight;
+      hero.style.setProperty('--clarity-scene-height', clarityScene.getBoundingClientRect().height + 'px');
+    } else {
+      clarityMobileViewport = 0;
+      if (hero) hero.style.removeProperty('--clarity-scene-height');
+    }
+  };
+  var smoothRange = function (start, end, value) {
+    var p = Math.max(0, Math.min(1, (value - start) / (end - start)));
+    return p * p * (3 - 2 * p);
+  };
+
+  /* Bottom edge of the fixed chrome. Used to tell whether the bar is sitting
+     over the hero's flat sky (nothing behind it worth a glass treatment) or
+     over real content (the fog's texture rising in, or the page beyond it) -
+     drives the shared topbar's merge/glass toggle below. Re-measured on
+     resize and when enlarged text changes the header's height. */
+  var chromeBottom = 110;
+  var measureChrome = function () {
+    var el = topbar;
+    if (el) {
+      var r = el.getBoundingClientRect();
+      if (r.height) {
+        chromeBottom = r.top + r.height;
+        if (!isDesktop()) document.documentElement.style.setProperty('--mobile-header-height', r.height + 'px');
+        else document.documentElement.style.removeProperty('--mobile-header-height');
+      }
+    }
+  };
+  // Reflowing text and device safe areas can make the mobile header taller.
+  if (topbar && 'ResizeObserver' in window) new ResizeObserver(measureChrome).observe(topbar);
+
+  /* The cloud boundary controls navigation contrast during the
+     handoff. Below the hero, sample the real section beneath the topbar. */
+  // Deliberately not pre-set to "merge"/"dark" (the actual initial state):
+  // applyTopbarSurface only writes an attribute when the value *changes*, and
+  // the DOM starts with neither attribute present at all, so seeding these to
+  // match would make the first real call a no-op and leave the bar without
+  // data-mode/data-theme forever.
+  var topbarMode = null;
+  var topbarTheme = null;
+  var applyTopbarSurface = function (mode, theme) {
+    if (!topbar) return;
+    if (!isDesktop() && menu && !menu.hidden) { mode = "glass"; theme = "dark"; }
+    if (mode !== topbarMode) {
+      topbarMode = mode;
+      topbar.setAttribute("data-mode", mode);
+    }
+    if (theme !== topbarTheme) {
+      topbarTheme = theme;
+      topbar.setAttribute("data-theme", theme);
+    }
+  };
+
+  var parseRgb = function (color) {
+    var m = color && color.match(/rgba?\(([^)]+)\)/);
+    if (!m) return null;
+    var parts = m[1].split(",").map(function (v) {
+      return parseFloat(v);
+    });
+    var r = parts[0],
+      g = parts[1],
+      b = parts[2];
+    var a = parts.length > 3 ? parts[3] : 1;
+    if ([r, g, b, a].some(isNaN)) return null;
+    if (a <= 0.05) return null; // transparent - keep walking up
+    return { r: r, g: g, b: b };
+  };
+  var getLuminance = function (c) {
+    return (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
+  };
+  var inferBackgroundTheme = function (el) {
+    var cur = el;
+    while (cur && cur !== document.documentElement) {
+      var bg = parseRgb(getComputedStyle(cur).backgroundColor);
+      if (bg) return getLuminance(bg) > 0.58 ? "light" : "dark";
+      cur = cur.parentElement;
+    }
+    var bodyBg = parseRgb(getComputedStyle(document.body).backgroundColor);
+    return bodyBg && getLuminance(bodyBg) > 0.58 ? "light" : "dark";
+  };
+  var topbarLogo = document.querySelector(".topbar__logo");
+
+  var sampleBelowHeroSurface = function () {
+    if (!topbar) return;
+
+    /* The why-us section is a horizontal scroll-snap carousel: two flat-
+       coloured slides are often visible side by side mid-transition. Sample
+       at the LOGO's own actual position (not the viewport centre, and not a
+       generic global progress snap) so its own ink/filter flips exactly when
+       the slide truly behind IT changes - matching how `themeOfSlideAt`
+       above times the skip button off its own position instead. Slides move
+       right-to-left, so the logo (far left) is the last point a new slide
+       reaches; sampling there is deliberately the "safest, latest" trigger
+       for the whole bar, since by the time it fires, everything positioned
+       further right (the nav links) has already been under the new slide's
+       colour for a while - not the reverse. */
+    if (whyScroll) {
+      var whyRect = whyScroll.getBoundingClientRect();
+      if (whyRect.top <= 0 && whyRect.bottom >= 0) {
+        var barRect = topbar.getBoundingClientRect();
+        var logoRect = topbarLogo ? topbarLogo.getBoundingClientRect() : null;
+        var lx = logoRect ? Math.round(logoRect.left + logoRect.width / 2) : Math.round(barRect.left + 60);
+        var ly = Math.round(barRect.bottom + 8);
+        var themeAtLogo = themeOfSlideAt(lx, ly, null);
+        applyTopbarSurface("merge", themeAtLogo || (whySticky ? whySticky.dataset.theme : "dark") || "dark");
+        return;
+      }
+    }
+
+    var r = topbar.getBoundingClientRect();
+    var probeX = Math.round(window.innerWidth / 2);
+    var probeY = Math.round(r.bottom + 8); // just past the bar's own pixels
+    var el = document.elementFromPoint(probeX, probeY);
+    var modeEl = el && el.closest ? el.closest("[data-nav-mode]") : null;
+    var mode = modeEl ? modeEl.dataset.navMode : "glass";
+    var themeEl = el && el.closest ? el.closest("[data-nav-theme]") : null;
+    var theme = themeEl ? themeEl.dataset.navTheme : inferBackgroundTheme(el);
+    applyTopbarSurface(mode, theme);
+  };
+
+  var onFrame = function () {
+    frame = 0;
+
+    if (typeof updateWhyScroll === 'function') updateWhyScroll();
+
+    var vh = window.innerHeight;
+    var scrollY = window.scrollY;
+    var still = reduceMotion.matches;
+
+    /* ---- reads ---- */
+    var heroRect = hero ? hero.getBoundingClientRect() : null;
+    var techRect = tech && !still ? tech.getBoundingClientRect() : null;
+    var footerRect = footer && clouds && footerInner ? footer.getBoundingClientRect() : null;
+
+    /* ---- writes ---- */
+    if (heroRect) {
+      if (clarityEnabled && techRect) {
+        // A single physical boundary drives atmosphere, content and navigation.
+        // Lighting follows the real scroll position, including Lenis's frames.
+        var clarityVh = clarityMobileViewport || vh;
+        var p = Math.max(0, Math.min(1, 1 - techRect.top / clarityVh));
+        if (typeof setActiveNav === 'function' && techRect.bottom > vh * .5) {
+          setActiveNav(p < .5 ? 'home' : 'technology');
+        }
+        if (p !== lastClarity) {
+          hero.style.setProperty('--clarity-p', p.toFixed(5));
+          // Colour and exposure only decrease on the outgoing scene. The
+          // incoming paper gains light independently; neither curve rebounds.
+          var mono = smoothRange(0, .56, p);
+          var contrast = 1 + .50 * smoothRange(.08, .65, p);
+          hero.style.setProperty('--clarity-grade', p === 0 ? 'none'
+            : 'grayscale(' + mono.toFixed(5) + ') contrast(' + contrast.toFixed(5) + ')');
+          hero.style.setProperty('--clarity-sky', (1 - .90 * smoothRange(.02, .78, p)).toFixed(5));
+          hero.style.setProperty('--clarity-presence', (1 - .78 * smoothRange(.12, .76, p)).toFixed(5));
+          tech.style.setProperty('--clarity-paper', (234 + 21 * smoothRange(0, .72, p)).toFixed(3));
+          tech.style.setProperty('--clarity-p', p.toFixed(5));
+          tech.style.setProperty('--clarity-title', smoothRange(.08, .42, p).toFixed(5));
+          tech.style.setProperty('--clarity-detail', smoothRange(.14, .48, p).toFixed(5));
+          lastClarity = p;
+        }
+        // The veil is brightest at its base. Switch ink while it is still
+        // approaching the bar, with hysteresis to avoid threshold flicker.
+        var cloudDepth = clarityVh * (.12 + .18 * p);
+        var surfaceAtBar = (chromeBottom * .5 - techRect.top + cloudDepth) / cloudDepth;
+        var lightInk = topbarTheme === 'light'
+          ? surfaceAtBar > .50
+          : surfaceAtBar > .58;
+        var glass = techRect.top <= 0;
+        if (glass !== bodyScrolled) {
+          bodyScrolled = glass;
+          document.body.classList.toggle('is-scrolled', glass);
+        }
+        if (techRect.top <= 0) sampleBelowHeroSurface();
+        else applyTopbarSurface('merge', lightInk ? 'light' : 'dark');
+      } else {
+        // Short viewports and reduced motion retain the normal-flow handoff.
+        lastClarity = null;
+        hero.style.removeProperty('--clarity-p');
+        hero.style.removeProperty('--clarity-grade');
+        hero.style.removeProperty('--clarity-sky');
+        hero.style.removeProperty('--clarity-presence');
+        if (tech) {
+          tech.style.removeProperty('--clarity-p');
+          tech.style.removeProperty('--clarity-paper');
+          tech.style.removeProperty('--clarity-title');
+          tech.style.removeProperty('--clarity-detail');
+        }
+        var glass = !isDesktop() ? (bodyScrolled ? scrollY > 8 : scrollY > 24) : heroRect.bottom < chromeBottom;
+        if (glass !== bodyScrolled) {
+          bodyScrolled = glass;
+          document.body.classList.toggle('is-scrolled', glass);
+        }
+        if (heroRect.bottom <= chromeBottom) sampleBelowHeroSurface();
+        else applyTopbarSurface(glass ? 'glass' : 'merge', 'dark');
+        if (techRect) {
+          var techP = 1 - Math.max(0, Math.min(1, (techRect.top - (vh - 300)) / 300));
+          tech.style.setProperty('--tech-scroll-p', techP);
+        }
+      }
+    }
+
+    if (footerRect) {
+      var fMax = footerRect.height;
+      var fScrolled = vh - footerRect.top;
+      if (fScrolled > 0 && fScrolled <= vh + fMax) {
+        var fP = Math.max(0, Math.min(1, fScrolled / fMax));
+        footerInner.style.transform = "translateY(" + (1 - fP) * 100 + "px)";
+        clouds.style.transform = "translateY(" + (1 - fP) * 200 + "px)";
+        footerInner.style.opacity = fP;
+        clouds.style.opacity = fP;
+      } else if (fScrolled > vh + fMax) {
         footerInner.style.transform = "translateY(0)";
         clouds.style.transform = "translateY(0)";
         footerInner.style.opacity = 1;
         clouds.style.opacity = 1;
-      } else if (scrolled <= 0) {
+      } else {
         footerInner.style.opacity = 0;
         clouds.style.opacity = 0;
       }
-    };
-    window.addEventListener("scroll", updateFooterParallax, { passive: true });
-    window.addEventListener("resize", updateFooterParallax, { passive: true });
-    updateFooterParallax();
-  }
+    }
+  };
+
+  var requestFrame = function () {
+    if (!frame) frame = window.requestAnimationFrame(onFrame);
+  };
+
+  if (window.siteScroll) window.siteScroll.onFrame(function () {
+    // Paint the lighting on the same frame as the smoothed page position.
+    if (frame) window.cancelAnimationFrame(frame);
+    onFrame();
+  });
+
+  window.addEventListener("scroll", requestFrame, { passive: true });
+  window.addEventListener(
+    "resize",
+    function () {
+      measureChrome();
+      measureClarity();
+      lastClarity = null;
+      requestFrame();
+    },
+    { passive: true }
+  );
+  reduceMotion.addEventListener('change', function () {
+    measureClarity();
+    lastClarity = null;
+    requestFrame();
+  });
+  // Fonts, text size and phone rotation can change the intrinsic scene height.
+  if (clarityScene && 'ResizeObserver' in window) new ResizeObserver(function () {
+    measureClarity();
+    requestFrame();
+  }).observe(clarityScene);
+  measureChrome();
+  measureClarity();
+  requestFrame();
 })();
 
 

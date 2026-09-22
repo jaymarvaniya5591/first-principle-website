@@ -97,6 +97,27 @@ for (const item of manifest) {
   }
 }
 
+/* The hero fog is a CSS background, so it never went through <picture> and was
+   shipping as a 581KB PNG. It is its own committed source (no img-src original),
+   so derive the modern formats from it in place and leave the PNG as fallback. */
+{
+  const fog = path.join(OUT, "fog-new.png");
+  if (await exists(fog)) {
+    const src = sharp(fog);
+    const avif = await src.clone().avif({ quality: 55, effort: 7 }).toBuffer();
+    await writeFile(path.join(OUT, "fog-new.avif"), avif);
+    const webp = await src.clone().webp({ quality: 84, effort: 6, alphaQuality: 90 }).toBuffer();
+    await writeFile(path.join(OUT, "fog-new.webp"), webp);
+    report.push({
+      file: "fog-new",
+      width: (await src.metadata()).width,
+      avifKB: (avif.length / 1024).toFixed(0),
+      webpKB: (webp.length / 1024).toFixed(0),
+      fallbackKB: ((await stat(fog)).size / 1024).toFixed(0),
+    });
+  }
+}
+
 /* Favicons / touch icon from the brand mark, and an Open Graph image. */
 const mark = path.join(root, "assets", "img", "logo-mobile.svg");
 for (const size of [32, 180, 512]) {

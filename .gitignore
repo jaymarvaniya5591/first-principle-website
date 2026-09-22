@@ -12,3 +12,9 @@ assets/img-src/
 # Unrelated local work in this folder
 output/
 tmp/
+.serve-log.txt
+.serve-out.txt
+.serve-err.txt
+
+# Local review scaffolding: baseline captures and the cloud-dive contact sheet
+.work/
