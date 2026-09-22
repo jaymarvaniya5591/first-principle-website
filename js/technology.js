@@ -11,6 +11,11 @@
   var cards = Array.from(list.querySelectorAll('.feature'));
   var pictures = Array.from(media.querySelectorAll('picture'));
   var buttons = cards.map(function (card) { return card.querySelector('button'); });
+  var details = cards.map(function (card) { return card.querySelector('.feature__detail'); });
+  var mobilePhotos = cards.map(function (card) { return card.querySelector('.feature__mobile-photo'); });
+  var desktopActive = 0, mobileActive = 0, mobileRequest = 0, mobileNear = false;
+  var animations = [], anchorTimer = 0, savedAnchor = null;
+  var mobileViewFrame = 0, mobileLayout = null;
   // Match the CSS explorer query. A scaled laptop can expose fewer than 1100
   // CSS pixels without becoming a touch/mobile layout. Use available geometry
   // and input capability, never OS scaling, browser zoom or device pixel ratio.
@@ -88,22 +93,163 @@
   function setActive(index, reveal) {
     if (index === active) { if (index >= 0) showImage(index); return; }
     active = index;
+    desktopActive = index;
     if (desktop.matches && reveal && index >= 0) section.classList.add('features--explored');
     cards.forEach(function (card, i) {
       var open = i === index;
       card.classList.toggle('is-active', open);
       buttons[i].setAttribute('aria-expanded', String(open));
+      details[i].hidden = false;
+      details[i].inert = !open;
+      details[i].setAttribute('aria-hidden', String(!open));
       card.querySelector('.feature__desc').setAttribute('aria-hidden', String(!open));
     });
     if (index >= 0) showImage(index);
-    if (!desktop.matches) {
-      if (index >= 0) cards[index].insertBefore(media, cards[index].firstChild);
-      return;
-    }
     targetScroll = list.scrollTop;
     transitionUntil = performance.now() + (reduced.matches ? 0 : 210);
     revealUntil = reveal && index >= 0 ? transitionUntil + 140 : 0;
     schedule();
+  }
+
+  function mobileState(index, open) {
+    cards[index].classList.toggle('is-active', open);
+    buttons[index].setAttribute('aria-expanded', String(open));
+    details[index].setAttribute('aria-hidden', String(!open));
+    details[index].inert = !open;
+    cards[index].querySelector('.feature__desc').setAttribute('aria-hidden', String(!open));
+  }
+
+  function finishDetail(index) {
+    if (animations[index]) animations[index].cancel();
+    animations[index] = null;
+    cards[index].style.removeProperty('height');
+    details[index].hidden = index !== mobileActive;
+  }
+
+  function animateDetail(index, from) {
+    var card = cards[index];
+    if (animations[index]) animations[index].cancel();
+    card.style.removeProperty('height');
+    var to = card.getBoundingClientRect().height;
+    if (reduced.matches || Math.abs(from - to) < 1) { finishDetail(index); return; }
+    var animation = card.animate([{ height: from + 'px' }, { height: to + 'px' }], {
+      duration: 180, easing: 'cubic-bezier(.2,.7,.2,1)'
+    });
+    animations[index] = animation;
+    animation.onfinish = function () {
+      if (animations[index] === animation) finishDetail(index);
+    };
+  }
+
+  function mobileBounds() {
+    var viewport = window.visualViewport;
+    return {
+      top: Math.max(header.getBoundingClientRect().bottom, viewport ? viewport.offsetTop : 0) + 12,
+      bottom: (viewport ? viewport.offsetTop + viewport.height : innerHeight) - 12
+    };
+  }
+
+  function sizeMobilePhoto(index) {
+    var photo = mobilePhotos[index];
+    if (photo.hidden) return;
+    var card = cards[index], description = card.querySelector('.feature__desc');
+    var next = card.querySelector('.feature__next'), bounds = mobileBounds();
+    var textHeight = buttons[index].getBoundingClientRect().height + description.getBoundingClientRect().height
+      + parseFloat(getComputedStyle(description).marginBottom) + (next ? next.getBoundingClientRect().height : 0) + 1;
+    var natural = card.clientWidth * .75;
+    // Text and targets never shrink. Compact images keep their full subject visible.
+    var height = Math.min(natural, Math.max(144, bounds.bottom - bounds.top - textHeight));
+    photo.style.height = height + 'px';
+    photo.classList.toggle('is-compact', height < natural - 1);
+  }
+
+  function cancelMobileView() {
+    cancelAnimationFrame(mobileViewFrame);
+    mobileViewFrame = 0;
+  }
+
+  function moveMobileView(target) {
+    cancelMobileView();
+    var start = scrollY, distance = target - start;
+    if (Math.abs(distance) < 1) return;
+    if (reduced.matches) { window.scrollTo({ top: target, behavior: 'instant' }); return; }
+    var began = performance.now();
+    function step(time) {
+      var progress = Math.min(1, (time - began) / 180);
+      window.scrollTo({ top: start + distance * (1 - Math.pow(1 - progress, 3)), behavior: 'instant' });
+      mobileViewFrame = progress < 1 ? requestAnimationFrame(step) : 0;
+    }
+    mobileViewFrame = requestAnimationFrame(step);
+  }
+
+  function mobileDestination(index, sequential) {
+    var rect = cards[index].getBoundingClientRect(), bounds = mobileBounds();
+    if (rect.height <= bounds.bottom - bounds.top + 1) {
+      var top = sequential ? bounds.top : Math.max(bounds.top, Math.min(rect.top, bounds.bottom - rect.height));
+      return scrollY + rect.top - top;
+    }
+    // Very short landscape views or enlarged text prioritize the title and
+    // description; the photo remains immediately above in native page flow.
+    return scrollY + buttons[index].getBoundingClientRect().top - bounds.top;
+  }
+
+  function loadMobileImage(index) {
+    var request = ++mobileRequest;
+    var photo = mobilePhotos[index];
+    var pic = photo.querySelector('picture');
+    if (!pic) {
+      photo.appendChild(photo.querySelector('template').content.cloneNode(true));
+      pic = photo.querySelector('picture');
+    }
+    prepare(pic).then(function (ready) {
+      if (desktop.matches || request !== mobileRequest || mobileActive !== index) return;
+      var rect = cards[index].getBoundingClientRect(), bounds = mobileBounds();
+      var visible = rect.top < bounds.bottom && rect.bottom > bounds.top;
+      photo.hidden = !ready;
+      photo.classList.toggle('is-ready', ready);
+      // Failed media must not leave a tall empty frame or a fixed animation height.
+      if (!ready) {
+        finishDetail(index);
+        if (visible) moveMobileView(mobileDestination(index, false));
+      }
+    });
+  }
+
+  function releaseAnchor() {
+    clearTimeout(anchorTimer);
+    if (savedAnchor !== null) document.documentElement.style.overflowAnchor = savedAnchor;
+    savedAnchor = null;
+  }
+
+  function selectMobile(index, sequential) {
+    var target = index >= 0 ? index : mobileActive;
+    if (target < 0) return;
+    cancelMobileView();
+    var before = (index >= 0 ? cards[target] : buttons[target]).getBoundingClientRect().top;
+    var from = cards[target].getBoundingClientRect().height;
+    // Suppress browser anchoring during this explicit layout change; compensate
+    // for earlier rows closing before assisting the selected card into view.
+    if (savedAnchor === null) savedAnchor = document.documentElement.style.overflowAnchor;
+    document.documentElement.style.overflowAnchor = 'none';
+    clearTimeout(anchorTimer);
+    mobileActive = index;
+    ++mobileRequest;
+    cards.forEach(function (card, i) {
+      mobileState(i, i === index);
+      finishDetail(i);
+    });
+    if (index >= 0) sizeMobilePhoto(index);
+    // Compensate for an earlier row closing before deciding whether the new
+    // complete card needs to move. Never force an already visible card to the top.
+    var rect = cards[target].getBoundingClientRect();
+    var shift = rect.top - before;
+    if (Math.abs(shift) > .5) window.scrollBy({ top: shift, behavior: 'instant' });
+    var destination = index >= 0 ? mobileDestination(index, sequential) : scrollY;
+    animateDetail(target, from);
+    moveMobileView(destination);
+    if (sequential) buttons[target].focus({ preventScroll: true });
+    if (index >= 0) loadMobileImage(index);
+    anchorTimer = setTimeout(releaseAnchor, reduced.matches ? 0 : 220);
   }
 
   function markScrolling() {
@@ -112,7 +258,17 @@
 
   function measure() {
     measureFrame = 0;
-    if (!desktop.matches) return;
+    if (!desktop.matches) {
+      var width = list.clientWidth, headingHeight = heading.getBoundingClientRect().height;
+      // Browser toolbar height changes must not resize the image mid-swipe.
+      if (!mobileLayout || mobileLayout.width !== width || mobileLayout.heading !== headingHeight) {
+        cancelMobileView();
+        details.forEach(function (_, i) { finishDetail(i); });
+        if (mobileActive >= 0) sizeMobilePhoto(mobileActive);
+        mobileLayout = { width: width, heading: headingHeight };
+      }
+      return;
+    }
     var width = section.clientWidth;
     var resized = layout && (layout.width !== width || layout.height !== innerHeight);
     var wasAligned = layout && Math.abs(scrollY - layout.anchor) <= 2;
@@ -153,15 +309,20 @@
   function reconcile() {
     section.classList.remove('features--ready');
     section.classList.toggle('features--desktop', desktop.matches);
+    section.classList.toggle('features--mobile', !desktop.matches);
+    ++mobileRequest;
+    cancelMobileView();
+    mobileLayout = null;
+    releaseAnchor();
+    details.forEach(function (_, i) { finishDetail(i); });
     cancelAnimationFrame(frame); frame = 0; lastTime = 0;
     pointerX = pointerY = null;
     targetScroll = 0; list.scrollTop = 0; route = '';
-    var selected = active >= 0 ? active : imageIndex;
     // Force ARIA and classes into sync, including on the first run.
     active = -2;
     if (desktop.matches) {
       body.insertBefore(media, body.firstChild);
-      setActive(selected, false);
+      setActive(desktopActive, false);
       measure();
     } else {
       flow = false;
@@ -169,7 +330,9 @@
       section.classList.remove('features--flow');
       list.removeAttribute('tabindex');
       list.removeAttribute('aria-describedby');
-      setActive(selected, false);
+      cards.forEach(function (_, i) { mobileState(i, i === mobileActive); });
+      if (mobileActive >= 0 && mobileNear) loadMobileImage(mobileActive);
+      measure();
     }
     // Establish the initial/breakpoint layout without an entrance resize.
     list.getBoundingClientRect();
@@ -202,8 +365,15 @@
   });
   cards.forEach(function (card, i) {
     card.addEventListener('click', function () {
-      if (!desktop.matches) { setActive(active === i ? -1 : i, false); return; }
+      if (!desktop.matches) return;
       setActive(i, true);
+    });
+    buttons[i].addEventListener('click', function () {
+      if (!desktop.matches) selectMobile(mobileActive === i ? -1 : i, false);
+    });
+    var next = card.querySelector('[data-next-feature]');
+    if (next) next.addEventListener('click', function () {
+      if (!desktop.matches) selectMobile(Number(next.dataset.nextFeature), true);
     });
   });
   section.addEventListener('keydown', function (event) {
@@ -270,19 +440,30 @@
   body.addEventListener('pointerleave', function () { route = ''; });
 
   desktop.addEventListener('change', reconcile);
-  reduced.addEventListener('change', function () { requestMeasure(); schedule(); });
+  reduced.addEventListener('change', function () {
+    if (!desktop.matches && reduced.matches) {
+      cancelMobileView();
+      details.forEach(function (_, i) { finishDetail(i); });
+    }
+    requestMeasure(); schedule();
+  });
+  ['touchstart', 'wheel', 'pointerdown', 'keydown'].forEach(function (name) {
+    window.addEventListener(name, cancelMobileView, { passive: true });
+  });
   window.addEventListener('resize', requestMeasure, { passive: true });
   new ResizeObserver(requestMeasure).observe(heading);
   new ResizeObserver(requestMeasure).observe(header);
   reconcile();
-  showImage(0);
   document.fonts.ready.then(requestMeasure);
 
   var nearby = new IntersectionObserver(function (entries) {
     if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
-    prepare(pictures[imageIndex]);
-    if (desktop.matches && !(navigator.connection && navigator.connection.saveData)) {
-      pictures.forEach(prepare);
+    mobileNear = true;
+    if (desktop.matches) {
+      prepare(pictures[imageIndex]);
+      if (!(navigator.connection && navigator.connection.saveData)) pictures.forEach(prepare);
+    } else {
+      if (mobileActive >= 0) loadMobileImage(mobileActive);
     }
     nearby.disconnect();
   }, { rootMargin: '100% 0px' });

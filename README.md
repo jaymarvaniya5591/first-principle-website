@@ -15,7 +15,7 @@ Static landing page for First Principle smart toilets, built 1:1 from the Figma 
 index.html            # all sections (hero, features, why, collection, contact, footer)
 css/styles.css        # source stylesheet, loaded by index.html
 css/styles.min.css    # equivalent minified distribution stylesheet
-js/main.js            # feature accordion, 6-product carousel, mobile menu, nav scroll-spy, contact form
+js/main.js            # 6-product carousel, mobile menu, nav scroll-spy, contact form
 scripts/serve.mjs     # local-only preview on port 5592
 assets/fonts          # generated woff2 (sources in assets/fonts-src, git-ignored)
 assets/img            # generated responsive images (sources in assets/img-src + ../Website Assets)
@@ -123,8 +123,8 @@ reference units of panel height remain, the list uses readable document flow.
 The explorer applies at 1100px and above, and also on landscape mouse/trackpad
 windows at least 600px wide with an aspect ratio of at least 4:3. This prevents
 Windows scaling or Chrome zoom from turning a laptop into the touch accordion.
-Phones, touch tablets below 1100px, and narrow portrait windows retain the
-existing accordion and embedded image. The JS, CSS and responsive image sizes
+Phones, touch tablets below 1100px, and narrow portrait windows use the
+mobile accordion described below. The JS, CSS and responsive image sizes
 share this layout condition. A small photo hint fades after the first interaction.
 
 The original typography mix is retained: Helvetica Neue for headings and feature
@@ -137,7 +137,7 @@ scrolling. The first card opens by default. Desktop always keeps one card open:
 scrolling, leaving a card, clicking it again, or pressing Escape does not collapse
 it. Selecting a different card replaces it and its image. Hover selection requires
 actual pointer movement so animated or scrolling rows cannot select themselves
-under a stationary cursor. Mobile retains its existing click-to-toggle behavior.
+under a stationary cursor. Mobile has an independent selection starting with the first feature open.
 
 Desktop wheel input over the cards scrolls their panel, releasing excess to the
 page at either end. The entire photo scrolls the page normally, including its
@@ -155,6 +155,35 @@ Resizing or zooming while aligned at Technology keeps that entrance below the
 header as the hero above changes height; it does not pull back a departing user.
 Reduced motion removes interpolation. Without JavaScript the desktop list and
 descriptions remain in normal flow. Rebuild CSS after changing the source.
+
+## Mobile technology overview
+
+The same Technology controller switches to a native-scrolling overview on touch
+and narrow layouts. The first feature opens by default, with its photo above
+its title and description; there is no duplicate introductory image. The other
+six rows start closed. Content is centered within 600px on tablets. Type uses rem units, natural
+wrapping, and the existing Helvetica pairing. The hero transition is unchanged.
+
+Only a row's header toggles its description and inline photo. One row can be open
+at a time, and tapping it again closes it. Switching rows first compensates for
+an earlier row closing, then moves only enough to reveal the complete selected
+card. An already visible card stays put. Images use less height on short screens,
+without shrinking text; if enlarged text still cannot fit, the title is aligned
+below navigation with normal scrolling available. The explicit Next feature
+action aligns the next card below navigation. A subtle exploration hint and one
+skip link sit above the list; there is no redundant link at the bottom.
+Viewport assistance lasts 180ms, is interrupted by new input, and is immediate
+with reduced motion. Browser toolbar height changes do not resize images during
+a swipe; the next selection uses the current visual viewport. No mobile wheel routing,
+internal list scrolling, hover selection, or scroll-driven feature changes run.
+
+The first image loads as the section approaches. Other detail images live in inert templates until selected, then use the existing
+responsive AVIF/WebP/JPEG assets and decode before fading in. Request tokens
+discard stale completion callbacks. Failed images remove their reserved frame
+while leaving descriptions and navigation available. Expansion takes 180ms,
+interrupts on new input, and becomes immediate with reduced motion. Closed
+regions are hidden and inert; buttons retain their original IDs and controls.
+Desktop and mobile selections survive layout changes independently.
 
 ## Local preview
 
