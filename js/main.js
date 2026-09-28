@@ -170,24 +170,33 @@
 
   /* Product fits below the actual fixed navigation, including browser chrome.
      The content floor allows normal page scrolling on unusually short windows. */
+  var collectionMedia = window.matchMedia('(min-width:1100px), (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine)');
   var productSection = document.getElementById('product');
   var productHeader = document.querySelector('.topbar');
   var productHeading = productSection && productSection.querySelector('.section-head');
   var productMeasureFrame = 0;
   var productDestination = function () {
     var header = productHeader.getBoundingClientRect().height;
-    return Math.max(0, window.scrollY + productSection.getBoundingClientRect().top - header - (isDesktop() ? 0 : 12));
+    // Equal visible space above and below the heading, at every laptop scale.
+    var lift = collectionMedia.matches
+      ? Math.max(0, parseFloat(getComputedStyle(productSection).paddingTop)
+        - parseFloat(getComputedStyle(productHeading).marginBottom)) : -12;
+    return Math.max(0, window.scrollY + productSection.getBoundingClientRect().top - header + lift);
   };
   var measureProduct = function () {
     productMeasureFrame = 0;
-    if (!productSection || !isDesktop()) return;
+    if (!productSection || !collectionMedia.matches) {
+      if (productSection) productSection.style.removeProperty('--product-card-height');
+      return;
+    }
     var header = productHeader.getBoundingClientRect().height;
     var style = getComputedStyle(productSection);
     var available = window.innerHeight - header - productHeading.getBoundingClientRect().height
       - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
       - parseFloat(getComputedStyle(productHeading).marginBottom);
     // Measure real content too, so enlarged text never gets clipped.
-    var minimum = 400;
+    var scale = window.innerWidth / 1280;
+    var minimum = 400 * scale;
     cards.forEach(function (card) {
       var body = card.querySelector('.card__body');
       var bodyStyle = getComputedStyle(body);
@@ -196,14 +205,14 @@
       minimum = Math.max(minimum, content);
     });
     productSection.style.setProperty('--product-header', header + 'px');
-    productSection.style.setProperty('--product-card-height', Math.max(minimum, Math.min(440, Math.floor(available))) + 'px');
+    productSection.style.setProperty('--product-card-height', Math.max(minimum, Math.min(440 * scale, Math.floor(available))) + 'px');
   };
   var requestProductMeasure = function () {
     if (!productMeasureFrame) productMeasureFrame = requestAnimationFrame(measureProduct);
   };
   if (productSection) {
     window.addEventListener('resize', requestProductMeasure, { passive:true });
-    desktopMedia.addEventListener('change', requestProductMeasure);
+    collectionMedia.addEventListener('change', requestProductMeasure);
     if (document.fonts) document.fonts.ready.then(requestProductMeasure);
     if ('ResizeObserver' in window) {
       var productObserver = new ResizeObserver(requestProductMeasure);
@@ -620,10 +629,11 @@
         if (whyScroll) whyScroll.dataset.skipping = "true";
         
         var headerHeight = document.querySelector('.topbar').getBoundingClientRect().height;
-        var headerOffset = (targetId === '#product' || targetId === '#support') && isDesktop() ? headerHeight
+        var headerOffset = (targetId === '#product' || targetId === '#support') && collectionMedia.matches ? headerHeight
           : targetId === '#technology' && target.classList.contains('features--desktop') ? headerHeight
           : !isDesktop() && targetId !== "#home" ? headerHeight + 12 : 0;
-        var targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
+        var targetY = targetId === '#product' ? productDestination()
+          : Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
         if (targetId === '#why-us' && whyLayout && whyLayout.animated) {
           targetY = window.scrollY + whyScroll.getBoundingClientRect().top;
         }

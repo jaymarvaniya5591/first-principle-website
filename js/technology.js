@@ -25,7 +25,7 @@
   var active = -1, imageIndex = 0, requestedImage = -1;
   var imageRequest = 0, flow = false, panelHeight = 720, headerHeight = 0;
   var targetScroll = 0, frame = 0, lastTime = 0, revealUntil = 0, transitionUntil = 0;
-  var pointerX = null, pointerY = null, measureFrame = 0, route = '';
+  var pointerX = null, pointerY = null, measureFrame = 0;
   var layout = null;
   var prepared = new WeakMap();
   section.classList.add('features--enhanced');
@@ -323,6 +323,7 @@
     section.classList.remove('features--ready');
     section.classList.toggle('features--desktop', desktop.matches);
     section.classList.toggle('features--mobile', !desktop.matches);
+    list.toggleAttribute('data-lenis-prevent', desktop.matches);
     ++mobileRequest;
     cancelMobileView();
     mobileLayout = null;
@@ -330,7 +331,7 @@
     details.forEach(function (_, i) { finishDetail(i); });
     cancelAnimationFrame(frame); frame = 0; lastTime = 0;
     pointerX = pointerY = null;
-    targetScroll = 0; list.scrollTop = 0; route = '';
+    targetScroll = 0; list.scrollTop = 0;
     // Force ARIA and classes into sync, including on the first run.
     active = -2;
     if (desktop.matches) {
@@ -394,10 +395,10 @@
     if (next !== null) {
       event.preventDefault();
       buttons[clamp(next, cards.length - 1)].focus({ preventScroll: true });
-    } else if (event.key === 'PageDown' || event.key === 'PageUp') {
+    } else if (event.key === 'PageDown' || event.key === 'PageUp' || (event.key === ' ' && event.target === list)) {
       event.preventDefault();
       revealUntil = 0; markScrolling();
-      targetScroll = clamp(list.scrollTop + (event.key === 'PageDown' ? 1 : -1) * list.clientHeight, maxScroll());
+      targetScroll = clamp(list.scrollTop + (event.key === 'PageDown' || (event.key === ' ' && !event.shiftKey) ? 1 : -1) * list.clientHeight, maxScroll());
       schedule();
     }
   });
@@ -408,45 +409,25 @@
   }, { passive: true });
 
   body.addEventListener('wheel', function (event) {
-    if (!desktop.matches || flow || event.ctrlKey || event.metaKey || !event.cancelable
-      || Math.abs(event.deltaX) > Math.abs(event.deltaY) || !event.deltaY) return;
-    // The whole photo uses ordinary page scrolling, right up to the divider.
-    if (!list.contains(event.target)) { route = ''; return; }
-    var mediaBounds = media.getBoundingClientRect();
-    event.preventDefault();
-    // Lenis sees defaultPrevented and leaves this event to this coordinator.
+    if (!desktop.matches || event.ctrlKey || event.metaKey || !list.contains(event.target)) return;
+    // The feature panel owns its entire gesture, including overshoot at either
+    // end and while partly visible. Only the photo/outside area scrolls the page.
+    if (event.cancelable) event.preventDefault();
+    if (window.siteScroll) window.siteScroll.cancel();
+    markScrolling();
+    revealUntil = 0;
     var delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? list.clientHeight : 1);
-    // A nested scroller must never catch the cursor while the panel is still
-    // entering (or leaving) the viewport. Forward explicitly, rather than
-    // returning and allowing native scrolling to catch the list without Lenis.
-    var fullyVisible = mediaBounds.top >= headerHeight - 1 && mediaBounds.bottom <= innerHeight + 1;
-    if (!fullyVisible) {
-      route = 'page';
-      revealUntil = 0;
+    if (flow) {
+      list.scrollTop = clamp(list.scrollTop + delta, maxScroll());
       targetScroll = list.scrollTop;
-      if (window.siteScroll) window.siteScroll.by(delta);
-      else window.scrollBy({ top: delta, behavior: 'instant' });
       return;
     }
-    if (route !== 'cards' && window.siteScroll) window.siteScroll.cancel();
-    route = 'cards';
-    markScrolling();
-    // Scrolling moves the list; only an intentional selection replaces the
-    // open card and its image. Cancel reveal motion so it cannot fight input.
-    revealUntil = 0;
+    // Cancel stale list momentum on reversal, without forwarding any remainder.
     var ahead = targetScroll - list.scrollTop;
     if (Math.abs(ahead) > 1 && Math.sign(ahead) !== Math.sign(delta)) targetScroll = list.scrollTop;
-    var before = clamp(targetScroll, maxScroll());
-    targetScroll = clamp(before + delta, maxScroll());
-    var consumed = targetScroll - before;
-    var remainder = delta - consumed;
-    if (Math.abs(remainder) > .01) {
-      if (window.siteScroll) window.siteScroll.by(remainder);
-      else window.scrollBy({ top: remainder, behavior: 'instant' });
-    } else if (window.siteScroll) window.siteScroll.cancel();
+    targetScroll = clamp(targetScroll + delta, maxScroll());
     schedule();
   }, { passive: false });
-  body.addEventListener('pointerleave', function () { route = ''; });
 
   desktop.addEventListener('change', reconcile);
   reduced.addEventListener('change', function () {

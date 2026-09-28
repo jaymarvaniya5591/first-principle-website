@@ -88,3 +88,59 @@ controller.limit = 500;
 window.siteScroll.to(1800);
 assert.equal(controller.actualScroll, 1800, 'a link clicked just after load uses the current document height');
 console.log('Product: five catalogue cards, full feature lists, carousel wraparound, keyboard, touch swipes and late-layout fragment navigation passed.');
+
+// The card's viewport budget scales with the full composition. Large/short
+// windows and enlarged content must never be cut off by the old 440px ceiling.
+const measureCode = source.slice(source.indexOf('  var measureProduct ='), source.indexOf('  var requestProductMeasure ='));
+const sizing = {width:1280, height:584, desktop:true, extra:0};
+const values = new Map();
+const scale = () => sizing.width / 1280;
+const section = {style:{setProperty:(k,v)=>values.set(k,v),removeProperty:k=>values.delete(k)}};
+const heading = {getBoundingClientRect:()=>({height:42*scale()})};
+const body = {};
+const measurementContext = vm.createContext({
+  window:{get innerWidth(){return sizing.width;}, get innerHeight(){return sizing.height;}},
+  collectionMedia:{get matches(){return sizing.desktop;}}, productSection:section,
+  productHeader:{getBoundingClientRect:()=>({height:64*scale()})}, productHeading:heading,
+  cards:[{querySelector:s=>s==='.card__body'?body:{offsetHeight:(s==='.card__head'?102:247)*scale()+sizing.extra}}],
+  getComputedStyle:e=>e===section?{paddingTop:40*scale(),paddingBottom:12*scale()}:e===heading?{marginBottom:20*scale()}:{rowGap:12*scale(),paddingTop:16*scale(),paddingBottom:16*scale()}
+});
+vm.runInContext(measureCode, measurementContext);
+for (const [width,height] of [[1280,584],[1422,649],[1536,701],[1920,876],[960,438]]) {
+  sizing.width=width; sizing.height=height;
+  measurementContext.measureProduct();
+  const cardHeight=parseFloat(values.get('--product-card-height'));
+  assert.ok(cardHeight>=400*scale(), 'the content floor scales with the card');
+  assert.ok(cardHeight+178*scale()<=height+1, 'the complete composition fits at equivalent zoom sizes');
+}
+sizing.width=1920; sizing.height=1100;
+measurementContext.measureProduct();
+assert.equal(parseFloat(values.get('--product-card-height')),660,'large displays do not keep the old fixed card ceiling');
+sizing.height=450; sizing.extra=100;
+measurementContext.measureProduct();
+assert.ok(parseFloat(values.get('--product-card-height'))>660,'content can grow past the preferred maximum');
+sizing.desktop=false;
+measurementContext.measureProduct();
+assert.equal(values.has('--product-card-height'),false,'switching to mobile releases the desktop height');
+console.log('Product scaling: zoom-equivalent viewports, large screens, short windows, enlarged content and mobile reset passed.');
+
+// All Product entry points share an offset that balances the heading gaps.
+const destinationCode = source.slice(source.indexOf('  var productDestination ='), source.indexOf('  var measureProduct ='));
+const anchorSection = {getBoundingClientRect:()=>({top:1000})};
+const anchorContext = vm.createContext({window:{scrollY:500},
+  productSection:anchorSection, productHeading:heading,
+  productHeader:{getBoundingClientRect:()=>({height:64*scale()})},
+  collectionMedia:{get matches(){return sizing.desktop;}},
+  getComputedStyle:e=>e===anchorSection?{paddingTop:40*scale()}:{marginBottom:20*scale()}
+});
+vm.runInContext(destinationCode,anchorContext);
+sizing.desktop=true;
+for (const width of [960,1280,1422,1920]) {
+  sizing.width=width;
+  const destination=anchorContext.productDestination();
+  const headingTop=1500-destination+40*scale();
+  assert.ok(Math.abs(headingTop-64*scale()-20*scale())<.001,'heading top gap equals the card gap at every scale');
+}
+sizing.desktop=false;
+assert.equal(anchorContext.productDestination(),1500-64*scale()-12,'mobile keeps its extra anchor clearance');
+console.log('Product anchors: balanced desktop heading gaps and unchanged mobile clearance passed.');

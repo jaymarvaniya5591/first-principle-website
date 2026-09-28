@@ -15,7 +15,8 @@
     "test:product": "node scripts/test-product.mjs",
     "assets": "npm run fonts && npm run images && npm run clouds && npm run css",
     "serve": "node scripts/serve.mjs",
-    "test:scroll": "node scripts/test-scroll.mjs"
+    "test:scroll": "node scripts/test-scroll.mjs",
+    "test:technology-scroll": "node scripts/test-technology-scroll.mjs"
   },
   "devDependencies": {
     "csso": "^5.0.5",

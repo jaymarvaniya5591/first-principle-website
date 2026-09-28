@@ -49,7 +49,8 @@ OS, display, or device-pixel-ratio detection in the website.
   typography applies; tablet layouts use a wider reading measure. Section headers
   stack between 1100px and 1200px when both desktop labels cannot fit safely.
 - Root font size is stable. Technology has its own proportional reference unit
-  (see below); other non-hero sections use constrained grid/flex layouts.
+  (see below); Product, Support and Footer share a 1280px proportional unit.
+  Their type, spacing, card sizes and content widths grow together with the viewport.
 - The cloud envelope is baked into the SVG by `npm run clouds`. Runtime code only
   pauses/resumes cloud animation; it does not measure or reposition the artwork.
 - `npm run css` uses esbuild because the previous minifier dropped range media
@@ -145,15 +146,13 @@ it. Selecting a different card replaces it and its image. Hover selection requir
 actual pointer movement so animated or scrolling rows cannot select themselves
 under a stationary cursor. Mobile has an independent selection starting with the first feature open.
 
-Desktop wheel input over the cards scrolls their panel, releasing excess to the
-page at either end. The entire photo scrolls the page normally, including its
-edge beside the cards. There is no mixed zone or photo-specific slowdown.
-Internal card scrolling activates only while the complete panel
-fits below the navigation and above the viewport bottom. During entry from the
-hero or return from the next section, wheel input moves only the page until the
-panel is fully visible. This also applies with reduced motion, without Lenis.
-The existing Lenis controller's relative-scroll API handles page movement without processing the
-same wheel event twice. Zoom gestures and horizontal input remain native.
+Desktop wheel input over the cards stays inside their panel, including overshoot
+at either end and gestures while the panel is partly visible. There is no
+handoff to page scrolling. The entire photo and areas outside the list scroll
+the page normally. CSS scroll containment and the desktop-only Lenis exclusion
+also prevent native chaining; modifier zoom gestures remain native. Mobile
+scrolling is unchanged. Run `npm run test:technology-scroll` for boundary,
+reversal, input-unit, photo, modifier and fallback routing checks.
 
 Technology nav clicks and direct fragment links share the measured header offset,
 including scaled desktop windows below the site's navigation breakpoint.
@@ -296,6 +295,25 @@ The preview binds only to this computer. Set PORT to use another local port.
 Vercel, static (framework "Other", no build command). Pushing to `main` deploys production.
 
 
+### Product, Support and Footer scaling
+
+The approved 1280 × 584 composition is the reference. `--collection-unit` scales
+all desktop dimensions together; Product's measured height budget also scales its
+400–440px reference range and expands for actual content on short windows.
+Support retains its original two-column ratio, and the footer retains its logo,
+links and compact spacing. No CSS zoom or transform is applied to the sections.
+
+These sections use Technology's desktop query (1100px+, or a landscape fine
+pointer window of at least 600px and 4:3). Mobile and touch-tablet layouts remain
+independent. Product/Support anchor offsets follow that same query, and resizing
+back to mobile clears the measured card height. Product links, direct fragments
+and Why-us Skip use one landing offset: the visible gap above its heading equals
+the heading-to-card gap (20 reference pixels). Support keeps its navbar-aligned edge. Browser checks cover 1280×584,
+1422×649 (90% zoom equivalent), 1536×730, 1920×876, 1097×500, 960×438,
+1280×450 and 390×844. `npm run test:product` checks scaled height budgets,
+content expansion and the desktop-to-mobile reset in addition to catalogue and
+carousel behavior.
+
 ### Product catalogue / deferred imagery
 
 Product cards use the September 2026 Architect Catalogue Copy Brief: Novi
@@ -310,7 +328,7 @@ Correcting these two photos is deferred, not a change to their specifications.
 
 The original footer layout, logo, typography and links are retained. The tagline
 is “Rethink the everyday”. Footer clouds, their parallax and Back to top are
-removed. Desktop spacing is slightly tighter at widths of 1100px and above.
+removed. Desktop spacing is slightly tighter and scales with the shared layout unit.
 The experimental video and animation code have been removed.
 
 ### Section navigation

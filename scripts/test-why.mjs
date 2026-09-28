@@ -61,6 +61,8 @@ const window={
   siteScroll:{cancel(){},to(target,done){destination=target;state.y=target;if(done)done();return true;}}
 };
 const context=vm.createContext({window,document,Array,Math,ResizeObserver:undefined,
+  collectionMedia:{get matches(){return state.desktop;}},
+  productHeading:heading,getComputedStyle:el=>el===product?{paddingTop:'40px'}:{marginBottom:'20px'},
   productHeader:node(),productSection:product,isDesktop:()=>state.desktop,
   shortScreen:{get matches(){return state.height<=520;}}});
 vm.runInContext(code,context);
@@ -198,7 +200,7 @@ assert.equal(context.whyLayout.horizontal,true,'desktop can be restored');
 assert.equal(context.whyToneSamples.length,257,'resizing back to desktop restores the detailed gradient');
 assert.equal(context.whyToneDarkness(.665),1,'restored desktop uses the wider gradient for navigation contrast');
 assert.deepEqual(order(),['intro','warranty','service','returns','focus','patents']);
-skip.events.click(); assert.equal(destination,8940); assert.equal(scroll.dataset.skipping,'false');
+skip.events.click(); assert.equal(destination,8960); assert.equal(scroll.dataset.skipping,'false');
 window.siteScroll.to=()=>false;
 paintAt(180);
 skip.events.click(); assert.equal(scroll.dataset.skipping,'true');
@@ -212,7 +214,7 @@ assert.equal(state.y,interruptedAt,'wheel input cancels fallback momentum');
 assert.equal(scroll.dataset.skipping,'false','interruption releases the track');
 state.reduced=true;
 skip.events.click();
-assert.equal(state.y,8940,'reduced-motion fallback navigation respects the fixed header');
+assert.equal(state.y,8960,'reduced-motion fallback navigation respects the fixed header');
 assert.equal(frames.size,0);
 console.log('Why us: pacing, holds, reversal, keyboard, resize, motion/fit fallbacks, mobile stacking, stable viewport, shared reading order, Skip and interrupted native navigation passed.');
 
