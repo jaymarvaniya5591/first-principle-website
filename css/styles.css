@@ -211,6 +211,12 @@ button {
   color:inherit;
 }
 
+/* Use designed press feedback without the browser’s coloured tap overlay.
+   Keyboard focus remains visible through the independent :focus-visible rule. */
+:where(a, button, summary, [role="button"], input[type="button"], input[type="submit"], input[type="reset"]) {
+  -webkit-tap-highlight-color:transparent;
+}
+
 img,
 picture {
   display:block;
@@ -3963,4 +3969,17 @@ img {
   #product:not(.product--enhanced) .carousel__controls { display:none; }
   #product:not(.product--enhanced) .card .card__media { width:100%; height:auto; aspect-ratio:1; }
   #product:not(.product--enhanced) .card .card__body { width:auto; margin:0 16px; }
+}
+
+/* Quiet tactile feedback for controls without an existing press treatment.
+   Hero, menu toggle, feature rows and product wings retain their own effects. */
+.topbar__contact { transition:color .35s ease,border-color .35s ease,background 140ms ease,scale 120ms ease-out; }
+.submit { transition:background 140ms ease,scale 120ms ease-out; }
+.topbar__contact:active { scale:.98; background:rgba(127,127,127,.14); }
+.submit:not(:disabled):active { scale:.985; background:#303030; }
+#product.product--mobile :is(.card__disclosure,.card__collapse):active { background:rgba(17,17,17,.045); color:#111; }
+:is(.mobile-menu__nav a,.footer__nav a,.footer__col a,.nav__item,.skip-btn,.topbar__brand):active { opacity:.65; }
+@media (prefers-reduced-motion:reduce) {
+  .topbar__contact,.submit { transition:none; }
+  .topbar__contact:active,.submit:not(:disabled):active { scale:1; }
 }
