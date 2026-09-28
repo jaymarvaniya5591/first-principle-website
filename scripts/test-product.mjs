@@ -67,6 +67,11 @@ assert.equal(active(), 0, 'right swipe returns');
 events.touchstart({touches:[{clientX:120}]});
 events.touchend({changedTouches:[{clientX:130}]});
 assert.equal(active(), 0, 'incidental touch movement does not change the product');
+events.touchstart({touches:[{clientX:250,clientY:100}]});
+events.touchend({changedTouches:[{clientX:130,clientY:400}]});
+assert.equal(active(),0,'a predominantly vertical reading gesture must not switch products');
+assert.equal(cards.filter(c=>!c.inert).length,1,'only the active product is interactive');
+
 
 // A late upstream layout can enlarge the document before Lenis's observer runs.
 // Cancel must synchronize the limit before accepting a native fragment jump.
@@ -142,5 +147,5 @@ for (const width of [960,1280,1422,1920]) {
   assert.ok(Math.abs(headingTop-64*scale()-20*scale())<.001,'heading top gap equals the card gap at every scale');
 }
 sizing.desktop=false;
-assert.equal(anchorContext.productDestination(),1500-64*scale()-12,'mobile keeps its extra anchor clearance');
-console.log('Product anchors: balanced desktop heading gaps and unchanged mobile clearance passed.');
+assert.equal(anchorContext.productDestination(),1500-64*scale()+40*scale()-12,'mobile heading keeps its 12px clearance despite section padding');
+console.log('Product anchors: balanced desktop heading gaps and mobile section clearance passed.');

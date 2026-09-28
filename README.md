@@ -208,12 +208,10 @@ Principle?", with a dim "Why" and a white brand name. The existing 81.777px
 slide title and 28.444px note sizes are retained. The introduction note is
 sentence case, max-width 720px, line-height 1.4, with a 32px title gap. "We’re here." is softly highlighted in white.
 
-Technology has its own 48-unit white bottom feather, based on measured content
-width / 1280. It covers both photo and cards and never captures pointer input.
-A 2px white overdraw closes fractional panel seams; the feature hint sits
-42 units from the photo bottom in a translucent glass block, with a fine white
-border and static 10px backdrop blur. This lowers it 18 units without putting
-its text inside the opaque bottom feather.
+Technology ends at a crisp boundary on both laptop and mobile. The white mist
+belongs to the Why-us transition: it stays clipped at rest and is released
+smoothly during boundary departure, retracing on reverse scrolling. The feature
+hint retains its translucent glass block, fine white border and static backdrop blur.
 
 The separate Why wash travels over one viewport height. Desktop overlaps the
 full viewport; mobile retains its 88vh overlap plus 12vh prelude.
@@ -238,7 +236,7 @@ approved colours and relative spacing while adding intermediate shades. Desktop
 stop positions are 5.6 + 87*(0.4*t + 0.3*t*t) vh; the feather plus ramp is 66.5vh.
 Mobile retains all 65 approved stops across 20.3vh, at
 5.6 + 29*(0.4*t + 0.3*t*t), resolved against its stable viewport height.
-Scroll runway, title reveal and the separate Technology feather are unchanged.
+Scroll runway and title reveal are unchanged; the feather belongs only to the departing transition.
 Scroll moves the plane up by 50vh*smoothstep(progress). At pinning the desktop
 ramp's final shadow extends 10.9vh into the introduction, clearing during the
 20vh opening reading hold. Mobile finishes 41.7vh above the viewport as before.
@@ -343,3 +341,36 @@ navigation timing, route mapping and interruption checks.
 
 Upward trips to Technology or Home prepare the offscreen Why-us introduction
 before crossing its pinned scene, preventing a late white-to-black card swap.
+
+
+### Mobile collection and section entries
+
+`js/mobile-product.js` progressively enhances the existing carousel in the
+mobile layout (the inverse of the scaled desktop query). Products initially
+show their photo, name, description, price and installation note. The accessible
+feature disclosure shares its state across products; all 13 rows use page flow.
+Desktop always displays the complete list. Without JavaScript, mobile cards and
+features remain visible in a vertical stack.
+
+The 44px side-control lanes follow the card's full height, while their curved
+side panels keep chevrons centred in the visible portion. Switching products retains
+expansion and, only when expanded, brings the photo 12px beneath the measured header.
+Collapsed switching leaves the reading position unchanged. Collapse from
+the bottom restores the compact card and focus. Scroll assistance is 220ms,
+disclosure height is 180ms, and the replacement fade is 120ms; reduced motion
+updates immediately. Manual input cancels pending assistance. Swipes must be
+predominantly horizontal. Photo sizing reserves the collapsed copy and headings
+first, with 96–300px bounds and a square-width cap; short windows scroll naturally.
+
+Mobile Technology and Product have matching 40px top/bottom breathing room,
+12px subtitle gaps and 16px before content. Their navigation destinations lift
+the section by 28px so headings still land 12px below the navbar. Support's section edge aligns below the header. Menu,
+footer, hero and direct-fragment entry use the same section destinations.
+Technology's permanent mobile feather has been removed. The following Why-us
+mist is clipped until the boundary departs, releasing over 12vh with the mobile
+prelude accounted for. A geometry observer repaints after feature/photo resizing.
+
+Run `npm run test:mobile-product` for disclosure, shared state, scroll assistance,
+interruptions, focus, breakpoint restoration and reduced-motion coverage.
+`test:product` also verifies intentional swipes and anchors; `test:why` covers
+mobile mist release and reversal. Rebuild the CSS distribution after edits.

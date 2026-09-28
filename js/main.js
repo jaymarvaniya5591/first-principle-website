@@ -130,6 +130,7 @@
         else if (rel === 2) card.dataset.pos = "out-right";
         else card.removeAttribute("data-pos");
         card.setAttribute("aria-hidden", rel === 0 ? "false" : "true");
+        card.inert = rel !== 0;
       });
       // Eager-load the neighbours so the next click is instant.
       cards.forEach(function (card) {
@@ -147,6 +148,7 @@
         active = (active + dir + n) % n;
         carousel.dataset.active = String(active);
         layout();
+        if (typeof carousel.onProductChange === "function") carousel.onProductChange();
       });
     });
     carousel.addEventListener("keydown", function (e) {
@@ -155,13 +157,17 @@
     });
 
     // Touch swipe on mobile
-    var startX = null;
-    carousel.addEventListener("touchstart", function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    var startX = null, startY = null;
+    carousel.addEventListener("touchstart", function (e) {
+      if (e.target && e.target.closest("button")) { startX = null; return; }
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY || 0;
+    }, { passive: true });
     carousel.addEventListener("touchend", function (e) {
       if (startX === null) return;
       var dx = e.changedTouches[0].clientX - startX;
+      var dy = (e.changedTouches[0].clientY || 0) - startY;
       startX = null;
-      if (Math.abs(dx) < 50) return;
+      if (Math.abs(dx) < 50 || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
       carousel.querySelector(dx < 0 ? ".carousel__arrow--next" : ".carousel__arrow--prev").click();
     }, { passive: true });
 
@@ -180,8 +186,14 @@
     // Equal visible space above and below the heading, at every laptop scale.
     var lift = collectionMedia.matches
       ? Math.max(0, parseFloat(getComputedStyle(productSection).paddingTop)
-        - parseFloat(getComputedStyle(productHeading).marginBottom)) : -12;
+        - parseFloat(getComputedStyle(productHeading).marginBottom))
+      : Math.max(0, parseFloat(getComputedStyle(productSection).paddingTop) - 12);
     return Math.max(0, window.scrollY + productSection.getBoundingClientRect().top - header + lift);
+  };
+  // Keep the mobile heading landing independent of the section's breathing room.
+  var technologyHeadingLift = function (target) {
+    return target && target.classList.contains('features--mobile')
+      ? Math.max(0, parseFloat(getComputedStyle(target).paddingTop) - 12) : 0;
   };
   var measureProduct = function () {
     productMeasureFrame = 0;
@@ -231,10 +243,14 @@
     });
     var settleProductHash = function () {
       requestAnimationFrame(function () { requestAnimationFrame(function () {
-        if (location.hash !== '#product' || productHashInterrupted) return;
+        if (!['#product','#support','#technology'].includes(location.hash) || productHashInterrupted) return;
         measureProduct();
         if (window.siteScroll) window.siteScroll.cancel();
-        window.scrollTo({ top:productDestination(), behavior:'instant' });
+        var target = document.querySelector(location.hash);
+        var destination = location.hash === '#product' ? productDestination()
+          : window.scrollY + target.getBoundingClientRect().top - productHeader.getBoundingClientRect().height
+            + (location.hash === '#technology' ? technologyHeadingLift(target) : 0);
+        window.scrollTo({ top:destination, behavior:'instant' });
         if (window.siteScroll) window.siteScroll.cancel();
         if (typeof requestFrame === 'function') requestFrame();
       }); });
@@ -364,10 +380,11 @@
           // Keep Technology crisp while it fills the viewport. Over the first
           // 12vh of departure, release the feather into its original overtake.
           // After that the published gradient, retreat and reveal are unchanged.
-          var mistProgress = whyClamp(entranceProgress / .12, 1);
+          var mistDeparture = whyLayout.horizontal ? entranceProgress
+            : whyClamp(1 - (entranceTop - whyLayout.prelude) / whyLayout.entrance, 1);
+          var mistProgress = whyClamp(mistDeparture / .12, 1);
           var mistRelease = mistProgress * mistProgress * (3 - 2 * mistProgress);
-          var mistClip = whyLayout.horizontal
-            ? (whyLayout.height * .056 - whyLightShift) * (1 - mistRelease) : 0;
+          var mistClip = (whyLayout.height * .056 - whyLightShift) * (1 - mistRelease);
           whySection.style.setProperty('--why-mist-clip', mistClip.toFixed(3) + 'px');
           // Phrases rise through a fixed baseline with a soft deceleration.
           // One scroll clock preserves direct reversal and interrupted navigation.
@@ -629,11 +646,11 @@
         if (whyScroll) whyScroll.dataset.skipping = "true";
         
         var headerHeight = document.querySelector('.topbar').getBoundingClientRect().height;
-        var headerOffset = (targetId === '#product' || targetId === '#support') && collectionMedia.matches ? headerHeight
-          : targetId === '#technology' && target.classList.contains('features--desktop') ? headerHeight
+        var headerOffset = ['#product','#support','#technology'].includes(targetId) ? headerHeight
           : !isDesktop() && targetId !== "#home" ? headerHeight + 12 : 0;
         var targetY = targetId === '#product' ? productDestination()
-          : Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
+          : Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset
+            + (targetId === '#technology' ? technologyHeadingLift(target) : 0));
         if (targetId === '#why-us' && whyLayout && whyLayout.animated) {
           targetY = window.scrollY + whyScroll.getBoundingClientRect().top;
         }
@@ -1063,6 +1080,9 @@
     onFrame();
   });
 
+  // Mobile feature expansion and decoded photos move the following boundary
+  // even when the page itself has stopped scrolling. Repaint its mist then too.
+  if (tech && 'ResizeObserver' in window) new ResizeObserver(requestFrame).observe(tech);
   window.addEventListener("scroll", requestFrame, { passive: true });
   window.addEventListener(
     "resize",

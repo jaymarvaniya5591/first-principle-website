@@ -219,4 +219,15 @@ assert.equal(frames.size,0);
 console.log('Why us: pacing, holds, reversal, keyboard, resize, motion/fit fallbacks, mobile stacking, stable viewport, shared reading order, Skip and interrupted native navigation passed.');
 
 state.desktop=false;
-assert.equal(context.productDestination(),8928,'mobile product landing includes the header and 12px clearance');
+assert.equal(context.productDestination(),8968,'mobile product landing preserves heading clearance with 40px padding');
+
+state.reduced=false;state.width=390;state.height=844;state.stableHeight=844;context.measureWhy();
+paintAt(-844-844*.12);
+assert.ok(Math.abs(parseFloat(section.style.getPropertyValue('--why-mist-clip'))-844*.056)<.002,'mobile boundary stays solid before departure');
+paintAt(-844-844*.06);
+const mobileClip=parseFloat(section.style.getPropertyValue('--why-mist-clip'));
+assert.ok(mobileClip>0&&mobileClip<844*.056,'mobile feather releases during boundary departure');
+paintAt(-844);
+assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),0,'mobile prelude does not delay the feather release');
+paintAt(-844-844*.12);
+assert.ok(Math.abs(parseFloat(section.style.getPropertyValue('--why-mist-clip'))-844*.056)<.002,'reverse restores the crisp mobile boundary');
