@@ -111,7 +111,7 @@
 
   // Technology interactions live in technology.js; page scrolling never selects a card.
 
-  /* ---------------- Collection carousel (6 products, 3 visible on desktop) ---------------- */
+  /* ---------------- Collection carousel (5 products, 3 visible on desktop) ---------------- */
   var carousel = document.querySelector(".carousel");
   if (carousel) {
     var cards = Array.prototype.slice.call(carousel.querySelectorAll(".card"));
@@ -166,6 +166,78 @@
     }, { passive: true });
 
     layout();
+  }
+
+  /* Product fits below the actual fixed navigation, including browser chrome.
+     The content floor allows normal page scrolling on unusually short windows. */
+  var productSection = document.getElementById('product');
+  var productHeader = document.querySelector('.topbar');
+  var productHeading = productSection && productSection.querySelector('.section-head');
+  var productMeasureFrame = 0;
+  var productDestination = function () {
+    var header = productHeader.getBoundingClientRect().height;
+    return Math.max(0, window.scrollY + productSection.getBoundingClientRect().top - header - (isDesktop() ? 0 : 12));
+  };
+  var measureProduct = function () {
+    productMeasureFrame = 0;
+    if (!productSection || !isDesktop()) return;
+    var header = productHeader.getBoundingClientRect().height;
+    var style = getComputedStyle(productSection);
+    var available = window.innerHeight - header - productHeading.getBoundingClientRect().height
+      - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+      - parseFloat(getComputedStyle(productHeading).marginBottom);
+    // Measure real content too, so enlarged text never gets clipped.
+    var minimum = 400;
+    cards.forEach(function (card) {
+      var body = card.querySelector('.card__body');
+      var bodyStyle = getComputedStyle(body);
+      var content = card.querySelector('.card__head').offsetHeight + card.querySelector('.specs').offsetHeight
+        + parseFloat(bodyStyle.rowGap) + parseFloat(bodyStyle.paddingTop) + parseFloat(bodyStyle.paddingBottom) + 2;
+      minimum = Math.max(minimum, content);
+    });
+    productSection.style.setProperty('--product-header', header + 'px');
+    productSection.style.setProperty('--product-card-height', Math.max(minimum, Math.min(440, Math.floor(available))) + 'px');
+  };
+  var requestProductMeasure = function () {
+    if (!productMeasureFrame) productMeasureFrame = requestAnimationFrame(measureProduct);
+  };
+  if (productSection) {
+    window.addEventListener('resize', requestProductMeasure, { passive:true });
+    desktopMedia.addEventListener('change', requestProductMeasure);
+    if (document.fonts) document.fonts.ready.then(requestProductMeasure);
+    if ('ResizeObserver' in window) {
+      var productObserver = new ResizeObserver(requestProductMeasure);
+      productObserver.observe(productHeader);
+      productObserver.observe(productHeading);
+      cards.forEach(function (card) {
+        productObserver.observe(card.querySelector('.card__head'));
+        productObserver.observe(card.querySelector('.specs'));
+      });
+    }
+    measureProduct();
+    // Wait for upstream sections and fonts before resolving the initial hash.
+    var productHashInterrupted = false;
+    ['wheel','touchstart','pointerdown','keydown'].forEach(function (type) {
+      window.addEventListener(type, function () { productHashInterrupted = true; }, { once:true, passive:true });
+    });
+    var settleProductHash = function () {
+      requestAnimationFrame(function () { requestAnimationFrame(function () {
+        if (location.hash !== '#product' || productHashInterrupted) return;
+        measureProduct();
+        if (window.siteScroll) window.siteScroll.cancel();
+        window.scrollTo({ top:productDestination(), behavior:'instant' });
+        if (window.siteScroll) window.siteScroll.cancel();
+        if (typeof requestFrame === 'function') requestFrame();
+      }); });
+    };
+    window.addEventListener('load', function () {
+      if (document.fonts) document.fonts.ready.then(settleProductHash);
+      else settleProductHash();
+    }, { once:true });
+    window.addEventListener('hashchange', function () {
+      productHashInterrupted = false;
+      settleProductHash();
+    });
   }
 
   /* ---------------- "Why us" desktop track and mobile stack ---------------- */
@@ -280,6 +352,14 @@
           var retreat = entranceProgress * entranceProgress * (3 - 2 * entranceProgress);
           whyLightShift = -whyLayout.height * .5 * retreat;
           whySection.style.setProperty('--why-light-shift', whyLightShift.toFixed(3) + 'px');
+          // Keep Technology crisp while it fills the viewport. Over the first
+          // 12vh of departure, release the feather into its original overtake.
+          // After that the published gradient, retreat and reveal are unchanged.
+          var mistProgress = whyClamp(entranceProgress / .12, 1);
+          var mistRelease = mistProgress * mistProgress * (3 - 2 * mistProgress);
+          var mistClip = whyLayout.horizontal
+            ? (whyLayout.height * .056 - whyLightShift) * (1 - mistRelease) : 0;
+          whySection.style.setProperty('--why-mist-clip', mistClip.toFixed(3) + 'px');
           // Phrases rise through a fixed baseline with a soft deceleration.
           // One scroll clock preserves direct reversal and interrupted navigation.
           var reveal = whyClamp((entranceProgress - .42) / .48, 1);
@@ -426,9 +506,9 @@
     // Scaled laptop windows can use this presentation without Lenis. Keep
     // their anchor/Skip journeys just as interruptible as the desktop controller.
     var cancelWhyFallback = null;
-    var navigateWhy = function (target, done) {
+    var navigateWhy = function (target, done, options) {
       if (cancelWhyFallback) cancelWhyFallback();
-      if (window.siteScroll && window.siteScroll.to(target, done)) return true;
+      if (window.siteScroll && window.siteScroll.to(target, done, options)) return true;
       if (whyReduced.matches) {
         window.scrollTo({ top: target, behavior: 'instant' });
         if (done) done();
@@ -462,14 +542,17 @@
       skipBtn.addEventListener("click", function () {
         var nextSection = document.getElementById("product");
         if (nextSection) {
+          if (cancelWhyFallback) cancelWhyFallback();
+          if (window.siteScroll) window.siteScroll.cancel();
           whyScroll.dataset.skipping = "true";
           
-          var targetY = nextSection.getBoundingClientRect().top + window.scrollY;
+          var targetY = productDestination();
+          var pinnedStart = window.scrollY + whyScroll.getBoundingClientRect().top;
           navigateWhy(targetY, function () {
             whyScroll.dataset.skipping = 'false';
             updateWhyScroll();
             if (typeof requestFrame === 'function') requestFrame();
-          });
+          }, whyLayout.horizontal ? { cut:[pinnedStart + 1, pinnedStart + whyLayout.runway - 1] } : undefined);
         }
       });
     }
@@ -518,7 +601,7 @@
     }, { threshold: thresholds, rootMargin: "-10% 0px -30% 0px" });
     sectionIds.forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
 
-    // Custom fast smooth scroll for all anchor links
+    // Section navigation shares one clock with the desktop scroll controller.
     document.querySelectorAll('a[href^="#"]').forEach(function(item) {
       item.addEventListener("click", function(e) {
         var targetId = this.getAttribute("href");
@@ -527,17 +610,39 @@
         if (!target) return;
         
         e.preventDefault();
+
+        // Release an earlier click before holding the track for this journey.
+        if (cancelWhyFallback) cancelWhyFallback();
+        if (window.siteScroll) window.siteScroll.cancel();
         
         // Freeze the 'why us' track so it doesn't fast-forward
         var whyScroll = document.querySelector(".why__scroll-container");
         if (whyScroll) whyScroll.dataset.skipping = "true";
         
         var headerHeight = document.querySelector('.topbar').getBoundingClientRect().height;
-        var headerOffset = targetId === '#technology' && target.classList.contains('features--desktop') ? headerHeight
+        var headerOffset = (targetId === '#product' || targetId === '#support') && isDesktop() ? headerHeight
+          : targetId === '#technology' && target.classList.contains('features--desktop') ? headerHeight
           : !isDesktop() && targetId !== "#home" ? headerHeight + 12 : 0;
         var targetY = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset);
         if (targetId === '#why-us' && whyLayout && whyLayout.animated) {
           targetY = window.scrollY + whyScroll.getBoundingClientRect().top;
+        }
+        var navigationOptions;
+        if (isDesktop() && whyScroll && whyLayout && whyLayout.horizontal) {
+          var pinnedStart = window.scrollY + whyScroll.getBoundingClientRect().top;
+          navigationOptions = { cut:[pinnedStart + 1, pinnedStart + whyLayout.runway - 1] };
+          if (targetY <= pinnedStart + 1) {
+            var whyRect = whyScroll.getBoundingClientRect();
+            if (whyRect.top >= window.innerHeight || whyRect.bottom <= headerHeight + 2) {
+              // Every upward crossing must carry the introduction through the
+              // dark-to-light entrance, not the last (white) card. Otherwise
+              // Technology's visible lower edge snaps when the hold is released.
+              whyScroll.style.setProperty('--why-x', '0px');
+            } else if (targetId === '#why-us') {
+              whyScroll.dataset.skipping = 'false';
+              navigationOptions = undefined;
+            }
+          }
         }
         var navigate = typeof navigateWhy === 'function' ? navigateWhy : window.siteScroll && window.siteScroll.to;
         if (navigate && navigate(targetY, function () {
@@ -546,7 +651,7 @@
             window.dispatchEvent(new Event('scroll'));
           }
           if (typeof requestFrame === 'function') requestFrame();
-        })) return;
+        }, navigationOptions)) return;
         var startY = window.scrollY;
         var difference = targetY - startY;
         var startTime = null;
@@ -654,7 +759,7 @@
   /* ---------------- Scroll-driven effects ----------------
      One scroll listener and one rAF per frame, with every measurement taken
      before any style is written. Previously the hero transition, the
-     Technology reveal, the nav hide and the footer parallax each registered
+     Technology reveal and the nav hide each registered
      their own unthrottled listener, and each interleaved getBoundingClientRect
      with style writes — so a single scroll event forced layout several times
      over. Visual output is unchanged; only the scheduling differs. */
@@ -688,9 +793,6 @@
   }
   var tech = document.getElementById("technology");
   var topbar = document.querySelector(".topbar");
-  var footer = document.querySelector(".footer");
-  var clouds = document.querySelector(".footer__clouds");
-  var footerInner = document.querySelector(".footer__inner");
 
   var bodyScrolled = false;
   var frame = 0;
@@ -871,7 +973,6 @@
     /* ---- reads ---- */
     var heroRect = hero ? hero.getBoundingClientRect() : null;
     var techRect = tech && !still ? tech.getBoundingClientRect() : null;
-    var footerRect = footer && clouds && footerInner ? footer.getBoundingClientRect() : null;
 
     /* ---- writes ---- */
     if (heroRect) {
@@ -940,25 +1041,6 @@
       }
     }
 
-    if (footerRect) {
-      var fMax = footerRect.height;
-      var fScrolled = vh - footerRect.top;
-      if (fScrolled > 0 && fScrolled <= vh + fMax) {
-        var fP = Math.max(0, Math.min(1, fScrolled / fMax));
-        footerInner.style.transform = "translateY(" + (1 - fP) * 100 + "px)";
-        clouds.style.transform = "translateY(" + (1 - fP) * 200 + "px)";
-        footerInner.style.opacity = fP;
-        clouds.style.opacity = fP;
-      } else if (fScrolled > vh + fMax) {
-        footerInner.style.transform = "translateY(0)";
-        clouds.style.transform = "translateY(0)";
-        footerInner.style.opacity = 1;
-        clouds.style.opacity = 1;
-      } else {
-        footerInner.style.opacity = 0;
-        clouds.style.opacity = 0;
-      }
-    }
   };
 
   var requestFrame = function () {
@@ -1004,7 +1086,8 @@
     btn.addEventListener("click", function() {
       var nextSection = document.getElementById("product");
       if (nextSection) {
-        var targetY = nextSection.getBoundingClientRect().top + window.scrollY;
+        var targetY = nextSection.getBoundingClientRect().top + window.scrollY
+          - document.querySelector('.topbar').getBoundingClientRect().height - 12;
         var startY = window.scrollY;
         var difference = targetY - startY;
         var startTime = null;

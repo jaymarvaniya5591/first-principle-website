@@ -5,7 +5,8 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
 const source = readFileSync(new URL('../js/main.js', import.meta.url), 'utf8');
-const code = source.slice(source.indexOf('  /* ---------------- "Why us"'), source.indexOf('  /* ---------------- Nav:'));
+const productDestinationCode = source.slice(source.indexOf('  var productDestination ='), source.indexOf('  var measureProduct ='));
+const code = productDestinationCode + source.slice(source.indexOf('  /* ---------------- "Why us"'), source.indexOf('  /* ---------------- Nav:'));
 const state = {desktop:true, reduced:false, height:900, width:1280, y:0, start:1200, contentHeight:350};
 const frames = new Map();
 const windowEvents = new Map();
@@ -60,6 +61,7 @@ const window={
   siteScroll:{cancel(){},to(target,done){destination=target;state.y=target;if(done)done();return true;}}
 };
 const context=vm.createContext({window,document,Array,Math,ResizeObserver:undefined,
+  productHeader:node(),productSection:product,isDesktop:()=>state.desktop,
   shortScreen:{get matches(){return state.height<=520;}}});
 vm.runInContext(code,context);
 const visibleSlides=()=>track.children;
@@ -105,6 +107,14 @@ for(let i=0;i<=40;i++) {
   assert.ok(edge<lastEdge,'receding light always travels upward');
   lastEdge=edge;
 }
+// Technology stays solid at rest, then the published mist takes over.
+paintAt(-900);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),50.4);
+paintAt(-846);const partialMistClip=parseFloat(section.style.getPropertyValue('--why-mist-clip'));
+assert.ok(partialMistClip>0 && partialMistClip<50.4,'feather releases gradually during departure');
+paintAt(-792);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),0,'original uncut transition restored by 12vh');
+paintAt(-450);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),0);
+paintAt(-846);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),partialMistClip,'reversal retraces the same mist');
+paintAt(-900);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),50.4,'return restores the clean edge');
 paintAt(-450); const lightAtMiddle=context.whyLightShift;
 paintAt(-200); paintAt(-450);
 assert.equal(context.whyLightShift,lightAtMiddle,'light retraces its path when reversing');
@@ -188,7 +198,7 @@ assert.equal(context.whyLayout.horizontal,true,'desktop can be restored');
 assert.equal(context.whyToneSamples.length,257,'resizing back to desktop restores the detailed gradient');
 assert.equal(context.whyToneDarkness(.665),1,'restored desktop uses the wider gradient for navigation contrast');
 assert.deepEqual(order(),['intro','warranty','service','returns','focus','patents']);
-skip.events.click(); assert.equal(destination,9000); assert.equal(scroll.dataset.skipping,'false');
+skip.events.click(); assert.equal(destination,8940); assert.equal(scroll.dataset.skipping,'false');
 window.siteScroll.to=()=>false;
 paintAt(180);
 skip.events.click(); assert.equal(scroll.dataset.skipping,'true');
@@ -202,6 +212,9 @@ assert.equal(state.y,interruptedAt,'wheel input cancels fallback momentum');
 assert.equal(scroll.dataset.skipping,'false','interruption releases the track');
 state.reduced=true;
 skip.events.click();
-assert.equal(state.y,9000,'reduced-motion fallback navigation is immediate');
+assert.equal(state.y,8940,'reduced-motion fallback navigation respects the fixed header');
 assert.equal(frames.size,0);
 console.log('Why us: pacing, holds, reversal, keyboard, resize, motion/fit fallbacks, mobile stacking, stable viewport, shared reading order, Skip and interrupted native navigation passed.');
+
+state.desktop=false;
+assert.equal(context.productDestination(),8928,'mobile product landing includes the header and 12px clearance');

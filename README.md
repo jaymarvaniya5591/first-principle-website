@@ -15,7 +15,7 @@ Static landing page for First Principle smart toilets, built 1:1 from the Figma 
 index.html            # all sections (hero, features, why, collection, contact, footer)
 css/styles.css        # source stylesheet, loaded by index.html
 css/styles.min.css    # equivalent minified distribution stylesheet
-js/main.js            # 6-product carousel, mobile menu, nav scroll-spy, contact form
+js/main.js            # 5-product carousel, mobile menu, nav scroll-spy, contact form
 scripts/serve.mjs     # local-only preview on port 5592
 assets/fonts          # generated woff2 (sources in assets/fonts-src, git-ignored)
 assets/img            # generated responsive images (sources in assets/img-src + ../Website Assets)
@@ -294,3 +294,34 @@ The preview binds only to this computer. Set PORT to use another local port.
 ## Deploy
 
 Vercel, static (framework "Other", no build command). Pushing to `main` deploys production.
+
+
+### Product catalogue / deferred imagery
+
+Product cards use the September 2026 Architect Catalogue Copy Brief: Novi
+₹19,999, Vero ₹29,999, Aera ₹34,999, Sora ₹49,999 and Liva ₹59,999.
+Luma is omitted until its catalogue content is supplied; its assets are retained.
+The current photo assignments are intentionally preserved for this layout pass.
+`product-aera-new.jpg` duplicates Sora's photo. Liva's current photo depicts a
+floor-standing body although the catalogue specifies the wall-hung N50 model.
+Correcting these two photos is deferred, not a change to their specifications.
+
+### Footer
+
+The original footer layout, logo, typography and links are retained. The tagline
+is “Rethink the everyday”. Footer clouds, their parallax and Back to top are
+removed. Desktop spacing is slightly tighter at widths of 1100px and above.
+The experimental video and animation code have been removed.
+
+### Section navigation
+
+Desktop links use distance-based timing (up to 1.5 seconds) and quintic easing
+with continuous velocity and acceleration at departure and arrival. When crossing the held Why-us scene, navigation omits
+its inactive reading runway from the animated distance. The actual layout and
+manual wheel behaviour are unchanged. Clicks, wheel input and resize can
+interrupt the journey; section/header offsets are preserved. The existing
+native and reduced-motion fallbacks remain. Run npm run test:scroll for the
+navigation timing, route mapping and interruption checks.
+
+Upward trips to Technology or Home prepare the offscreen Why-us introduction
+before crossing its pinned scene, preventing a late white-to-black card swap.

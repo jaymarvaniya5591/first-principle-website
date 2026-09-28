@@ -6,8 +6,20 @@
   var instance = null;
   var listeners = [];
   var navigationDone = null;
+  var navigationActive = false;
+
+  // Quintic easing keeps velocity AND acceleration continuous, including at
+  // both endpoints. A split quadratic changes acceleration abruptly mid-trip.
+  function navigationEase(t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);
+  }
+  function navigationDuration(distance) {
+    var screens = distance / Math.max(1, window.innerHeight || 720);
+    return Math.min(1.5, .6 + .25 * Math.sqrt(screens));
+  }
 
   function finishNavigation() {
+    navigationActive = false;
     var done = navigationDone;
     navigationDone = null;
     if (done) done();
@@ -55,7 +67,12 @@
     onFrame: function (render) { listeners.push(render); },
     cancel: function () {
       finishNavigation();
-      if (instance) instance.scrollTo(instance.actualScroll, { immediate: true });
+      if (instance) {
+        // Initial fragment navigation can follow a growing Why-us runway before
+        // Lenis's debounced observer refreshes its limit. Sync it before clamping.
+        instance.resize();
+        instance.scrollTo(instance.actualScroll, { immediate: true });
+      }
     },
     // Delta is already normalized by the caller. Keep one owner of page inertia.
     by: function (delta) {
@@ -70,13 +87,43 @@
       }
       instance.scrollTo(instance.targetScroll + delta, { lerp: .18 });
     },
-    to: function (target, done) {
+    to: function (target, done, options) {
       if (!instance) return false;
       finishNavigation();
+      // Links clicked just after load need the same fresh document limit.
+      instance.resize();
+      var start = instance.actualScroll;
+      target = Math.max(0, Math.min(target, instance.limit));
       navigationDone = done || null;
+      navigationActive = true;
+      if (Math.abs(target - start) < 1) {
+        instance.scrollTo(target, { immediate:true });
+        finishNavigation();
+        return true;
+      }
+      // A held sticky scene has no visual travel within its reading runway.
+      // Map across that interval instead of making visitors wait on a still frame.
+      var cut = options && options.cut;
+      var low = cut ? Math.max(Math.min(start, target), cut[0]) : 0;
+      var high = cut ? Math.min(Math.max(start, target), cut[1]) : 0;
+      var skipped = Math.max(0, high - low);
+      var totalDistance = Math.abs(target - start);
+      var distance = totalDistance - skipped;
+      var duration = navigationDuration(distance);
+      var easing = navigationEase;
+      if (skipped > 0) {
+        var direction = target >= start ? 1 : -1;
+        var before = direction > 0 ? low - start : start - high;
+        // Keep Lenis in charge for the entire journey. Repeated immediate
+        // scrollTo calls reset its native-scroll bookkeeping every frame.
+        easing = function (progress) {
+          var travelled = distance * navigationEase(progress);
+          return (travelled + (travelled >= before ? skipped : 0)) / totalDistance;
+        };
+      }
       instance.scrollTo(target, {
-        duration: 1.05,
-        easing: function (t) { return 1 - Math.pow(1 - t, 4); },
+        duration: duration,
+        easing: easing,
         onComplete: finishNavigation
       });
       return true;
@@ -94,6 +141,10 @@
     finishNavigation();
     instance.scrollTo(instance.actualScroll, { immediate: true });
   });
+  window.addEventListener('touchstart', function () { window.siteScroll.cancel(); }, { passive:true });
+  window.addEventListener('resize', function () {
+    if (navigationActive) window.siteScroll.cancel();
+  }, { passive:true });
   desktop.addEventListener('change', reconcile);
   reconcile();
 })();
