@@ -116,6 +116,7 @@
   if (carousel) {
     var cards = Array.prototype.slice.call(carousel.querySelectorAll(".card"));
     var status = document.getElementById("carousel-status");
+    var counter = carousel.querySelector('.carousel__counter');
     var n = cards.length;
     var active = parseInt(carousel.dataset.active, 10) || 0;
 
@@ -140,36 +141,26 @@
         var name = cards[active].querySelector("h3");
         status.textContent = "Showing " + (name ? name.textContent : "") + ", " + (active + 1) + " of " + n;
       }
+      if (counter) counter.textContent = String(active + 1).padStart(2, '0') + ' / ' + String(n).padStart(2, '0');
     };
 
-    carousel.querySelectorAll(".carousel__arrow").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var dir = parseInt(btn.dataset.dir, 10) || 1;
+    carousel.changeProduct = function (dir, source) {
+        dir = dir < 0 ? -1 : 1;
+        var previousIndex = active;
         active = (active + dir + n) % n;
         carousel.dataset.active = String(active);
         layout();
-        if (typeof carousel.onProductChange === "function") carousel.onProductChange();
-      });
+        if (typeof carousel.onProductChange === "function") carousel.onProductChange({ previousIndex: previousIndex, index: active, direction: dir, source: source || 'button' });
+    };
+    carousel.querySelectorAll(".carousel__arrow").forEach(function (btn) {
+      btn.addEventListener("click", function () { carousel.changeProduct(parseInt(btn.dataset.dir, 10), 'button'); });
     });
     carousel.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowRight") { e.preventDefault(); carousel.querySelector(".carousel__arrow--next").click(); }
-      if (e.key === "ArrowLeft") { e.preventDefault(); carousel.querySelector(".carousel__arrow--prev").click(); }
+      if (e.key === "ArrowRight") { e.preventDefault(); carousel.changeProduct(1, 'keyboard'); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); carousel.changeProduct(-1, 'keyboard'); }
     });
 
-    // Touch swipe on mobile
-    var startX = null, startY = null;
-    carousel.addEventListener("touchstart", function (e) {
-      if (e.target && e.target.closest("button")) { startX = null; return; }
-      startX = e.touches[0].clientX; startY = e.touches[0].clientY || 0;
-    }, { passive: true });
-    carousel.addEventListener("touchend", function (e) {
-      if (startX === null) return;
-      var dx = e.changedTouches[0].clientX - startX;
-      var dy = (e.changedTouches[0].clientY || 0) - startY;
-      startX = null;
-      if (Math.abs(dx) < 50 || Math.abs(dx) <= Math.abs(dy) * 1.5) return;
-      carousel.querySelector(dx < 0 ? ".carousel__arrow--next" : ".carousel__arrow--prev").click();
-    }, { passive: true });
+    // Mobile card gestures use this same selection operation in mobile-card-deck.js.
 
     layout();
   }
@@ -328,10 +319,9 @@
         return 5.6 + spread * (.4 * t + .3 * t * t);
       }) };
     };
-    // Desktop spreads the existing 20.3vh ramp over 60.9vh, with four times
-    // as many sample intervals. Mobile retains its exact approved stops. Neither
-    // profile changes the entry feather, layout spacing or scroll motion.
-    var whyToneProfiles = { desktop: createWhyTones(256, 87), mobile: createWhyTones(64, 29) };
+    // Only desktop uses the tonal entrance. Generate it lazily so phones do no
+    // gradient sampling or decorative surface work.
+    var whyDesktopTones;
     var whyToneSamples, whyTonePositions;
     var whyToneDarkness = function (vertical) {
       var position = vertical * 100;
@@ -343,11 +333,16 @@
       return whyToneSamples[lower] + (whyToneSamples[upper] - whyToneSamples[lower]) * fraction;
     };
     var setWhyTones = function (desktop, height) {
-      var profile = desktop ? whyToneProfiles.desktop : whyToneProfiles.mobile;
+      if (!desktop) {
+        ['--why-tone-stops', '--why-grain-stops', '--why-light-shift', '--why-mist-clip'].forEach(function (key) { whySection.style.removeProperty(key); });
+        whyLightShift = 0;
+        return;
+      }
+      var profile = whyDesktopTones || (whyDesktopTones = createWhyTones(256, 87));
       whyToneSamples = profile.samples;
       whyTonePositions = profile.positions;
       var position = function (i) {
-        return desktop ? whyTonePositions[i].toFixed(6) + 'vh' : (whyTonePositions[i] * height / 100).toFixed(6) + 'px';
+        return whyTonePositions[i].toFixed(6) + 'vh';
       };
       whySection.style.setProperty('--why-tone-stops', whyToneSamples.map(function (darkness, i) {
         var grey = (255 - darkness * 238).toFixed(4);
@@ -359,55 +354,71 @@
     };
 
     var updateWhyScroll = function () {
-        if (!whyLayout) return;
+        if (!whyLayout || document.hidden) return;
+        if (whyScroll.dataset.skipping === 'true') {
+          whyLayout.lastPaintedTop = null; whyLayout.paintedTop = null;
+          return;
+        }
         // A resize changes the prelude and Technology geometry before the next
         // measure. Keep the last painted position until that measure restores it.
         if (whyLayout.width !== whySection.clientWidth || whyLayout.height !== whyStageHeight()) {
           requestWhyMeasure();
           return;
         }
-        whyLayout.lastTop = whyScroll.getBoundingClientRect().top;
+        var entranceTop = whyScroll.getBoundingClientRect().top;
+        if (entranceTop === whyLayout.lastPaintedTop) return;
+        whyLayout.lastTop = entranceTop;
+        whyLayout.lastPaintedTop = entranceTop;
+        // Paint the endpoints once even after an anchor jump, then leave the
+        // offscreen deck idle until its clamped position changes again.
+        var paintedTop = Math.max(-whyLayout.runway, Math.min(whyLayout.height, entranceTop));
+        if (paintedTop === whyLayout.paintedTop) return;
+        whyLayout.paintedTop = paintedTop;
         if (whyLayout.animated) {
-          // One viewport of entrance travel; desktop starts its centred intro
-          // immediately, while mobile retains its 12vh prelude.
-          var entranceTop = whyScroll.getBoundingClientRect().top;
           var entranceProgress = whyClamp(1 - entranceTop / whyLayout.entrance, 1);
-          // Retreat the whole tonal surface. Desktop's final shadow reaches
-          // into the intro, then clears during its opening reading hold.
-          var retreat = entranceProgress * entranceProgress * (3 - 2 * entranceProgress);
-          whyLightShift = -whyLayout.height * .5 * retreat;
-          whySection.style.setProperty('--why-light-shift', whyLightShift.toFixed(3) + 'px');
-          // Keep Technology crisp while it fills the viewport. Over the first
-          // 12vh of departure, release the feather into its original overtake.
-          // After that the published gradient, retreat and reveal are unchanged.
-          var mistDeparture = whyLayout.horizontal ? entranceProgress
-            : whyClamp(1 - (entranceTop - whyLayout.prelude) / whyLayout.entrance, 1);
-          var mistProgress = whyClamp(mistDeparture / .12, 1);
-          var mistRelease = mistProgress * mistProgress * (3 - 2 * mistProgress);
-          var mistClip = (whyLayout.height * .056 - whyLightShift) * (1 - mistRelease);
-          whySection.style.setProperty('--why-mist-clip', mistClip.toFixed(3) + 'px');
+          if (whyLayout.horizontal) {
+            // Preserve the desktop tonal surface and feather release.
+            var retreat = entranceProgress * entranceProgress * (3 - 2 * entranceProgress);
+            whyLightShift = -whyLayout.height * .5 * retreat;
+            whySection.style.setProperty('--why-light-shift', whyLightShift.toFixed(3) + 'px');
+            var mistProgress = whyClamp(entranceProgress / .12, 1);
+            var mistRelease = mistProgress * mistProgress * (3 - 2 * mistProgress);
+            var mistClip = (whyLayout.height * .056 - whyLightShift) * (1 - mistRelease);
+            whySection.style.setProperty('--why-mist-clip', mistClip.toFixed(3) + 'px');
+          }
           // Phrases rise through a fixed baseline with a soft deceleration.
           // One scroll clock preserves direct reversal and interrupted navigation.
-          var reveal = whyClamp((entranceProgress - .42) / .48, 1);
+          var reveal = whyClamp((entranceProgress - (whyLayout.stacked ? .2 : .42)) / (whyLayout.stacked ? .5 : .48), 1);
           reveal = 1 - Math.pow(1 - reveal, 3);
           whySection.style.setProperty('--why-reveal', reveal.toFixed(5));
-          var brandReveal = whyClamp((entranceProgress - .48) / .48, 1);
+          var brandReveal = whyClamp((entranceProgress - (whyLayout.stacked ? .28 : .48)) / (whyLayout.stacked ? .5 : .48), 1);
           brandReveal = 1 - Math.pow(1 - brandReveal, 3);
           whySection.style.setProperty('--why-brand-reveal', brandReveal.toFixed(5));
-          var noteReveal = whyClamp((entranceProgress - .62) / .38, 1);
+          var noteReveal = whyClamp((entranceProgress - (whyLayout.stacked ? .4 : .62)) / (whyLayout.stacked ? .44 : .38), 1);
           noteReveal = noteReveal * noteReveal * (3 - 2 * noteReveal);
           whySection.style.setProperty('--why-note-reveal', noteReveal.toFixed(5));
           whySection.classList.toggle('why--entered', entranceTop <= 1);
         }
-        if (whyScroll.dataset.skipping === 'true' || !whyLayout.animated) return;
-        var scrolled = -whyScroll.getBoundingClientRect().top;
+        if (!whyLayout.animated) return;
+        var scrolled = -entranceTop;
         var progress = whyClamp((scrolled - whyLayout.hold) / whyLayout.journey, 1);
         if (whyLayout.stacked) {
-          // Same full-frame cover as Ritesh's 01e5340: previous cards stay at 0,
-          // the next rises linearly, and future cards wait at 100% below it.
+          // The first 15% of each existing segment is a reading hold. Covers
+          // then follow the finger directly; there is no extra scroll runway.
           var slideProgress = progress * (whySlides.length - 1);
           whySlides.forEach(function (slide, i) {
-            slide.style.setProperty('--why-card-y', (whyClamp(i - slideProgress, 1) * 100) + '%');
+            var entry = i === 0 ? 1 : whyClamp((slideProgress - i + 1 - .15) / .85, 1);
+            slide.style.setProperty('--why-card-y', ((1 - entry) * 100).toFixed(5) + '%');
+            if (i > 0) {
+              var content = whyClamp((entry - .48) / .44, 1);
+              var detail = whyClamp((entry - .64) / .34, 1);
+              slide.style.setProperty('--why-content', (1 - Math.pow(1 - content, 3)).toFixed(5));
+              slide.style.setProperty('--why-detail', (1 - Math.pow(1 - detail, 3)).toFixed(5));
+              var second = whyClamp((entry - .57) / .4, 1);
+              var last = whyClamp((entry - .73) / .27, 1);
+              slide.style.setProperty('--why-second', (1 - Math.pow(1 - second, 3)).toFixed(5));
+              slide.style.setProperty('--why-last', (1 - Math.pow(1 - last, 3)).toFixed(5));
+            }
           });
         } else {
           whyScroll.style.setProperty('--why-x', (-progress * whyLayout.travel) + 'px');
@@ -449,7 +460,9 @@
       // Measure intrinsic content in flow before deciding whether pinning fits.
       whySection.classList.remove('why--horizontal');
       whySection.classList.remove('why--stacked');
-      whySlides.forEach(function (slide) { slide.style.removeProperty('--why-card-y'); });
+      whySlides.forEach(function (slide) {
+        ['--why-card-y', '--why-content', '--why-detail', '--why-second', '--why-last'].forEach(function (key) { slide.style.removeProperty(key); });
+      });
       whyScroll.style.removeProperty('--why-x');
       var bar = document.querySelector('.topbar');
       var clearance = Math.max(72, bar ? bar.getBoundingClientRect().height + 24 : 72);
@@ -470,7 +483,7 @@
       var journey = height * (desktop ? 1.6 : 1) * (whySlides.length - 1);
       var runway = journey + hold * 2;
       var entrance = height;
-      whyLayout = { animated: animated, horizontal: horizontal, stacked: stacked, travel: travel, hold: hold, journey: journey, runway: runway, offsets: offsets, entrance: entrance, prelude: desktop ? 0 : height * .12, width: whySection.clientWidth, height: height };
+      whyLayout = { animated: animated, horizontal: horizontal, stacked: stacked, travel: travel, hold: hold, journey: journey, runway: runway, offsets: offsets, entrance: entrance, prelude: 0, width: whySection.clientWidth, height: height };
       whyScroll.style.setProperty('--why-height', (height + runway) + 'px');
       if (!animated) {
         whySection.style.removeProperty('--why-reveal');
@@ -778,7 +791,10 @@
       });
     }, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
 
-    document.querySelectorAll(".reveal-up").forEach(function(el) {
+    document.querySelectorAll(".reveal-up, [data-mobile-reveal], .collection-shell, #support").forEach(function(el) {
+      if (el.classList.contains('reveal-up')) el.classList.add('reveal-pending');
+      if (el.hasAttribute('data-mobile-reveal')) el.classList.add('mobile-reveal-pending');
+      if (el.matches('.collection-shell, #support')) el.classList.add('mobile-rule-pending');
       revealObserver.observe(el);
     });
   }
@@ -944,7 +960,7 @@
     if (whyScroll) {
       var whyRect = whyScroll.getBoundingClientRect();
       var whySurfaceTop = whyLayout ? whyRect.top - whyLayout.prelude - whyLayout.height * .056 + whyLightShift : Infinity;
-      if (whyLayout && whyLayout.animated && whyRect.top > 0 && whyRect.top < whyLayout.entrance && (!isDesktop() || whySurfaceTop < topbar.getBoundingClientRect().bottom) && !(menu && !menu.hidden)) {
+      if (whyLayout && whyLayout.animated && !whyLayout.stacked && whyRect.top > 0 && whyRect.top < whyLayout.entrance && (!isDesktop() || whySurfaceTop < topbar.getBoundingClientRect().bottom) && !(menu && !menu.hidden)) {
         // Sample the actual moving colour surface; DOM hit testing cannot see
         // the decorative plane behind the transparent introduction.
         var washTheme = function (control) {
@@ -959,19 +975,20 @@
         whyNavInk.forEach(function (control) { control.dataset.whySurface = washTheme(control); });
         return;
       }
-      if (whyLayout && whyLayout.animated && whyRect.top <= 0 && whyRect.bottom >= whyLayout.height && !(menu && !menu.hidden)) {
+      if (whyLayout && whyLayout.animated && (whyRect.top <= 0 || (whyLayout.stacked && whyRect.top < topbar.getBoundingClientRect().bottom)) && whyRect.bottom >= whyLayout.height && !(menu && !menu.hidden)) {
         var barRect = topbar.getBoundingClientRect();
         var logoRect = topbarLogo ? topbarLogo.getBoundingClientRect() : null;
         var lx = logoRect ? Math.round(logoRect.left + logoRect.width / 2) : Math.round(barRect.left + 60);
         var ly = whyLayout.stacked && logoRect ? logoRect.top + logoRect.height / 2 : Math.round(barRect.bottom + 8);
-        var themeAtLogo = themeOfSlideAt(lx, ly, null);
+        var themeAtLogo = whyLayout.stacked && ly < whyRect.top ? 'light' : themeOfSlideAt(lx, ly, null);
         applyTopbarSurface("merge", themeAtLogo || (whySticky ? whySticky.dataset.theme : "dark") || "dark", true);
         // A seam can sit between the logo and links. Each control follows the
         // surface directly beneath it rather than waiting for the far-left logo.
         whyNavInk.forEach(function (control) {
           var rect = control.getBoundingClientRect();
           if (!rect.width) return;
-          var theme = themeOfSlideAt(rect.left + rect.width / 2, whyLayout.stacked ? rect.top + rect.height / 2 : ly, null);
+          var sampleY = whyLayout.stacked ? rect.top + rect.height / 2 : ly;
+          var theme = whyLayout.stacked && sampleY < whyRect.top ? 'light' : themeOfSlideAt(rect.left + rect.width / 2, sampleY, null);
           if (theme && control.dataset.whySurface !== theme) control.dataset.whySurface = theme;
         });
         return;
@@ -990,6 +1007,7 @@
 
   var onFrame = function () {
     frame = 0;
+    if (document.hidden) return;
 
     if (typeof updateWhyScroll === 'function') updateWhyScroll();
 
@@ -1071,7 +1089,7 @@
   };
 
   var requestFrame = function () {
-    if (!frame) frame = window.requestAnimationFrame(onFrame);
+    if (!document.hidden && !frame) frame = window.requestAnimationFrame(onFrame);
   };
 
   if (window.siteScroll) window.siteScroll.onFrame(function () {
@@ -1081,9 +1099,13 @@
   });
 
   // Mobile feature expansion and decoded photos move the following boundary
-  // even when the page itself has stopped scrolling. Repaint its mist then too.
+  // even when the page itself has stopped scrolling. Repaint that boundary too.
   if (tech && 'ResizeObserver' in window) new ResizeObserver(requestFrame).observe(tech);
   window.addEventListener("scroll", requestFrame, { passive: true });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { window.cancelAnimationFrame(frame); frame = 0; }
+    else requestFrame();
+  });
   window.addEventListener(
     "resize",
     function () {

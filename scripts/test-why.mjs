@@ -165,23 +165,27 @@ assert.equal(context.whyLayout.horizontal,false,'enlarged content remains reacha
 state.contentHeight=350; state.desktop=false; context.measureWhy();
 state.width=390; state.height=844; state.stableHeight=844; context.measureWhy();
 assert.equal(context.whyLayout.stacked,true);
-assert.equal(context.whyLayout.prelude,.12*844,'mobile retains its original entrance spacing');
-const mobileToneStops=[...section.style.getPropertyValue('--why-tone-stops').matchAll(/\) ([\d.]+)px/g)].map(match=>Number(match[1]));
-assert.equal(mobileToneStops.length,65,'mobile renders every approved tone');
-for(let i=0;i<65;i++) assert.equal(context.whyToneSamples[i],desktopSamples[i*4],'desktop adds intermediate shades without changing the approved colours');
-assert.ok(Math.abs(mobileToneStops[0]-.056*844)<1e-6,'mobile retains the entry feather');
-assert.ok(Math.abs(mobileToneStops[64]-mobileToneStops[0]-.203*844)<1e-6,'mobile colour window uses half the previous length in stable viewport pixels');
+assert.equal(context.whyLayout.prelude,0,'mobile begins directly at the final Technology rule');
+for(const property of ['--why-tone-stops','--why-grain-stops','--why-light-shift','--why-mist-clip']) {
+  assert.equal(section.style.getPropertyValue(property),'','mobile clears the desktop decorative plane');
+}
 assert.equal(context.whyLayout.hold,0);
 assert.equal(Number.parseFloat(scroll.style.getPropertyValue('--why-height')),6*844);
 assert.deepEqual(order(),['intro',...names],'shared reading order on mobile');
 assert.deepEqual(visibleSlides().map(s=>s.dataset.navTheme),['dark','light','dark','light','dark','light']);
 const cardY=i=>parseFloat(track.children[i].style.getPropertyValue('--why-card-y'));
-for(let card=1;card<6;card++) for(const fraction of [0,.25,.5,.75,1]) {
+for(let card=1;card<6;card++) for(const fraction of [0,.1,.15,.25,.5,.75,1]) {
   paintAt((card-1+fraction)*844);
-  assert.ok(Math.abs(cardY(card)-(1-fraction)*100)<1e-8,'incoming card matches the original linear cover');
+  const cover=Math.max(0,(fraction-.15)/.85);
+  assert.ok(Math.abs(cardY(card)-(1-cover)*100)<.00001,'short reading hold then a direct cover within the original segment');
   assert.equal(cardY(card-1),0,'previous card remains stationary');
 }
-paintAt(.5*844); assert.equal(cardY(1),50,'reverse uncovers the previous card');
+paintAt(.5*844); const halfCover=cardY(1);
+paintAt(.8*844);paintAt(.5*844);assert.equal(cardY(1),halfCover,'reverse retraces the same cover');
+paintAt(.98*844);
+assert.equal(track.children[1].style.getPropertyValue('--why-content'),'1.00000','heading is settled before the next hold');
+assert.equal(track.children[1].style.getPropertyValue('--why-detail'),'1.00000','supporting content is settled before the next hold');
+paintAt(.5*844);
 key('ArrowDown'); assert.equal(destination,state.start+844);
 key('ArrowUp'); assert.equal(destination,state.start);
 paintAt(2.4*844); const beforeToolbar=cardY(3);
@@ -189,7 +193,7 @@ state.height=920; context.updateWhyScroll();
 assert.equal(context.whyLayout.height,844,'toolbar changes do not resize the stable stage');
 assert.equal(cardY(3),beforeToolbar);
 state.width=768; state.height=1024; state.stableHeight=1024; context.measureWhy();
-assert.ok(Math.abs(cardY(3)-60)<.001,'orientation preserves fractional card progress');
+assert.ok(Math.abs(cardY(3)-beforeToolbar)<.001,'orientation preserves fractional card progress');
 state.reduced=true; context.measureWhy();
 assert.equal(context.whyLayout.animated,false);
 track.children.forEach(s=>assert.equal(s.style.getPropertyValue('--why-card-y'),''));
@@ -222,12 +226,13 @@ state.desktop=false;
 assert.equal(context.productDestination(),8968,'mobile product landing preserves heading clearance with 40px padding');
 
 state.reduced=false;state.width=390;state.height=844;state.stableHeight=844;context.measureWhy();
-paintAt(-844-844*.12);
-assert.ok(Math.abs(parseFloat(section.style.getPropertyValue('--why-mist-clip'))-844*.056)<.002,'mobile boundary stays solid before departure');
-paintAt(-844-844*.06);
-const mobileClip=parseFloat(section.style.getPropertyValue('--why-mist-clip'));
-assert.ok(mobileClip>0&&mobileClip<844*.056,'mobile feather releases during boundary departure');
 paintAt(-844);
-assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),0,'mobile prelude does not delay the feather release');
-paintAt(-844-844*.12);
-assert.ok(Math.abs(parseFloat(section.style.getPropertyValue('--why-mist-clip'))-844*.056)<.002,'reverse restores the crisp mobile boundary');
+assert.equal(section.style.getPropertyValue('--why-reveal'),'0.00000');
+paintAt(-.4*844);
+const mobileText=section.style.getPropertyValue('--why-brand-reveal');
+paintAt(-.1*844);
+for(const property of ['--why-reveal','--why-brand-reveal','--why-note-reveal']) assert.equal(section.style.getPropertyValue(property),'1.00000','mobile entrance settles before reaching the header');
+paintAt(-.4*844);assert.equal(section.style.getPropertyValue('--why-brand-reveal'),mobileText,'mobile text reverses with the panel');
+assert.equal(section.style.getPropertyValue('--why-mist-clip'),'','mobile never writes a mist surface');
+document.hidden=true;const hiddenPosition=cardY(1);paintAt(844);assert.equal(cardY(1),hiddenPosition,'hidden pages do not animate');
+document.hidden=false;context.updateWhyScroll();assert.equal(cardY(1),0,'visible page resumes at its actual position');

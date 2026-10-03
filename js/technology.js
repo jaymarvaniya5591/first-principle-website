@@ -133,7 +133,7 @@
     var to = card.getBoundingClientRect().height;
     if (reduced.matches || Math.abs(from - to) < 1) { finishDetail(index); return; }
     var animation = card.animate([{ height: from + 'px' }, { height: to + 'px' }], {
-      duration: 180, easing: 'cubic-bezier(.2,.7,.2,1)'
+      duration: 220, easing: 'cubic-bezier(.2,.7,.2,1)'
     });
     animations[index] = animation;
     animation.onfinish = function () {
@@ -196,11 +196,14 @@
   function loadMobileImage(index) {
     var request = ++mobileRequest;
     var photo = mobilePhotos[index];
+    photo.classList.remove('is-ready');
     var pic = photo.querySelector('picture');
     if (!pic) {
       photo.appendChild(photo.querySelector('template').content.cloneNode(true));
       pic = photo.querySelector('picture');
     }
+    // Establish the starting pose even when the decoded image is cached.
+    photo.getBoundingClientRect();
     prepare(pic).then(function (ready) {
       if (desktop.matches || request !== mobileRequest || mobileActive !== index) return;
       var rect = cards[index].getBoundingClientRect(), bounds = mobileBounds();

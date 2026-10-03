@@ -86,4 +86,17 @@ context.applyTopbarSurface('merge','light',true);
 cleared();
 assert.equal(topbar.dataset.mode,'glass');
 assert.equal(topbar.dataset.theme,'dark');
+// A mobile entrance samples its physical straight edge, never the desktop wash.
+context.menu.hidden=true;
+context.whyLayout.stacked=true;
+context.whyToneDarkness=()=>{throw new Error('mobile must not sample a gradient');};
+context.themeOfSlideAt=()=> 'dark';
+state.whyTop=70;context.sampleBelowHeroSurface();
+assert.equal(topbar.dataset.theme,'light');
+assert.deepEqual(overrides(),Array(5).fill('light'));
+state.whyTop=38;context.sampleBelowHeroSurface();
+assert.equal(topbar.dataset.theme,'dark','logo changes only when the panel reaches its centre');
+assert.deepEqual(overrides(),Array(5).fill('light'),'controls still over Technology retain dark ink');
+state.whyTop=30;context.sampleBelowHeroSurface();
+assert.deepEqual(overrides(),Array(5).fill('dark'));
 console.log('Navigation: repeated Home returns, cached themes, mixed slide contrast, gradient, shared sections and mobile menu passed.');

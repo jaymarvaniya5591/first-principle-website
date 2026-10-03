@@ -163,10 +163,12 @@ descriptions remain in normal flow. Rebuild CSS after changing the source.
 
 ## Mobile technology overview
 
-Below 600px, the introduction uses a two-line 32px heading, 20px side gutters,
-64–88px top spacing and 48–72px before the cards, scaled with viewport height.
-Both outer gaps become 40px on viewports shorter than 600px. The first feature
-remains open. Desktop typography and presentation are unchanged.
+Below 600px, the introduction uses a two-line 2rem heading, 20px side gutters,
+3.5rem top spacing and 2rem before the cards. Touch tablets use 2.5rem headings.
+Collection, Why-us and Support share the same heading family, scale, 1.15 line
+height and -0.02em tracking. The first feature remains open. Technology ends at
+the last feature's bottom border, without trailing padding. Desktop typography
+and the hero-to-Technology Cloud to Clarity transition are unchanged.
 
 On phones, the four hotel logos form a quiet, always-visible row above the hero
 title, without the "Specified by" label or a disclosure. Tablet and desktop
@@ -208,13 +210,13 @@ Principle?", with a dim "Why" and a white brand name. The existing 81.777px
 slide title and 28.444px note sizes are retained. The introduction note is
 sentence case, max-width 720px, line-height 1.4, with a 32px title gap. "We’re here." is softly highlighted in white.
 
-Technology ends at a crisp boundary on both laptop and mobile. The white mist
+Technology ends at a crisp boundary on both laptop and mobile. On laptops the white mist
 belongs to the Why-us transition: it stays clipped at rest and is released
 smoothly during boundary departure, retracing on reverse scrolling. The feature
 hint retains its translucent glass block, fine white border and static backdrop blur.
 
-The separate Why wash travels over one viewport height. Desktop overlaps the
-full viewport; mobile retains its 88vh overlap plus 12vh prelude.
+The desktop Why wash travels over one viewport height and overlaps the
+full viewport. Mobile has an opaque, straight-edged black introduction with no wash or prelude.
 The title reveals through two clipped phrase windows: "Why" from 42–90% of the
 entrance, then "First Principle?" from 48–96%, with cubic ease-out. Each phrase
 rises from below its baseline while becoming fully opaque. Padding protects
@@ -234,19 +236,18 @@ Its desktop neutral ramp spans 60.9vh, exactly three times the previous 20.3vh
 white-to-black window. It uses 257 Oklab-lightness samples, preserving the
 approved colours and relative spacing while adding intermediate shades. Desktop
 stop positions are 5.6 + 87*(0.4*t + 0.3*t*t) vh; the feather plus ramp is 66.5vh.
-Mobile retains all 65 approved stops across 20.3vh, at
-5.6 + 29*(0.4*t + 0.3*t*t), resolved against its stable viewport height.
-Scroll runway and title reveal are unchanged; the feather belongs only to the departing transition.
+The gradient is generated lazily on desktop; mobile clears its surface variables.
+Desktop scroll runway and title reveal are unchanged; the feather belongs only to the departing transition.
 Scroll moves the plane up by 50vh*smoothstep(progress). At pinning the desktop
 ramp's final shadow extends 10.9vh into the introduction, clearing during the
-20vh opening reading hold. Mobile finishes 41.7vh above the viewport as before.
+20vh opening reading hold.
 Reverse scrolling retraces the same geometry. Navigation and grain masks use
-the active profile and the matching desktop/mobile prelude offset.
+the desktop profile. Mobile navigation samples the actual opaque card boundary.
 
 The laptop introduction stays centred in its screen. Removing the 12vh prelude
 brings the entire screen closer to Technology instead of lifting its text.
 The unchanged 60.9vh gradient can extend into the transparent introduction;
-mobile and ordinary-flow fallbacks retain their previous spacing.
+ordinary-flow fallbacks expose the complete content without the decorative plane.
 
 Navigation samples that same colour curve and transformed position. Static
 neutral dithering at 0.4%, gated by 4*d*(1-d), softens rendering bands while
@@ -328,6 +329,8 @@ The original footer layout, logo, typography and links are retained. The tagline
 is “Rethink the everyday”. Footer clouds, their parallax and Back to top are
 removed. Desktop spacing is slightly tighter and scales with the shared layout unit.
 The experimental video and animation code have been removed.
+The mobile refinement leaves the original footer spacing and stacked link groups
+intact, without adding entrance animations or a new section divider.
 
 ### Section navigation
 
@@ -343,34 +346,106 @@ Upward trips to Technology or Home prepare the offscreen Why-us introduction
 before crossing its pinned scene, preventing a late white-to-black card swap.
 
 
-### Mobile collection and section entries
+### Mobile collection, form and section motion
 
-`js/mobile-product.js` progressively enhances the existing carousel in the
-mobile layout (the inverse of the scaled desktop query). Products initially
-show their photo, name, description, price and installation note. The accessible
-feature disclosure shares its state across products; all 13 rows use page flow.
-Desktop always displays the complete list. Without JavaScript, mobile cards and
-features remain visible in a vertical stack.
+The mobile presentation remains the inverse of the desktop/fine-pointer landscape
+query. Desktop and the hero-to-Technology transition retain their existing design.
 
-The 44px side-control lanes follow the card's full height, while their curved
-side panels keep chevrons centred in the visible portion. Switching products retains
-expansion and, only when expanded, brings the photo 12px beneath the measured header.
-Collapsed switching leaves the reading position unchanged. Collapse from
-the bottom restores the compact card and focus. Scroll assistance is 220ms,
-disclosure height is 180ms, and the replacement fade is 120ms; reduced motion
-updates immediately. Manual input cancels pending assistance. Swipes must be
-predominantly horizontal. Photo sizing reserves the collapsed copy and headings
-first, with 96–300px bounds and a square-width cap; short windows scroll naturally.
+`js/mobile-card-deck.js` animates the original five complete product articles:
+photo, name, price and features move together within one rounded outline. Media
+nodes remain inside their articles at every breakpoint. Photos are square, use
+20px phone gutters, and cap at 448px. Adjacent cards show 16px at 94% scale;
+there is no viewport-height image budget. Short screens use normal page flow.
+The same source images and catalogue information are retained.
 
-Mobile Technology and Product have matching 40px top/bottom breathing room,
-12px subtitle gaps and 16px before content. Their navigation destinations lift
-the section by 28px so headings still land 12px below the navbar. Support's section edge aligns below the header. Menu,
-footer, hero and direct-fragment entry use the same section destinations.
-Technology's permanent mobile feather has been removed. The following Why-us
-mist is clipped until the boundary departs, releasing over 12vh with the mobile
-prelude accounted for. A geometry observer repaints after feature/photo resizing.
+Pointer gestures start on the photo or card text; disclosure buttons keep native
+click and focus behavior. An 8px dead zone and 1.3x horizontal
+axis test preserve vertical scrolling; CSS allows pan-y and pinch-zoom. An 18%
+width drag or a same-direction flick (at least 12px and .45px/ms) advances one
+product. Settling takes 320ms and rapid input retargets the rendered poses without
+queuing transitions. Each pointer update paints at most once per animation frame;
+there are no layout reads in the drag or settling frame. Cancellation, lost capture,
+multi-touch, resize, reduced motion and hidden/offscreen pages restore settled poses.
+Failed photos retain the square frame and show a named fallback.
 
-Run `npm run test:mobile-product` for disclosure, shared state, scroll assistance,
-interruptions, focus, breakpoint restoration and reduced-motion coverage.
-`test:product` also verifies intentional swipes and anchors; `test:why` covers
-mobile mist release and reversal. Rebuild the CSS distribution after edits.
+`carousel.changeProduct(direction, source)` is the shared internal selection
+operation for arrows, keyboard and drag. `onProductChange` receives
+`{previousIndex, index, direction, source}`; model, price, counter and live
+announcement stay synchronized. This is not a public API. The original 44px
+arrows and 01 / 05 counter remain below the complete card stack.
+
+`js/mobile-product.js` owns the shared disclosure state and reading assistance.
+All 13 feature rows use page flow. Product headings reserve the tallest measured
+content at the current width and font size, measured independently of card scale.
+There is no separate text fade or stationary information panel. Expanded button/keyboard
+changes bring the card below the header; card dragging never initiates page
+scrolling. Bottom collapse restores focus. All five products and features remain
+readable without JavaScript.
+
+Contact fields have zero row gaps, 1.25rem vertical padding and 1rem/1.5 text.
+The message textarea starts at three lines (4.5rem), shares the same first-line
+alignment, and grows with input. Validation messages are in normal flow. Focus
+underlines take 180ms; typed text stays still. The tablet's paired fields and the
+desktop layout are preserved.
+
+`js/mobile-motion.js` enhances existing semantic phrases with clipped windows;
+wrappers are display:contents on desktop. Entrances begin at the lower three-quarters
+of the viewport, take 560ms, and stagger related elements by 60ms. Technology,
+Collection and Contact headings rise through masks. Fields enter individually,
+with divider growth. Menu labels have masked entrances
+inside the existing opening surface. Ordinary entrances run once; interactions repeat.
+
+All seven Technology panels open over 220ms, their descriptions enter over 320ms,
+and decoded images settle from 1.035 scale over 560ms. Reopening a cached image
+restarts its entrance. Image failures and interrupted disclosure heights retain
+existing readable fallbacks.
+The expanded mobile title and description have no intervening decorative divider.
+
+Technology's final rule still meets the solid black Why-us boundary directly.
+The six Why-us cards retain their existing scroll distance and 15% reading holds.
+Incoming headings reveal over card-entry progress .48–.92, secondary phrases over
+.57–.97, details over .64–.98, and final elements over .73–1. Statistics move inward
+around a growing divider; service and patent pills stagger; returns and the 100%
+statement reveal in phrase order. All values remain fixed. Reversing scroll retraces
+these motions. Short screens, oversized content and reduced motion use ordinary flow.
+
+Shared mobile headings remain Helvetica Neue, 2rem/1.15 with -.02em tracking
+(2.5rem on portrait/touch tablets). Section spacing remains 3.5rem, subtitle spacing
+.75rem and introduction-to-content spacing 2rem. No decorative media or animation
+library was added. Rebuild the committed stylesheet with `npm run css` after edits.
+
+References: [Impronta](https://www.e-t.studio/works/impronta-website),
+[Caeli Énergie](https://www.awwwards.com/sites/caeli-energie),
+[MDN touch-action](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action),
+and [web.dev animation performance](https://web.dev/articles/animations-guide).
+
+Validation for the second pass, 2026-10-03:
+
+- Whole-card follow-up: all eight checks pass. Photo/text and expanded-feature
+  swipes were exercised in Chromium; disclosures still receive native clicks.
+  The unified outline has no photo-to-body gap. Square geometry, equal heading
+  heights and no horizontal overflow were verified at the six sizes below,
+  with 200% text, reduced motion and no-JavaScript fixtures checked again.
+  Desktop measurements still match at all three recorded sizes. The expanded
+  Technology title-to-description divider is removed.
+
+- The seven existing checks and the new `test:card-deck` cover navigation,
+  Why-us reversal/holds, catalogue integrity, disclosures, gestures, rapid input,
+  cancellation, breakpoint restoration, image errors, hidden-page cleanup and
+  reduced motion. Gesture tests assert that animation frames make no layout reads.
+- Chromium layout checks cover 320x640, 360x800, 390x844, 430x932, 768x1024 and
+  390x480. All checked photo frames are square, headings match, and the page has no
+  horizontal overflow. Standard fields have equal 20px padding and 24px line height;
+  message starts at 72px. Validation messages remain inside their fields.
+- Local response fixtures exercise blocked scripts, 200% root text, missing images
+  and reduced motion. These fixtures are not deployed. Enlarged Why-us content uses
+  ordinary flow; all five products remain visible without scripts.
+- Desktop widths, heights and heading fonts match the preceding recorded layout
+  at 1280x585, 1440x900 and the 1024x600 fine-pointer landscape breakpoint.
+  Original photos remain inside the desktop cards after rotation/breakpoint changes.
+- A local pointer-drag timing sample recorded 211 animation-frame intervals:
+  median 6.9ms, 95th percentile 7.3ms, maximum 62.5ms, and no reported long tasks.
+  This is one unthrottled desktop Chromium sample with browser-inspection overhead,
+  not a physical-phone performance guarantee.
+- Physical iOS/Android devices, coarse-pointer landscape emulation and CPU-throttled
+  traces are unavailable in this session and remain unverified.

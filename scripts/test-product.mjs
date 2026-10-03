@@ -29,7 +29,7 @@ const cards = expected.map(([name], i) => ({
   removeAttribute(key) { if(key === 'data-pos') delete this.dataset.pos; },
   querySelector:() => ({textContent:name}), querySelectorAll:() => []
 }));
-const status = {};
+const status = {}, counter = {};
 const buttons = [-1, 1].map(dir => ({
   dataset:{dir:String(dir)},
   addEventListener(type, fn) { this[type] = fn; }
@@ -37,7 +37,7 @@ const buttons = [-1, 1].map(dir => ({
 const carousel = {
   dataset:{active:html.match(/class="carousel" data-active="(\d+)"/)[1]},
   querySelectorAll:s => s === '.card' ? cards : buttons,
-  querySelector:s => buttons[s.includes('--next') ? 1 : 0],
+  querySelector:s => s==='.carousel__counter'?counter:buttons[s.includes('--next') ? 1 : 0],
   addEventListener:(name,fn) => events[name] = fn
 };
 const context = vm.createContext({
@@ -47,29 +47,30 @@ vm.runInContext(source.slice(source.indexOf('  var carousel ='), source.indexOf(
 const active = () => cards.findIndex(c => c.dataset.pos === 'center');
 assert.equal(active(), 0);
 assert.equal(status.textContent, 'Showing Novi, 1 of 5');
+assert.equal(counter.textContent,'01 / 05');
+let change;
+carousel.onProductChange=value=>{change=value;};
 for (let i = 0; i < 5; i++) {
   buttons[1].click();
   assert.equal(active(), (i + 1) % 5);
+  assert.deepEqual(JSON.parse(JSON.stringify(change)),{previousIndex:i,index:(i+1)%5,direction:1,source:'button'});
+  assert.equal(counter.textContent,String((i+1)%5+1).padStart(2,'0')+' / 05');
   assert.equal(attributes.filter(a => a['aria-hidden'] === 'false').length, 1);
 }
 for (let i = 0; i < 5; i++) buttons[0].click();
 assert.equal(active(), 0, 'both directions wrap to the same initial model');
 events.keydown({key:'ArrowLeft',preventDefault(){}});
 assert.equal(active(), 4);
+assert.equal(change.direction,-1,'keyboard wraparound retains direction');
 events.keydown({key:'ArrowRight',preventDefault(){}});
 assert.equal(active(), 0);
-events.touchstart({touches:[{clientX:250}]});
-events.touchend({changedTouches:[{clientX:120}]});
-assert.equal(active(), 1, 'left swipe advances');
-events.touchstart({touches:[{clientX:120}]});
-events.touchend({changedTouches:[{clientX:250}]});
-assert.equal(active(), 0, 'right swipe returns');
-events.touchstart({touches:[{clientX:120}]});
-events.touchend({changedTouches:[{clientX:130}]});
-assert.equal(active(), 0, 'incidental touch movement does not change the product');
-events.touchstart({touches:[{clientX:250,clientY:100}]});
-events.touchend({changedTouches:[{clientX:130,clientY:400}]});
-assert.equal(active(),0,'a predominantly vertical reading gesture must not switch products');
+carousel.changeProduct(1,'drag');
+assert.equal(active(),1,'photo drag uses the shared selection operation');
+assert.equal(change.source,'drag');
+assert.equal(status.textContent,'Showing Vero, 2 of 5');
+carousel.changeProduct(-1,'drag');
+assert.equal(active(),0);
+assert.equal(events.touchstart,undefined,'no duplicate whole-carousel touch listener');
 assert.equal(cards.filter(c=>!c.inert).length,1,'only the active product is interactive');
 
 

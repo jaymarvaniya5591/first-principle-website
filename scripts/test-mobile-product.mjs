@@ -23,17 +23,19 @@ const cards=Array.from({length:5},()=>{
   c.getBoundingClientRect=()=>({top:1000-y,bottom:1000-y+400+(panel.hidden?0:400),height:400+(panel.hidden?0:400)});
   return c;
 });
-const stage=node(),carousel=node();carousel.dataset={active:'0'};
-carousel.querySelectorAll=()=>cards;carousel.querySelector=()=>stage;
+const stage=node(),controls=node({height:53}),carousel=node();carousel.dataset={active:'0'};
+carousel.querySelectorAll=()=>cards;carousel.querySelector=s=>s==='.carousel__controls'?controls:stage;
+const deckChanges=[];
+carousel.cardDeck={change:c=>deckChanges.push(c),measure(){},element:cards[0]};
 const section=node();section.clientWidth=366;
 section.querySelector=s=>s==='.carousel'?carousel:heading;
-const document={getElementById:()=>section,querySelector:()=>header,activeElement:null,
+const document={getElementById:()=>section,querySelector:()=>header,activeElement:null,addEventListener:(type,fn)=>events[type]=fn,
   documentElement:{style:{overflowAnchor:'auto'},scrollHeight:5000},fonts:{ready:{then(){}}}};
 const window={scrollTo:({top})=>{y=top;},siteScroll:{cancel(){}},addEventListener:(type,fn)=>events[type]=fn};
 const context=vm.createContext({document,window,Array,Math,
   get scrollY(){return y;},get innerHeight(){return height;},
   matchMedia:q=>{const m={matches:false,addEventListener(type,fn){this.change=fn;}};media.push(m);return m;},
-  getComputedStyle:e=>e===section?{paddingTop:'40'}:e===heading?{marginBottom:'16'}:cards.includes(e)?{paddingBottom:'12'}:{paddingTop:'12',paddingBottom:'0',rowGap:'8'},
+  getComputedStyle:e=>e===section?{paddingTop:'56'}:e===heading?{marginBottom:'32'}:e===controls?{marginTop:'16'}:cards.includes(e)?{paddingBottom:'12'}:{paddingTop:'12',paddingBottom:'0',rowGap:'8'},
   requestAnimationFrame:fn=>{frames.set(++frameId,fn);return frameId;},cancelAnimationFrame:id=>frames.delete(id),
   setTimeout:()=>1,clearTimeout(){},performance:{now:()=>time},ResizeObserver:class {observe(){}}
 });
@@ -45,7 +47,15 @@ function finishHeight() {const a=[...animations].reverse().find(a=>a.options.dur
 assert.ok(section.classList.contains('product--mobile'));
 assert.ok(cards.every((_,i)=>panel(i).hidden),'all products start collapsed');
 assert.equal(toggle(0).attrs['aria-expanded'],'false');
-assert.ok(parseFloat(section.props['--mobile-product-photo'])<=300);
+assert.equal(section.props['--mobile-product-photo'],undefined,'photo height is no longer compressed to a viewport budget');
+// Selection delegates once to the whole-card animation; text has no separate fade.
+carousel.onProductChange({previousIndex:0,index:4,direction:-1});
+carousel.onProductChange({previousIndex:4,index:0,direction:1});
+assert.deepEqual(deckChanges.map(c=>c.direction),[-1,1]);
+assert.equal(animations.length,0,'photo and details move together without a separate text fade');
+height=640;events.resize();tick(0);
+assert.equal(section.props['--mobile-product-photo'],undefined,'short screens preserve square photos in ordinary flow');
+height=844;media[0].change();
 // Collapsed browsing must not reposition, including repeated input.
 y=710;carousel.onProductChange();tick(240);
 assert.equal(y,710,'collapsed switch keeps the current page position');
@@ -83,8 +93,8 @@ media[1].matches=true;media[1].change();const count=animations.length;
 toggle(2).listeners.click();y=1400;carousel.dataset.active='3';carousel.onProductChange();
 assert.equal(y,924);assert.equal(animations.length,count);
 assert.equal(panel(3).hidden,false);
-// Wings follow the visible intersection rather than the full expanded midpoint.
-y=1200;events.scroll();tick(1800);
-const wing=parseFloat(carousel.props['--wing-y']);
-assert.ok(wing>=22&&wing<=778);
-console.log('Mobile products: disclosure state, stable expansion, switch/collapse landing, rapid taps, interruption, focus, desktop restoration, reduced motion and wings passed.');
+assert.equal(events.scroll,undefined,'compact controls need no per-scroll positioning work');
+document.hidden=true;events.visibilitychange();
+assert.equal(frames.size,0,'hidden pages cancel pending animation work');
+assert.equal(document.documentElement.style.overflowAnchor,'auto');
+console.log('Mobile products: disclosure state, stable expansion, switch/collapse landing, whole-card delegation, rapid taps, interruption, focus, desktop restoration, reduced motion, square-photo flow and hidden-page cleanup passed.');

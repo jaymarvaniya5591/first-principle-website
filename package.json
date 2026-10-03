@@ -17,7 +17,8 @@
     "serve": "node scripts/serve.mjs",
     "test:scroll": "node scripts/test-scroll.mjs",
     "test:technology-scroll": "node scripts/test-technology-scroll.mjs",
-    "test:mobile-product": "node scripts/test-mobile-product.mjs"
+    "test:mobile-product": "node scripts/test-mobile-product.mjs",
+    "test:card-deck": "node scripts/test-mobile-card-deck.mjs"
   },
   "devDependencies": {
     "csso": "^5.0.5",
