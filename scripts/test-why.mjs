@@ -32,7 +32,7 @@ scroll.getBoundingClientRect=()=>({top:state.start-state.y});
 product.getBoundingClientRect=()=>({top:9000-state.y});
 const names=['warranty','service','returns','focus','patents'];
 const slides=names.map((name,i)=>{
-  const el=node(); el.name=name; el.dataset.navTheme=i%2?'dark':'light';
+  const el=node(); el.name=name; el.dataset.whyScene=name; el.dataset.navTheme=i%2?'dark':'light';
   const inner={get scrollHeight(){return state.contentHeight;}, get scrollWidth(){return state.width-80;}};
   el.querySelector=()=>inner;
   el.getBoundingClientRect=()=>({
@@ -258,3 +258,33 @@ advance(0);advance(100);const beforeTouch=state.y;
 windowEvents.get('touchstart').forEach(fn=>fn());advance(1000);
 assert.equal(state.y,beforeTouch,'mobile touch cancels the pending link trip without adding distance');
 assert.equal(mobileNavigationFinished,1);
+
+// Mobile-only hotel proof adds a scene, never an input multiplier or an empty
+// desktop segment. Existing warranty and all other per-scene pacing stay exact.
+const trust=node();trust.name='trust';trust.dataset.whyScene='trust';trust.dataset.mobileOnly='true';trust.dataset.navTheme='dark';
+trust.querySelector=slides[0].querySelector;
+trust.getBoundingClientRect=()=>({left:0,top:state.start-state.y+6*(state.height+160)});
+track.children.push(trust);context.whyAllSlides.push(trust);
+state.y=0;state.desktop=true;state.width=1440;state.height=900;state.stableHeight=0;
+context.measureWhy();
+assert.equal(context.whySlides.length,6,'desktop keeps exactly its original six scenes');
+assert.equal(context.whyLayout.journey,900*1.6*5);
+state.desktop=false;state.width=390;state.height=844;state.stableHeight=844;
+context.measureWhy();
+assert.equal(context.whySlides.length,7,'mobile includes the hotel scene');
+assert.equal(context.whyLayout.journey,844*6,'one unchanged viewport segment per mobile transition');
+assert.deepEqual(order(),['intro','warranty','service','returns','trust','patents','focus'],'mobile DOM order matches the visible scene order');
+assert.deepEqual(Array.from(context.whySlides).map(slide=>slide.style.getPropertyValue('--why-layer')),['1','2','3','4','5','6','7'],'cover layers follow the reordered scenes');
+paintAt(3.7*844);const trustMiddle=trust.style.getPropertyValue('--why-card-y');
+paintAt(4*844);assert.equal(trust.style.getPropertyValue('--why-card-y'),'0.00000%');
+paintAt(3.7*844);assert.equal(trust.style.getPropertyValue('--why-card-y'),trustMiddle);
+paintAt(4*844);state.desktop=true;state.width=1440;state.height=900;state.stableHeight=0;context.measureWhy();
+assert.equal(context.whySlides.length,6);
+assert.ok(Math.abs(x()+5*1440)<.001,'rotating out of the hotel card lands on the last real desktop scene');
+console.log('Mobile hotel scene: desktop exclusion, native pacing, reversal and breakpoint restoration passed.');
+
+assert.deepEqual(Array.from(context.whySlides).map(s=>s.name),['intro','warranty','service','returns','focus','patents'],'desktop order restores exactly');
+state.desktop=false;state.width=390;state.height=844;state.stableHeight=844;context.measureWhy();
+paintAt(6*844);assert.equal(context.whySlides[6].name,'focus');
+state.desktop=true;state.width=1440;state.height=900;state.stableHeight=0;context.measureWhy();
+assert.ok(Math.abs(x()+4*1440)<.001,'the focus scene remains active when rotating from the new last position');

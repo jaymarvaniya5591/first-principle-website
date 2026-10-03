@@ -26,6 +26,7 @@
   var carousel = document.querySelector('.carousel');
   var why = document.getElementById('why-us');
   var whyScenes = [];
+  var whySceneMap = new WeakMap();
   var request = function () {
     if (window.siteScroll && window.siteScroll.requestFrame) window.siteScroll.requestFrame();
   };
@@ -80,8 +81,9 @@
         });
         note.appendChild(line); notes = Array.from(note.querySelectorAll('.why-note-line'));
       } else if (note) notes = [note];
-      whyScenes.push({slide:slide, words:splitWords(title), notes:notes,
-        pills:Array.from(slide.querySelectorAll('.pill')), signature:null});
+      var scene = {slide:slide, role:slide.dataset.whyScene, words:splitWords(title), notes:notes,
+        pills:Array.from(slide.querySelectorAll('.pill')), marks:Array.from(slide.querySelectorAll('.trust__mark')), signature:null};
+      whyScenes.push(scene); whySceneMap.set(slide, scene);
     });
     why.classList.add('why--words');
   }
@@ -164,29 +166,34 @@
     document.documentElement.classList.add('scene-motion-ready');
   }
   function paintWhy(slide, index, entry, covered, animated) {
-    var scene = whyScenes[index];
+    var scene = whySceneMap.get(slide);
     if (!scene) return;
     var still = reduced.matches || !animated;
-    var exit = still || index === 1 ? 0 : departure(covered);
+    var exit = still || scene.role === 'warranty' ? 0 : departure(covered);
     var signature = entry.toFixed(5) + '/' + exit.toFixed(5) + '/' + still;
     if (signature === scene.signature) return;
     scene.signature = signature;
     scene.words.forEach(function (word, i) {
-      var p = still ? 1 : wordPose(entry, i, scene.words.length, index === 0);
+      var p = still ? 1 : wordPose(entry, i, scene.words.length, scene.role === 'intro');
       word.style.opacity = ((.24 + .76 * p) * (1 - exit)).toFixed(5);
-      var scale = index === 4 && i === 0 ? 1 + .04 * (1 - p) : 1;
+      var scale = scene.role === 'focus' && i === 0 ? 1 + .04 * (1 - p) : 1;
       word.style.transform = 'translate3d(0,calc(' + (.35 * (1 - p)).toFixed(5) + 'em - ' + (8 * exit).toFixed(3) + 'px),0) scale(' + scale.toFixed(5) + ')';
     });
     scene.notes.forEach(function (note, i) {
-      var p = still ? 1 : ease(range(entry, index === 0 ? .56 + i * .06 : .72, .96 + i * .02));
+      var p = still ? 1 : ease(range(entry, scene.role === 'intro' ? .56 + i * .06 : .72, .96 + i * .02));
       note.style.opacity = (p * (1 - exit)).toFixed(5);
       note.style.transform = 'translate3d(0,' + (16 * (1 - p) - 8 * exit).toFixed(3) + 'px,0)';
     });
     scene.pills.forEach(function (pill, i) {
       var p = still ? 1 : ease(range(entry, .72 + i * .06, .92 + i * .06));
-      var x = index === 2 ? (i ? 12 : -12) * (1 - p) : 0;
+      var x = scene.role === 'service' ? (i ? 12 : -12) * (1 - p) : 0;
       pill.style.opacity = (p * (1 - exit)).toFixed(5);
-      pill.style.transform = 'translate3d(' + x.toFixed(3) + 'px,' + (16 * (1 - p) - 8 * exit).toFixed(3) + 'px,0) scale(' + (index === 5 ? .96 + .04 * p : 1).toFixed(5) + ')';
+      pill.style.transform = 'translate3d(' + x.toFixed(3) + 'px,' + (16 * (1 - p) - 8 * exit).toFixed(3) + 'px,0) scale(' + (scene.role === 'patents' ? .96 + .04 * p : 1).toFixed(5) + ')';
+    });
+    scene.marks.forEach(function (mark, i) {
+      var p = still ? 1 : ease(range(entry, .68 + i * .035, .87 + i * .035));
+      mark.style.opacity = (p * (1 - exit)).toFixed(5);
+      mark.style.transform = 'translate3d(0,' + (14 * (1 - p) - 8 * exit).toFixed(3) + 'px,0)';
     });
   }
   document.addEventListener('focusin', function (event) {

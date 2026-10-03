@@ -543,3 +543,54 @@ Scroll-control correction, 2026-10-03:
   three Why-us positions each moved 96.7px; a 430px trackpad-style burst moved
   352.7px. Document height remained stable. Physical touch-device testing remains
   unavailable; native touch/fallback interruption is covered by controller tests.
+
+Mobile hero and hotel proof, 2026-10-03:
+
+- Removed the hotel rail from the mobile/touch hero. At 320, 360, 390 and 430px,
+  the heading and subline move up exactly 50px; the CTA, product and stage height
+  keep their approved positions. Short screens recover the removed row in normal
+  flow. Portrait tablets also omit the rail.
+- Added a mobile-only black “Trusted by leading hotels” scene before Patents,
+  using the existing four hotel images in a balanced two-column grid. Its words
+  and marks retrace with scroll, settle before reading, and show immediately in
+  flow/reduced-motion mode. It adds one ordinary mobile segment, with unchanged
+  per-scene travel, reading holds and warranty curves. Desktop retains its six
+  scenes and hero rail. Resizing out of the hotel scene lands on the last desktop
+  scene rather than an empty seventh segment.
+- One font-ready mobile entrance now coordinates the title, signature, supporting
+  copy, warranty/returns, CTA and existing product rise. Text delays run from
+  40–620ms, with a shared 900ms easing; the product retains its 1100ms settlement.
+  Removed the unrelated repeating CTA cues. Only opacity and transforms animate;
+  the cloud handoff retains ownership of the outer hero.
+- Input, navigation restoration, hidden tabs, breakpoint changes and reduced
+  motion settle the entrance immediately. Failed fonts or a missing main script
+  cannot leave hidden content. The pre-paint fallback remains 1400ms, completion
+  runs from font readiness, and no-JavaScript content is visible by default.
+- All 12 checks pass, including the new `test:hero` lifecycle regression and
+  extended Why-us/motion tests for seven mobile versus six desktop scenes,
+  hotel-mark ordering, reversal, pacing and breakpoint restoration. Existing
+  real-engine scroll-control tests still pass; input settings were not changed.
+- Chromium layout checks: 320×640, 360×800, 390×844, 430×932, 768×1024 and
+  390×480 have no horizontal overflow. Reduced motion, no JavaScript and 200%
+  text enlargement keep all hotel names/logos readable. Resting desktop geometry
+  matches HEAD at 1280×585, 1440×900 and the 1024×600 landscape-pointer layout.
+  The live hero sequence was inspected at entrance and completion; the hotel
+  card produces identical poses after reversal, with constant document height.
+- Review captures include the finished hero and hotel card. No application
+  JavaScript errors appeared. Physical mobile devices, Safari/Firefox and CPU
+  throttling were unavailable; this pass uses Chromium plus controller tests.
+
+Hotel-card refinement:
+
+- Kept the approved heading and reduced the logo group from 352px to 256px wide.
+  Logo heights are now 36/34/34/22px, with 80% image opacity and tighter row spacing.
+  The compact marks remain recognisable while leaving the heading dominant.
+- Mobile now ends with Hotels → Patents → “100% of what we build is smart toilets.”
+  Desktop retains its original order. The controller synchronises DOM order,
+  cover layers and keyboard navigation; flow/no-JavaScript layouts use the same
+  visual order. Motion follows scene identity rather than array position, so the
+  focus statement and hotel marks keep their correct sequences after swapping.
+- Rechecked phone/tablet, short-screen, enlarged-text, reduced-motion and no-JS
+  layouts, desktop order and unchanged journey height. Regression checks cover
+  scene-specific animation after reordering and preserving the active focus card
+  across desktop/mobile resizing. Scroll input settings remain unchanged.

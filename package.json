@@ -21,7 +21,8 @@
     "test:mobile-product": "node scripts/test-mobile-product.mjs",
     "test:card-deck": "node scripts/test-mobile-card-deck.mjs",
     "test:motion": "node scripts/test-motion.mjs",
-    "test:scroll-input": "node scripts/test-scroll-input.mjs"
+    "test:scroll-input": "node scripts/test-scroll-input.mjs",
+    "test:hero": "node scripts/test-hero.mjs"
   },
   "devDependencies": {
     "csso": "^5.0.5",

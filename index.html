@@ -57,8 +57,8 @@
     </style>
   </noscript>
   <script>
-    // Arm the phone reveal before first paint; a failed script/font load stays readable.
-    if (matchMedia('(width < 600px)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // One mobile entrance clock, armed before paint with a readable failure timeout.
+    if (matchMedia('(width < 600px), (width < 1100px) and (aspect-ratio < 4/3), (width < 1100px) and (hover: none), (width < 1100px) and (pointer: coarse), (width < 1100px) and (pointer: none)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.documentElement.dataset.phoneTitle = 'pending';
       setTimeout(function () {
         if (document.documentElement.dataset.phoneTitle === 'pending') document.documentElement.dataset.phoneTitle = 'static';
@@ -441,14 +441,14 @@
     <div class="why__scroll-container">
       <div class="why__sticky">
         <div class="why__track" tabindex="-1" role="group" aria-label="Why First Principle highlights">
-      <article class="slide slide--dark slide--intro" data-nav-mode="merge" data-nav-theme="dark">
+      <article class="slide slide--dark slide--intro" data-why-scene="intro" data-nav-mode="merge" data-nav-theme="dark">
         <div class="slide__inner">
           <h2 class="slide__title" id="why-intro-title"><span class="intro__word-window"><span class="intro__word dim">Why</span></span> <span class="intro__word-window intro__word-window--brand"><span class="intro__word">First Principle?</span></span></h2>
           <p class="slide__note dim">So much goes into making a home.<br />When it comes to your toilet, rest easy. <span class="slide__reassurance">We’re here.</span></p>
         </div>
       </article>
 
-      <article class="slide slide--light" data-nav-mode="merge" data-nav-theme="light">
+      <article class="slide slide--light" data-why-scene="warranty" data-nav-mode="merge" data-nav-theme="light">
         <div class="slide__inner slide__inner--wide">
           <h3 class="slide__title"><span class="dim">We back our toilets</span> three times longer</h3>
           <div class="stats">
@@ -465,7 +465,7 @@
         </div>
       </article>
 
-      <article class="slide slide--dark" data-nav-mode="merge" data-nav-theme="dark">
+      <article class="slide slide--dark" data-why-scene="service" data-nav-mode="merge" data-nav-theme="dark">
         <div class="slide__inner">
           <h3 class="slide__title">In-house service.<br /><span class="dim">Others outsource theirs.</span></h3>
           <div class="pills pills--stack-mobile">
@@ -475,27 +475,38 @@
         </div>
       </article>
 
-      <article class="slide slide--light" data-nav-mode="merge" data-nav-theme="light">
+      <article class="slide slide--light" data-why-scene="returns" data-nav-mode="merge" data-nav-theme="light">
         <div class="slide__inner">
           <h3 class="slide__title">30-day free returns.<br /><span class="dim">No questions asked.</span></h3>
           <p class="slide__note">We'll remove it and fit any brand you prefer instead.</p>
         </div>
       </article>
 
-      <article class="slide slide--dark" data-nav-mode="merge" data-nav-theme="dark">
+      <article class="slide slide--dark" data-why-scene="focus" data-nav-mode="merge" data-nav-theme="dark">
         <div class="slide__inner">
           <h3 class="slide__title">100% <span class="dim">of what we build is</span> smart toilets.</h3>
           <p class="slide__note slide__note--wide dim">For everyone else, it's a side category.</p>
         </div>
       </article>
 
-      <article class="slide slide--light" data-nav-mode="merge" data-nav-theme="light">
+      <article class="slide slide--light" data-why-scene="patents" data-nav-mode="merge" data-nav-theme="light">
         <div class="slide__inner slide__inner--narrow">
           <h3 class="slide__title"><span class="dim">We've patented</span> new smart toilet <span class="dim">technologies.</span></h3>
           <div class="pills">
             <span class="pill"><i class="pill__dot"></i>Medical-grade urine analysis</span>
             <span class="pill"><i class="pill__dot"></i>Active perfume mist</span>
           </div>
+        </div>
+      </article>
+      <article class="slide slide--dark slide--trust" data-why-scene="trust" data-mobile-only="true" data-nav-mode="merge" data-nav-theme="dark">
+        <div class="slide__inner">
+          <h3 class="slide__title"><span class="dim">Trusted by</span><br /> leading hotels.</h3>
+          <ul class="trust__marks" role="list" aria-label="Hotels specifying First Principle">
+            <li class="trust__mark trust__mark--taj"><img src="assets/img/logos/taj-white.png" width="201" height="176" alt="Taj Hotels" loading="lazy" decoding="async" /></li>
+            <li class="trust__mark trust__mark--leela"><img src="assets/img/logos/leela-white.png" width="268" height="176" alt="The Leela Palaces, Hotels and Resorts" loading="lazy" decoding="async" /></li>
+            <li class="trust__mark trust__mark--itc"><img src="assets/img/logos/itc-white.png" width="328" height="176" alt="ITC Hotels" loading="lazy" decoding="async" /></li>
+            <li class="trust__mark trust__mark--oberoi"><img src="assets/img/logos/oberoi-white.png" width="657" height="176" alt="The Oberoi Group" loading="lazy" decoding="async" /></li>
+          </ul>
         </div>
       </article>
         </div>

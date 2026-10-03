@@ -293,7 +293,8 @@
 
   if (whySection && whyScroll && track && whySticky) {
     var whyIntro = track.querySelector('.slide--intro');
-    var whySlides = Array.from(track.querySelectorAll('.slide'));
+    var whyAllSlides = Array.from(track.querySelectorAll('.slide'));
+    var whySlides = whyAllSlides;
     var whyViewport = whySection.querySelector('.why__viewport-probe');
     var whyStageHeight = function () {
       return whyDesktop.matches ? window.innerHeight : (whyViewport.getBoundingClientRect().height || window.innerHeight);
@@ -471,6 +472,27 @@
       var inside = oldLayout && oldLayout.animated && oldTop <= 0 && -oldTop <= oldLayout.runway;
       var oldProgress = inside ? whyClamp((-oldTop - oldLayout.hold) / oldLayout.journey, 1) : 0;
       var activeSlide = inside ? whySlides[Math.round(oldProgress * (whySlides.length - 1))] : null;
+      var oldSlidePosition = oldProgress * (whySlides.length - 1);
+      // The hotel scene replaces the mobile hero rail; desktop keeps six scenes.
+      whySlides = whyAllSlides.filter(function (slide) { return !desktop || slide.dataset.mobileOnly !== 'true'; });
+      if (!desktop) {
+        var focusIndex = whySlides.findIndex(function (slide) { return slide.dataset.whyScene === 'focus'; });
+        var trustIndex = whySlides.findIndex(function (slide) { return slide.dataset.whyScene === 'trust'; });
+        if (focusIndex >= 0 && trustIndex >= 0) {
+          var focusSlide = whySlides[focusIndex];
+          whySlides[focusIndex] = whySlides[trustIndex];
+          whySlides[trustIndex] = focusSlide;
+        }
+      }
+      if (activeSlide && whySlides.indexOf(activeSlide) < 0) activeSlide = whySlides[whySlides.length - 1];
+      var newSlidePosition = activeSlide ? Math.max(0, Math.min(whySlides.length - 1,
+        whySlides.indexOf(activeSlide) + oldSlidePosition - Math.round(oldSlidePosition))) : 0;
+      // Keep reading, keyboard and cover order aligned, without cloning content.
+      var orderedSlides = whySlides.concat(whyAllSlides.filter(function (slide) { return whySlides.indexOf(slide) < 0; }));
+      if (orderedSlides.some(function (slide, i) { return track.children[i] !== slide; })) {
+        orderedSlides.forEach(function (slide) { track.appendChild(slide); });
+      }
+      whySlides.forEach(function (slide, i) { slide.style.setProperty('--why-layer', i + 1); });
       whySection.style.setProperty('--why-unit', (whySection.clientWidth / 1280) + 'px');
       whySection.style.setProperty('--why-vh', (height / 100) + 'px');
       whySection.style.setProperty('--why-stage-height', height + 'px');
@@ -517,7 +539,7 @@
         if (window.siteScroll) window.siteScroll.cancel();
         var position = entering ? -oldTop / oldLayout.entrance * entrance
           : oldLayout.horizontal === horizontal ? (-oldTop / oldLayout.runway) * runway
-          : hold + oldProgress * journey;
+          : hold + newSlidePosition * journey / (whySlides.length - 1);
         var destination = animated
           ? window.scrollY + whyScroll.getBoundingClientRect().top + position
           : window.scrollY + (activeSlide || whyIntro).getBoundingClientRect().top;
@@ -539,7 +561,7 @@
     if (document.fonts) document.fonts.ready.then(requestWhyMeasure);
     if ('ResizeObserver' in window) {
       var whyObserver = new ResizeObserver(requestWhyMeasure);
-      whySlides.forEach(function (slide) { whyObserver.observe(slide.querySelector('.slide__inner')); });
+      whyAllSlides.forEach(function (slide) { whyObserver.observe(slide.querySelector('.slide__inner')); });
     }
     measureWhy();
 
@@ -808,31 +830,40 @@
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   var hero = document.getElementById("home");
-  // Both words share one persistent compositing layer. Wait for their actual
-  // faces before moving it; neither animation completion nor menu use resets it.
+  // One font-ready mobile narrative. The outer hero remains owned by the
+  // reversible cloud transition; only its children take part in this entrance.
   var phoneTitleRoot = document.documentElement;
-  var phoneTitleMedia = window.matchMedia("(width < 600px)");
-  var showStaticTitle = function () { phoneTitleRoot.dataset.phoneTitle = "static"; };
+  var phoneTitleMedia = window.matchMedia("(width < 600px), (width < 1100px) and (aspect-ratio < 4/3), (width < 1100px) and (hover: none), (width < 1100px) and (pointer: coarse), (width < 1100px) and (pointer: none)");
+  var heroEntranceTimer = 0;
+  var showStaticTitle = function () {
+    phoneTitleRoot.dataset.phoneTitle = "static";
+    window.clearTimeout(heroEntranceTimer);
+    if (hero) hero.classList.add("hero--entered");
+  };
   if (phoneTitleRoot.dataset.phoneTitle === "pending") {
-    if (document.fonts && !reduceMotion.matches) {
+    if (document.fonts && !reduceMotion.matches && !document.hidden && window.scrollY < 24 && (!window.location.hash || window.location.hash === '#home')) {
       Promise.all([
         document.fonts.load('72px "Anton"', 'TOILETS'),
         document.fonts.load('80px "Billion Dreams"', 'Redefined')
       ]).then(function (faces) {
         if (phoneTitleRoot.dataset.phoneTitle !== "pending") return;
-        phoneTitleRoot.dataset.phoneTitle = faces.every(function (list) { return list.length > 0; }) && phoneTitleMedia.matches && !reduceMotion.matches ? "reveal" : "static";
+        if (!faces.every(function (list) { return list.length > 0; }) || !phoneTitleMedia.matches || reduceMotion.matches || document.hidden) { showStaticTitle(); return; }
+        phoneTitleRoot.dataset.phoneTitle = "reveal";
+        heroEntranceTimer = window.setTimeout(showStaticTitle, 1600);
       }, showStaticTitle);
     } else showStaticTitle();
   }
   phoneTitleMedia.addEventListener("change", showStaticTitle);
   reduceMotion.addEventListener("change", function (event) { if (event.matches) showStaticTitle(); });
-  // Seal the one-time phone entrance so crossing responsive breakpoints does
-  // not replay it. Final CSS remains visible even if JavaScript is unavailable.
-  if (hero) {
-    var finishHeroEntrance = function () { hero.classList.add("hero--entered"); };
-    window.setTimeout(finishHeroEntrance, 2000);
-    window.matchMedia("(width < 600px)").addEventListener("change", finishHeroEntrance);
-  }
+  // Input always wins over loading; no hidden CTA waits for an animation.
+  ['pointerdown', 'touchstart', 'wheel', 'keydown'].forEach(function (type) {
+    window.addEventListener(type, showStaticTitle, {once:true, passive:true});
+  });
+  window.addEventListener('scroll', function () {
+    if (phoneTitleRoot.dataset.phoneTitle !== 'static' && window.scrollY > 24) showStaticTitle();
+  }, {passive:true});
+  window.addEventListener('pageshow', function (event) { if (event.persisted) showStaticTitle(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) showStaticTitle(); });
   var tech = document.getElementById("technology");
   var topbar = document.querySelector(".topbar");
 

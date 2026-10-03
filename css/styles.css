@@ -2914,47 +2914,21 @@ img {
   .hero__content { max-width: 340px; flex: 1 0 auto; align-items: center; text-align: center; animation: none; }
   .hero__eyebrow, .hero__sub-bidet { display: none; }
   .hero__title { order: 1; margin-top: 0; align-items: center; transform: translate3d(0,0,0); will-change: transform, opacity; }
-  [data-phone-title="pending"] .hero__title { opacity: 0; }
-  [data-phone-title="reveal"] .hero__title { animation: phoneTitleGlide 1000ms cubic-bezier(.16,.72,.24,1) 80ms both, phoneTitleFade 900ms cubic-bezier(.42,0,.36,1) 80ms both; }
   .hero__title-main, .hero__title-script { animation: none; }
   .hero__title-main { font-size: min(clamp(3.75rem, 18vw, 4.5rem), 26vw); line-height: .95; }
-  .hero__title-script { --phone-title-opacity: .70; font-size: min(clamp(4rem, 20vw, 5rem), 28vw); line-height: 1; margin: -.34em 0 0; opacity: .70; }
-  .hero__sub { order: 2; margin-top: 16px; font-size: 1rem; line-height: 1.375; color: white; animation: phoneCopyEnter 320ms ease-out 240ms both; }
+  .hero__title-script { font-size: min(clamp(4rem, 20vw, 5rem), 28vw); line-height: 1; margin: -.34em 0 0; opacity: .70; }
+  .hero__sub { order: 2; margin-top: 16px; font-size: 1rem; line-height: 1.375; color: white; animation: none; }
   .hero__sub-origin { display: block; }
   .hero__cta { order: 5; flex-shrink: 0; width: min(232px, 100%); height: auto; min-height: 48px; margin-top: 8px; padding: 8px 10px 8px 20px; gap: 10px; border: 1px solid rgba(255,255,255,.8); background: #fbfdff; color: #182c40; box-shadow: 0 3px 12px rgba(20,58,92,.12), inset 0 1px 0 white; transition: transform 140ms ease-out, box-shadow 140ms ease-out, background 140ms ease-out; }
-  .hero__cta::after { content: ""; position: absolute; inset: -20% auto -20% 0; width: 42%; z-index: -1; pointer-events: none; background: linear-gradient(105deg, transparent, rgba(196,222,243,.5), rgba(255,255,255,.9), transparent); transform: translateX(-160%); opacity: 0; animation: phoneActionSheen 7s ease-in-out 2s infinite; }
   .hero__cta__labels { font-size: .8125rem; height: auto; min-height: 22px; line-height: 1.4; white-space: normal; }
   .hero__cta__label { flex-wrap: wrap; }
   .hero__cta__label--price strong { font-size: .9375rem; }
   .hero__cta__arrow { width: 28px; height: 28px; border-radius: 50%; background: #111; color: white; box-shadow: none; }
-  .hero__cta__arrow svg { width: 14px; height: 14px; animation: phoneActionCue 7s ease-in-out 2s infinite; }
-  .clouds-paused .hero__cta::after, .clouds-paused .hero__cta__arrow svg { animation-play-state: paused; }
+  .hero__cta__arrow svg { width: 14px; height: 14px; }
   .hero__price { order: 4; justify-content: center; margin-top: auto; padding-top: 24px; gap: 8px; font-size: .75rem; line-height: 1.4; color: white; }
-  .hero__proof {
-    order: 3;
-    flex-direction: column;
-    margin-top: 24px;
-    padding: 0;
-    border: 0;
-    gap: 12px;
-    max-width: 340px;
-    animation: phoneCopyEnter 320ms ease-out 340ms both;
-  }
-  .hero__proof__label { font-size: .5625rem; font-weight: 500; line-height: 1.2; letter-spacing: .16em; color: white; }
-  .hero__proof__marks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; width: 100%; height: 32px; gap: 10px; overflow: visible; }
-  .hero__proof__marks::after { display: none; }
-  .hero__proof__marks .mark { display: flex; align-items: center; justify-content: center; min-width: 0; }
-  .hero__proof__marks .mark img { max-width: 100%; object-fit: contain; animation: none; filter: none; opacity: 1; transform: none; }
-  /* One coincident, unblurred pass reinforces only translucent edge pixels.
-     No offset or spread: keep the fine lettering sharp, and Taj unchanged. */
-  .hero__proof__marks :is(.mark--leela, .mark--itc, .mark--oberoi) img { filter: drop-shadow(0 0 0 rgba(255,255,255,.4)); }
-  .hero__proof__marks .mark--taj img { height: 30px; }
-  .hero__proof__marks .mark--leela img { height: 28px; }
-  .hero__proof__marks .mark--itc img { height: 30px; }
-  .hero__proof__marks .mark--oberoi img { height: 19px; }
   /* Copy main's 135vw product, -5% bottom and 140vw centered cloud image.
      The product crop sits below the stage; no image mask or synthetic puffs. */
-  .hero__toilet { position: absolute; inset: auto; left: 50%; bottom: -5%; width: 135vw; max-width: none; height: auto; aspect-ratio: auto; margin: 0; padding: 0; transform: translateX(-50%); z-index: 5; animation: phoneProductEnter 1100ms cubic-bezier(.2,.8,.2,1) 120ms both; }
+  .hero__toilet { position: absolute; inset: auto; left: 50%; bottom: -5%; width: 135vw; max-width: none; height: auto; aspect-ratio: auto; margin: 0; padding: 0; transform: translateX(-50%); z-index: 5; animation: none; }
   .hero__toilet img { mask-image: none; }
   .hero__clouds { display: block; left: 50%; right: auto; top: auto; bottom: -2px; width: 140vw; height: auto; translate: -50% 0; opacity: .75; z-index: 6; animation: none; }
   .hero__mist, .hero__mist-behind { display: none; }
@@ -2967,35 +2941,39 @@ img {
   .hero__cta:is(:hover, :focus-visible) .hero__cta__arrow { color: white; background: #111; transform: none; }
   .hero__cta:active { transform: scale(.98); background: #f0f6fc; box-shadow: 0 1px 4px rgba(20,58,92,.12); }
   .hero__cta:active .hero__cta__arrow { background: #292929; color: white; }
-  .hero--entered .hero__sub,
-  .hero--entered .hero__proof,
-  .hero--entered .hero__toilet { animation: none; }
 }
 
-@keyframes phoneTitleGlide {
-  from { transform: translate3d(0,-36px,0); }
-  to { transform: translate3d(0,0,0); }
+/* A single mobile loading narrative: title, signature, promise, reassurance,
+   action. Font readiness starts every layer together; geometry stays still. */
+@media (width <600px), (width <1100px) and (aspect-ratio <4/3), (width <1100px) and (hover:none), (width <1100px) and (pointer:coarse), (width <1100px) and (pointer:none) {
+  .hero__proof { display:none; }
+  .hero__content, .hero__toilet { animation:none; }
+  .hero__toilet { --hero-product-x:0%; }
+  .hero__title-script { --hero-final-opacity:.5; }
+  [data-phone-title="pending"] :is(.hero__eyebrow,.hero__title-main,.hero__title-script,.hero__sub,.hero__price,.hero__cta,.hero__toilet) { opacity:0; }
+  [data-phone-title="reveal"] .hero:not(.hero--entered) :is(.hero__eyebrow,.hero__title-main,.hero__title-script,.hero__sub,.hero__price,.hero__cta) {
+    animation:heroNarrative 900ms cubic-bezier(.22,1,.36,1) var(--hero-delay,0ms) both;
+  }
+  .hero__eyebrow { --hero-rise:10px; }
+  .hero__title-main { --hero-rise:24px; --hero-delay:40ms; }
+  .hero__title-script { --hero-rise:14px; --hero-delay:180ms; }
+  .hero__sub { --hero-rise:16px; --hero-delay:340ms; }
+  .hero__price { --hero-rise:12px; --hero-delay:480ms; }
+  .hero__cta { --hero-rise:12px; --hero-delay:620ms; }
+  [data-phone-title="reveal"] .hero:not(.hero--entered) .hero__toilet { animation:heroProductNarrative 1100ms cubic-bezier(.2,.8,.2,1) 120ms both; }
+  .hero--entered :is(.hero__title-main,.hero__title-script,.hero__sub,.hero__price,.hero__cta,.hero__toilet) { animation:none; }
 }
-@keyframes phoneTitleFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@media (width <600px) {
+  .hero__toilet { --hero-product-x:-50%; }
+  .hero__title-script { --hero-final-opacity:.7; }
 }
-@keyframes phoneCopyEnter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes heroNarrative {
+  from { opacity:0; transform:translate3d(0,var(--hero-rise,16px),0); }
+  to { opacity:var(--hero-final-opacity,1); transform:translate3d(0,0,0); }
 }
-@keyframes phoneProductEnter {
-  from { transform: translateX(-50%) translateY(clamp(80px, 14svh, 120px)); opacity: 0; }
-  to { transform: translateX(-50%) translateY(0); opacity: 1; }
-}
-@keyframes phoneActionCue {
-  0%, 14%, 100% { transform: translateX(0); }
-  7% { transform: translateX(3px); }
-}
-@keyframes phoneActionSheen {
-  0% { transform: translateX(-160%); opacity: 0; }
-  3% { opacity: .7; }
-  18%, 100% { transform: translateX(340%); opacity: 0; }
+@keyframes heroProductNarrative {
+  from { transform:translateX(var(--hero-product-x)) translateY(clamp(80px,14svh,120px)); opacity:0; }
+  to { transform:translateX(var(--hero-product-x)) translateY(0); opacity:1; }
 }
 
 /* Keep all content in view on short portrait phones without shrinking body text. */
@@ -3006,7 +2984,6 @@ img {
   .hero__sub { margin-top: 12px; }
   .hero__cta { min-height: 44px; padding-block: 6px; }
   .hero__price { padding-top: 16px; }
-  .hero__proof { margin-top: 18px; gap: 10px; }
   .hero__inner::before { padding-top: 12px; margin-bottom: -40px; }
 }
 
@@ -3015,7 +2992,6 @@ img {
 @media (width < 600px) and (height < 600px) {
   .hero__inner { padding-top: calc(var(--mobile-header-height, 64px + env(safe-area-inset-top)) + 8px); }
   .hero__sub { margin-top: 8px; }
-  .hero__proof { margin-top: 12px; gap: 8px; }
   .hero__price { padding-top: 8px; }
   .hero__cta { margin-top: 4px; }
   .hero__inner::before { padding-top: 10px; }
@@ -3064,7 +3040,6 @@ img {
   .hero__cta__arrow svg {
     animation: none!important;
   }
-  .hero__cta::after { animation: none!important; opacity: 0; }
   .hero__cta:active { transform: none; }
   .hero__content,
   .hero__toilet,
@@ -3506,21 +3481,22 @@ img {
   #technology.features--mobile .feature.is-active .feature__mobile-photo picture { animation:none; }
 }
 
-/* Quiet hotel signatures precede the phone headline. Extra space gives
-   Technology an editorial introduction without enlarging its typography. */
-@media (width < 600px) {
-  .hero__proof { order:0; width:100%; max-width:300px; margin:0 0 24px; gap:0; animation:none; }
-  .hero__proof__label { display:none; }
-  .hero__proof__marks { grid-template-columns:repeat(4,minmax(0,1fr)); height:26px; gap:clamp(12px,4vw,20px); }
-  .hero__proof__marks .mark img { opacity:.8; filter:none; }
-  .hero__proof__marks :is(.mark--leela,.mark--itc,.mark--oberoi) img { filter:none; }
-  .hero__proof__marks .mark--taj img { height:22px; }
-  .hero__proof__marks .mark--leela img { height:22px; }
-  .hero__proof__marks .mark--itc img { height:24px; }
-  .hero__proof__marks .mark--oberoi img { height:16px; }
-}
-@media (width < 600px) and (height < 600px) {
-  .hero__proof { margin-bottom:16px; }
+/* Hotels move from the mobile hero to a seventh, black Why-us scene.
+   Desktop keeps its original hero rail and six-scene journey. */
+#why-us .slide--trust { display:none; }
+@media (width <600px), (width <1100px) and (aspect-ratio <4/3), (width <1100px) and (hover:none), (width <1100px) and (pointer:coarse), (width <1100px) and (pointer:none) {
+  #why-us .slide--trust { display:flex; }
+  .trust__marks { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:center; width:min(100%,16rem); gap:1.5rem 1.75rem; padding:0; margin:0; list-style:none; }
+  .trust__mark { display:flex; justify-content:center; align-items:center; min-width:0; min-height:2.75rem; }
+  .trust__mark img { display:block; width:auto; height:2.125rem; max-width:100%; object-fit:contain; opacity:.8; }
+  .trust__mark--taj img { height:2.25rem; }
+  .trust__mark--oberoi img { height:1.375rem; }
+  /* Also retain the requested visual order without JavaScript. The enhanced
+     controller mirrors it in the DOM for keyboard and assistive reading. */
+  #why-us:not(.why--stacked) .why__track { display:flex; flex-direction:column; }
+  #why-us [data-why-scene="trust"] { order:4; }
+  #why-us [data-why-scene="patents"] { order:5; }
+  #why-us [data-why-scene="focus"] { order:6; }
 }
 
 /* One reading order and introduction in every presentation, including no JS. */
