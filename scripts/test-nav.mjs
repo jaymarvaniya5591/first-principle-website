@@ -36,8 +36,7 @@ const context=vm.createContext({
   document:{querySelector:()=>logo,elementFromPoint:()=>surface,elementsFromPoint:()=>[foreground]},
   whyScroll:{getBoundingClientRect:()=>({top:state.whyTop,bottom:state.whyBottom})},
   whyLayout:{animated:true,entrance:900,height:900,prelude:0,stacked:false},
-  whySticky:{dataset:{theme:'dark'}},whyLightShift:0,
-  whyToneDarkness:()=>.8,
+  whySticky:{dataset:{theme:'dark'}},
   themeOfSlideAt:x=>x<500?'light':'dark'
 });
 vm.runInContext(code,context);
@@ -60,18 +59,20 @@ for(let trip=0;trip<3;trip++) {
   cleared();
 }
 
-// The gradient entrance still owns independent contrast for every control.
+// Desktop uses the same physical boundary as mobile, down to each control.
 state.whyTop=850;
-context.whyLightShift=0;
 context.sampleBelowHeroSurface();
 cleared();
-assert.equal(topbar.dataset.mode,'glass','Technology keeps its glass until the actual Why gradient reaches the header');
-state.whyTop=100;
-context.whyLightShift=-430;
-context.sampleBelowHeroSurface();
-assert.deepEqual(overrides(),Array(5).fill('dark'));
-context.applyTopbarSurface('merge','dark');
-cleared();
+assert.equal(topbar.dataset.mode,'glass','Technology retains glass until the solid edge reaches the header');
+state.whyTop=70;context.sampleBelowHeroSurface();
+assert.equal(topbar.dataset.theme,'light');
+assert.deepEqual(overrides(),Array(5).fill('light'));
+state.whyTop=38;context.sampleBelowHeroSurface();
+assert.equal(topbar.dataset.theme,'light','the logo samples its actual underlying slide');
+assert.deepEqual(overrides(),Array(5).fill('light'),'links above the edge retain dark ink');
+state.whyTop=30;context.sampleBelowHeroSurface();
+assert.deepEqual(overrides(),['light','light','dark','dark','dark']);
+context.applyTopbarSurface('merge','dark');cleared();
 
 // Product/Support and Technology switch back to ordinary shared surfaces.
 state.whyTop=-500;
@@ -117,4 +118,4 @@ assert.equal(topbar.dataset.theme,'dark','logo changes only when the panel reach
 assert.deepEqual(overrides(),Array(5).fill('light'),'controls still over Technology retain dark ink');
 state.whyTop=30;context.sampleBelowHeroSurface();
 assert.deepEqual(overrides(),Array(5).fill('dark'));
-console.log('Navigation: repeated Home returns, cached themes, mixed slide contrast, gradient, shared sections and mobile menu passed.');
+console.log('Navigation: repeated Home returns, cached themes, mixed slide contrast, solid boundary, shared sections and mobile menu passed.');

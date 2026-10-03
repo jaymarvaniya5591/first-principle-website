@@ -91,8 +91,8 @@ a little texture, which dissolves as the section approaches the top.
   is correct before deferred JavaScript runs. The first runtime measurement still
   updates contrast for restored scroll positions and direct section links.
 - Desktop glass appears when the incoming cloud reaches the header or visible
-  text/imagery passes beneath it; plain hero sky stays clear. The Why gradient
-  takes over header styling only when its actual surface reaches the bar.
+  text/imagery passes beneath it; plain hero sky stays clear. The solid Why-us edge
+  takes over header styling only when it reaches each control.
   Individual Why-slide ink overrides are cleared on every return to a shared
   section theme, including direct Home links. `npm run test:nav` covers these
   resets, glass activation and the transition boundary.
@@ -217,78 +217,29 @@ Principle?", with a dim "Why" and a white brand name. The existing 81.777px
 slide title and 28.444px note sizes are retained. The introduction note is
 sentence case, max-width 720px, line-height 1.4, with a 32px title gap. "We’re here." is softly highlighted in white.
 
-Technology ends at a crisp boundary on both laptop and mobile. On laptops the white mist
-belongs to the Why-us transition: it stays clipped at rest and is released
-smoothly during boundary departure, retracing on reverse scrolling. The feature
-hint retains its translucent glass block, fine white border and static backdrop blur.
+Technology meets the opaque #111 introduction at a straight physical edge,
+matching mobile. The previous gradient, feather, grain plane and colour sampling
+are removed. The existing words and reassurance animate with scroll, and the
+header samples the actual surface beneath each logo/link. Typography and the
+Why-us-to-Collection entrance animation are preserved.
 
-The desktop Why wash travels over one viewport height and overlaps the
-full viewport. Mobile has an opaque, straight-edged black introduction with no wash or prelude.
-The title reveals through two clipped phrase windows: "Why" from 42–90% of the
-entrance, then "First Principle?" from 48–96%, with cubic ease-out. Each phrase
-rises from below its baseline while becoming fully opaque. Padding protects
-descenders; negative margins preserve the settled headline size and position.
-The reassurance follows at 62–100%, fading in and rising 24px. All movement is
-scroll-linked and retraces on reversal, with no independent clock or blur.
-Direct Why links show settled text; motion/fit fallbacks expose it immediately.
-The gradient colours, scroll runway and typography are preserved.
+Manual scrolling retains the original settings: .085 Lenis damping, .82 wheel
+multiplier, the original large-impulse soft limit and immediate reversal handling.
+Each desktop horizontal slide takes 1.6 viewport heights, with 0.2 viewport-height
+reading allowances at both ends. Technology retains its original internal panel
+scrolling. Mobile scrolling, scene order and animations are unchanged.
 
-The gradient is a single opaque colour surface: actual white, greys and #111,
-not a black mask over the photo. This fixes the muddy early darkening and the
-intro background hiding the lower gradient. The intro is transparent only in
-the horizontal presentation; its text remains above the gradient plane.
+Section links freeze only horizontal panel travel; the introduction continues
+animating throughout the route. Returning from below prepares readable intro
+text before crossing the pinned runway. Scaled laptops below 1100px use the
+same shortened route and smooth endpoint easing through the native fallback;
+mobile retains its original 600ms timing. Wheel, touch, keyboard and scrollbar
+input interrupt the journey. Direct Why links land on the settled introduction.
 
-The plane begins 5.6vh before Technology's bottom with a feather into white.
-Its desktop neutral ramp spans 60.9vh, exactly three times the previous 20.3vh
-white-to-black window. It uses 257 Oklab-lightness samples, preserving the
-approved colours and relative spacing while adding intermediate shades. Desktop
-stop positions are 5.6 + 87*(0.4*t + 0.3*t*t) vh; the feather plus ramp is 66.5vh.
-The gradient is generated lazily on desktop; mobile clears its surface variables.
-Desktop scroll runway and title reveal are unchanged; the feather belongs only to the departing transition.
-Scroll moves the plane up by 50vh*smoothstep(progress). At pinning the desktop
-ramp's final shadow extends 10.9vh into the introduction, clearing during the
-20vh opening reading hold.
-Reverse scrolling retraces the same geometry. Navigation and grain masks use
-the desktop profile. Mobile navigation samples the actual opaque card boundary.
-
-The laptop introduction stays centred in its screen. Removing the 12vh prelude
-brings the entire screen closer to Technology instead of lifting its text.
-The unchanged 60.9vh gradient can extend into the transparent introduction;
-ordinary-flow fallbacks expose the complete content without the decorative plane.
-
-Navigation samples that same colour curve and transformed position. Static
-neutral dithering at 0.4%, gated by 4*d*(1-d), softens rendering bands while
-leaving the white and black endpoints clean. There are no moving lines,
-animated blur, autonomous animation, extra inertia or new dependencies.
-Rebuild the noise tile with `node scripts/build-why-noise.mjs` and CSS with
-`npm run css`.
-
-Design research: United Carriers' continuous gradient entrance (live site),
-Awwwards' MICA RINO background-transition reference, and W3C guidance on
-perceptual colour interpolation. The flat monochrome treatment is our adaptation:
-- https://unitedcarriers.com/
-- https://www.awwwards.com/inspiration/background-transition-mica-rino
-- https://www.w3.org/TR/css-color-4/#interpolation-space
-
-Desktop order is introduction, warranty, in-house service, returns, specialist
-focus, patents: dark/light alternating. Existing benefit article nodes are
-reordered and their original order/themes restored on mobile. The introduction
-is display:none outside the laptop query, including without JavaScript.
-
-Each horizontal journey takes 1.6 viewport heights, with 0.2 viewport heights
-held at both ends. Six slides occupy 9.4 viewport heights including the sticky
-screen, without a desktop entrance prelude. Measured slide offsets drive travel and
-arrow-key destinations. Desktop Why links land on the settled introduction.
-Skip and anchor journeys remain interruptible; resize preserves entrance or
-slide progress. Reduced motion, short windows and content that does not fit
-use ordinary vertical flow. Without JavaScript the static desktop introduction
-and all five benefits remain readable in source order, without the wash.
-
-Run `npm run test:why` for controller regressions: gradient endpoints,
-monotonicity, reveal, pacing, holds, reversal, arrows, resize, motion/fit fallbacks,
-mobile restoration and interrupted Skip. Browser checks cover 1280x585,
-1366x768, 1440x900 and 1024x600; 390x844 and 768x1024 are compared with the
-original mobile/tablet layout and visible reading order.
+Regression checks cover original scroll pacing and input, the solid boundary,
+per-control header contrast, live intro during navigation, exact landings,
+interruption, resize and mobile/fit fallbacks. Run the scroll, Why-us, navigation
+and motion test scripts. Rebuild the distribution stylesheet with `npm run css`.
 
 ## Local preview
 

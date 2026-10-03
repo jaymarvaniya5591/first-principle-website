@@ -301,66 +301,17 @@
     };
     whySlides.forEach(function (slide, i) { slide.style.setProperty('--why-layer', i + 1); });
     var whyMeasureFrame = 0;
-    var whyLightShift = 0;
     var whyClamp = function (value, max) { return Math.max(0, Math.min(max, value)); };
-    // Sample actual neutral Oklab lightness, then encode sRGB colours once.
-    // A full colour surface preserves the grey range over both section backgrounds.
-    var createWhyTones = function (intervals, spread) {
-      var samples = Array.from({ length: intervals + 1 }, function (_, i) {
-        if (i === 0) return 0;
-        if (i === intervals) return 1;
-        var t = i / intervals, eased = t * t * (3 - 2 * t);
-        var blackLinear = Math.pow((17 / 255 + .055) / 1.055, 2.4);
-        var lightness = 1 + (Math.cbrt(blackLinear) - 1) * eased;
-        var linear = lightness * lightness * lightness;
-        var grey = 255 * (linear <= .0031308 ? 12.92 * linear : 1.055 * Math.pow(linear, 1 / 2.4) - .055);
-        return whyClamp((255 - grey) / 238, 1);
-      });
-      return { samples: samples, positions: samples.map(function (_, i) {
-        var t = i / intervals;
-        return 5.6 + spread * (.4 * t + .3 * t * t);
-      }) };
-    };
-    // Only desktop uses the tonal entrance. Generate it lazily so phones do no
-    // gradient sampling or decorative surface work.
-    var whyDesktopTones;
-    var whyToneSamples, whyTonePositions;
-    var whyToneDarkness = function (vertical) {
-      var position = vertical * 100;
-      if (position <= whyTonePositions[0]) return 0;
-      if (position >= whyTonePositions[whyTonePositions.length - 1]) return 1;
-      var upper = whyTonePositions.findIndex(function (stop) { return stop >= position; });
-      var lower = upper - 1;
-      var fraction = (position - whyTonePositions[lower]) / (whyTonePositions[upper] - whyTonePositions[lower]);
-      return whyToneSamples[lower] + (whyToneSamples[upper] - whyToneSamples[lower]) * fraction;
-    };
-    var setWhyTones = function (desktop, height) {
-      if (!desktop) {
-        ['--why-tone-stops', '--why-grain-stops', '--why-light-shift', '--why-mist-clip'].forEach(function (key) { whySection.style.removeProperty(key); });
-        whyLightShift = 0;
-        return;
-      }
-      var profile = whyDesktopTones || (whyDesktopTones = createWhyTones(256, 87));
-      whyToneSamples = profile.samples;
-      whyTonePositions = profile.positions;
-      var position = function (i) {
-        return whyTonePositions[i].toFixed(6) + 'vh';
-      };
-      whySection.style.setProperty('--why-tone-stops', whyToneSamples.map(function (darkness, i) {
-        var grey = (255 - darkness * 238).toFixed(4);
-        return 'rgb(' + grey + ',' + grey + ',' + grey + ') ' + position(i);
-      }).join(','));
-      whySection.style.setProperty('--why-grain-stops', whyToneSamples.map(function (darkness, i) {
-        return 'rgba(0,0,0,' + (4 * darkness * (1 - darkness)).toFixed(6) + ') ' + position(i);
-      }).join(','));
-    };
-
     var updateWhyScroll = function () {
         if (!whyLayout || document.hidden) return;
-        if (whyScroll.dataset.skipping === 'true') {
+        var navigating = whyScroll.dataset.skipping === 'true';
+        if (navigating && !whyLayout.horizontal) {
           whyLayout.lastPaintedTop = null; whyLayout.paintedTop = null;
           return;
         }
+        // Link trips hold only the sideways track. The section edge and intro
+        // must keep following scroll, otherwise the heading pops in on arrival.
+        if (navigating) { whyLayout.lastPaintedTop = null; whyLayout.paintedTop = null; }
         // A resize changes the prelude and Technology geometry before the next
         // measure. Keep the last painted position until that measure restores it.
         if (whyLayout.width !== whySection.clientWidth || whyLayout.height !== whyStageHeight()) {
@@ -378,16 +329,6 @@
         whyLayout.paintedTop = paintedTop;
         if (whyLayout.animated) {
           var entranceProgress = whyClamp(1 - entranceTop / whyLayout.entrance, 1);
-          if (whyLayout.horizontal) {
-            // Preserve the desktop tonal surface and feather release.
-            var retreat = entranceProgress * entranceProgress * (3 - 2 * entranceProgress);
-            whyLightShift = -whyLayout.height * .5 * retreat;
-            whySection.style.setProperty('--why-light-shift', whyLightShift.toFixed(3) + 'px');
-            var mistProgress = whyClamp(entranceProgress / .12, 1);
-            var mistRelease = mistProgress * mistProgress * (3 - 2 * mistProgress);
-            var mistClip = (whyLayout.height * .056 - whyLightShift) * (1 - mistRelease);
-            whySection.style.setProperty('--why-mist-clip', mistClip.toFixed(3) + 'px');
-          }
           // Phrases rise through a fixed baseline with a soft deceleration.
           // One scroll clock preserves direct reversal and interrupted navigation.
           var reveal = whyClamp((entranceProgress - (whyLayout.stacked ? .2 : .42)) / (whyLayout.stacked ? .5 : .48), 1);
@@ -403,6 +344,12 @@
         }
         if (!whyLayout.animated) {
           if (window.siteMotion) whySlides.forEach(function (slide, i) { window.siteMotion.paintWhy(slide, i, 1, 0, false); });
+          return;
+        }
+        if (navigating) {
+          if (window.siteMotion) window.siteMotion.paintWhy(whyIntro, 0, entranceProgress, 0, true);
+          // Repaint all panels when the route completes or user input interrupts.
+          whyLayout.lastPaintedTop = null; whyLayout.paintedTop = null;
           return;
         }
         var scrolled = -entranceTop;
@@ -496,7 +443,6 @@
       whySection.style.setProperty('--why-unit', (whySection.clientWidth / 1280) + 'px');
       whySection.style.setProperty('--why-vh', (height / 100) + 'px');
       whySection.style.setProperty('--why-stage-height', height + 'px');
-      setWhyTones(desktop, height);
       // Measure intrinsic content in flow before deciding whether pinning fits.
       // Keep the current runway occupied during this synchronous measurement.
       // Removing pinning can otherwise briefly shorten the document and make
@@ -599,6 +545,16 @@
         return true;
       }
       var start = window.scrollY, started = null, navigationFrame = 0;
+      var cut = options && options.cut;
+      var low = cut ? Math.max(Math.min(start, target), cut[0]) : 0;
+      var high = cut ? Math.min(Math.max(start, target), cut[1]) : 0;
+      var skipped = Math.max(0, high - low);
+      var distance = Math.abs(target - start) - skipped;
+      var direction = target >= start ? 1 : -1;
+      var before = direction > 0 ? low - start : start - high;
+      var laptop = whyLayout && whyLayout.horizontal;
+      var duration = laptop ? Math.min(1500, 600 + 250 * Math.sqrt(distance / Math.max(1, window.innerHeight))) : 600;
+
       var finish = function () {
         window.cancelAnimationFrame(navigationFrame);
         cancelWhyFallback = null;
@@ -608,9 +564,12 @@
       cancelWhyFallback = finish;
       var step = function (time) {
         if (started === null) started = time;
-        var p = Math.min(1, (time - started) / 600);
-        var eased = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-        window.scrollTo({ top: start + (target - start) * eased, behavior: 'instant' });
+        var p = Math.min(1, (time - started) / duration);
+        var eased = laptop ? p * p * p * (p * (p * 6 - 15) + 10)
+          : p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+        var travelled = distance * eased;
+        var position = start + direction * (travelled + (skipped && travelled >= before ? skipped : 0));
+        window.scrollTo({ top: p === 1 ? target : position, behavior: 'instant' });
         if (p < 1) navigationFrame = window.requestAnimationFrame(step);
         else finish();
       };
@@ -713,7 +672,7 @@
           targetY = window.scrollY + whyScroll.getBoundingClientRect().top;
         }
         var navigationOptions;
-        if (isDesktop() && whyScroll && whyLayout && whyLayout.horizontal) {
+        if (whyScroll && whyLayout && whyLayout.horizontal) {
           var pinnedStart = window.scrollY + whyScroll.getBoundingClientRect().top;
           navigationOptions = { cut:[pinnedStart + 1, pinnedStart + whyLayout.runway - 1] };
           if (targetY <= pinnedStart + 1) {
@@ -723,6 +682,7 @@
               // dark-to-light entrance, not the last (white) card. Otherwise
               // Technology's visible lower edge snaps when the hold is released.
               whyScroll.style.setProperty('--why-x', '0px');
+              if (window.siteMotion) window.siteMotion.paintWhy(whyIntro, 0, 1, 0, true);
             } else if (targetId === '#why-us') {
               whyScroll.dataset.skipping = 'false';
               navigationOptions = undefined;
@@ -941,36 +901,20 @@
        control independently as the boundary passes beneath the fixed bar. */
     if (whyScroll) {
       var whyRect = whyScroll.getBoundingClientRect();
-      var whySurfaceTop = whyLayout ? whyRect.top - whyLayout.prelude - whyLayout.height * .056 + whyLightShift : Infinity;
-      if (whyLayout && whyLayout.animated && !whyLayout.stacked && whyRect.top > 0 && whyRect.top < whyLayout.entrance && (!isDesktop() || whySurfaceTop < topbar.getBoundingClientRect().bottom) && !(menu && !menu.hidden)) {
-        // Sample the actual moving colour surface; DOM hit testing cannot see
-        // the decorative plane behind the transparent introduction.
-        var washTheme = function (control) {
-          var rect = control.getBoundingClientRect();
-          var x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
-          var sy = (y - whyRect.top + whyLayout.prelude + whyLayout.height * .056 - whyLightShift) / whyLayout.height;
-          var darkness = whyToneDarkness(sy);
-          var underneath = document.elementFromPoint(x, topbar.getBoundingClientRect().bottom + 8);
-          return sy >= .028 ? (darkness > .56 ? 'dark' : 'light') : inferBackgroundTheme(underneath);
-        };
-        applyTopbarSurface('merge', washTheme(topbarLogo || topbar), true);
-        whyNavInk.forEach(function (control) { control.dataset.whySurface = washTheme(control); });
-        return;
-      }
-      if (whyLayout && whyLayout.animated && (whyRect.top <= 0 || (whyLayout.stacked && whyRect.top < topbar.getBoundingClientRect().bottom)) && whyRect.bottom >= whyLayout.height && !(menu && !menu.hidden)) {
+      if (whyLayout && whyLayout.animated && whyRect.top < topbar.getBoundingClientRect().bottom && whyRect.bottom >= whyLayout.height && !(menu && !menu.hidden)) {
         var barRect = topbar.getBoundingClientRect();
         var logoRect = topbarLogo ? topbarLogo.getBoundingClientRect() : null;
         var lx = logoRect ? Math.round(logoRect.left + logoRect.width / 2) : Math.round(barRect.left + 60);
-        var ly = whyLayout.stacked && logoRect ? logoRect.top + logoRect.height / 2 : Math.round(barRect.bottom + 8);
-        var themeAtLogo = whyLayout.stacked && ly < whyRect.top ? 'light' : themeOfSlideAt(lx, ly, null);
+        var ly = logoRect ? logoRect.top + logoRect.height / 2 : barRect.top + barRect.height / 2;
+        var themeAtLogo = ly < whyRect.top ? 'light' : themeOfSlideAt(lx, ly, '.topbar');
         applyTopbarSurface("merge", themeAtLogo || (whySticky ? whySticky.dataset.theme : "dark") || "dark", true);
         // A seam can sit between the logo and links. Each control follows the
         // surface directly beneath it rather than waiting for the far-left logo.
         whyNavInk.forEach(function (control) {
           var rect = control.getBoundingClientRect();
           if (!rect.width) return;
-          var sampleY = whyLayout.stacked ? rect.top + rect.height / 2 : ly;
-          var theme = whyLayout.stacked && sampleY < whyRect.top ? 'light' : themeOfSlideAt(rect.left + rect.width / 2, sampleY, null);
+          var sampleY = rect.top + rect.height / 2;
+          var theme = sampleY < whyRect.top ? 'light' : themeOfSlideAt(rect.left + rect.width / 2, sampleY, '.topbar');
           if (theme && control.dataset.whySurface !== theme) control.dataset.whySurface = theme;
         });
         return;

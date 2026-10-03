@@ -3542,9 +3542,9 @@ img {
 #why-us.why--stacked .why__track:focus-visible { outline-color:#888; }
 
 
-/* Laptop Why us. A flat light field recedes with scroll; no autonomous loop. */
+/* Laptop Why us. A solid paper-to-ink boundary with scroll-led typography. */
 @media (min-width:1100px), (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) {
-  /* Technology ends at its actual panel edge. The light field belongs to Why us. */
+  /* Technology ends at its actual panel edge; Why us starts on solid ink. */
   #technology .features__body { position:relative; }
   #technology .features__body::after {
     content:none;
@@ -3576,31 +3576,8 @@ img {
     padding-top:0;
     background:var(--ink);
   }
-  #why-us.why--horizontal::before,
-  #why-us.why--horizontal::after {
-    content:"";
-    position:absolute;
-    inset:-5.6vh 0 auto;
-    height:130vh;
-    z-index:0;
-    pointer-events:none;
-    transform:translate3d(0,var(--why-light-shift,0px),0);
-    /* A clean edge at rest; release the original overtake as scrolling begins. */
-    clip-path:inset(var(--why-mist-clip,5.6vh) 0 0);
-  }
-  #why-us.why--horizontal::before {
-    /* Actual neutral colours, not black alpha over the departing photograph.
-       The ramp crosses into the transparent intro so its greys stay visible. */
-    background:linear-gradient(to bottom,var(--why-tone-stops));
-    mask-image:linear-gradient(to bottom,transparent,rgba(0,0,0,.15625) 1.4vh,rgba(0,0,0,.5) 2.8vh,rgba(0,0,0,.84375) 4.2vh,#000 5.6vh);
-  }
-  #why-us.why--horizontal::after {
-    background:url('../assets/img/why-dither.png') repeat;
-    opacity:.004;
-    mask-image:linear-gradient(to bottom,var(--why-grain-stops));
-  }
   #why-us.why--horizontal .why__scroll-container { position:relative; z-index:1; }
-  #why-us.why--horizontal .slide--intro { background:transparent; }
+  #why-us.why--horizontal .slide--intro { background:var(--ink); }
   #why-us .slide {
     width:100%;
     min-height:100svh;

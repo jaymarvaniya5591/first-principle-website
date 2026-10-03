@@ -76,50 +76,9 @@ assert.deepEqual(order(),['intro','warranty','service','returns','focus','patent
 assert.deepEqual(visibleSlides().map(s=>s.dataset.navTheme),['dark','light','dark','light','dark','light']);
 assert.equal(context.whyLayout.horizontal,true);
 assert.equal(context.whyLayout.prelude,0,'desktop intro starts immediately after Technology');
-assert.ok(Math.abs(context.whyToneDarkness(.056))<1e-12,'surface starts at white');
-assert.equal(context.whyToneSamples.length,257,'desktop adds tonal detail across the wider ramp');
-assert.equal(context.whyToneDarkness(.665),1,'wash meets the exact black slide');
-assert.equal(context.whyToneDarkness(0),0,'top edge is transparent');
-for(let i=1;i<257;i++) assert.ok(context.whyToneSamples[i]>context.whyToneSamples[i-1],'lightness never reverses');
-assert.ok(context.whyToneSamples[1]<.02,'gentle white endpoint');
-assert.ok(context.whyToneSamples[255]>.99,'gentle black endpoint');
-paintAt(-900); assert.equal(Math.abs(context.whyLightShift),0,'Technology remains clear at entrance start');
-assert.match(section.style.getPropertyValue('--why-tone-stops'),/^rgb\(255.0000,255.0000,255.0000\) 5.600000vh/,'surface starts at real white');
-assert.match(section.style.getPropertyValue('--why-tone-stops'),/rgb\(17.0000,17.0000,17.0000\) 66.500000vh$/,'surface ends at exact slide black');
-// Preserve the colour curve while tripling its span inside the same layout.
-paintAt(-450);
-assert.ok(context.whyToneDarkness(.1593125)>.1 && context.whyToneDarkness(.4638125)<.92,'quarter tones retain the same mid-grey range');
-assert.ok(Math.abs((context.whyTonePositions[256]-context.whyTonePositions[0]) / 20.3 - 3)<1e-10,'desktop white-to-black window is exactly three times its previous length');
-for (let i=0;i<257;i++) {
-  const t=i/256, previousPosition=5.6+29*(.4*t+.3*t*t);
-  assert.ok(Math.abs(context.whyTonePositions[i]-(5.6+(previousPosition-5.6)*3))<1e-10,'every stop preserves its relative position');
-  assert.ok(Math.abs(context.whyToneDarkness(context.whyTonePositions[i]/100)-context.whyToneSamples[i])<1e-10,'navigation samples the same colour as the rendered expanded surface');
-}
-assert.ok((context.whyTonePositions[64]-context.whyTonePositions[0]) < (context.whyTonePositions[256]-context.whyTonePositions[192]),'shadow detail retains more physical space');
-const desktopShadowTail=context.whyTonePositions[256]-5.6-50;
-assert.ok(Math.abs(desktopShadowTail-10.9)<1e-10,'desktop shadow extends into the centred introduction');
-assert.ok(desktopShadowTail<100*context.whyLayout.hold/state.height,'the gradient clears during the opening reading hold');
-assert.ok(context.whyToneDarkness(.556)>.95,'the pinned screen starts dark enough for white navigation');
-const desktopSamples=Array.from(context.whyToneSamples);
-let lastEdge=Infinity;
-for(let i=0;i<=40;i++) {
-  const progress=i/40;
-  paintAt(-(1-progress)*900);
-  const edge=(1-progress)*900+context.whyLightShift;
-  assert.ok(edge<lastEdge,'receding light always travels upward');
-  lastEdge=edge;
-}
-// Technology stays solid at rest, then the published mist takes over.
-paintAt(-900);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),50.4);
-paintAt(-846);const partialMistClip=parseFloat(section.style.getPropertyValue('--why-mist-clip'));
-assert.ok(partialMistClip>0 && partialMistClip<50.4,'feather releases gradually during departure');
-paintAt(-792);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),0,'original uncut transition restored by 12vh');
-paintAt(-450);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),0);
-paintAt(-846);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),partialMistClip,'reversal retraces the same mist');
-paintAt(-900);assert.equal(parseFloat(section.style.getPropertyValue('--why-mist-clip')),50.4,'return restores the clean edge');
-paintAt(-450); const lightAtMiddle=context.whyLightShift;
-paintAt(-200); paintAt(-450);
-assert.equal(context.whyLightShift,lightAtMiddle,'light retraces its path when reversing');
+// Keep the new solid boundary while preserving the original scroll pacing.
+const css=readFileSync(new URL('../css/styles.css',import.meta.url),'utf8');
+assert.ok(!css.includes('--why-tone-stops') && !css.includes('--why-mist-clip'));
 assert.equal(Number.parseFloat(scroll.style.getPropertyValue('--why-height')),8460);
 paintAt(90); assert.equal(Math.abs(x()),0,'opening reading allowance');
 paintAt(180+1440); assert.equal(x(),-1280,'1.6 viewport heights advances one full slide');
@@ -215,8 +174,6 @@ assert.equal(order().length,6,'all six slides remain readable in fallback');
 state.reduced=false; state.stableHeight=0; state.width=1440;
 state.desktop=true; context.measureWhy();
 assert.equal(context.whyLayout.horizontal,true,'desktop can be restored');
-assert.equal(context.whyToneSamples.length,257,'resizing back to desktop restores the detailed gradient');
-assert.equal(context.whyToneDarkness(.665),1,'restored desktop uses the wider gradient for navigation contrast');
 assert.deepEqual(order(),['intro','warranty','service','returns','focus','patents']);
 skip.events.click(); assert.equal(destination,8960); assert.equal(scroll.dataset.skipping,'false');
 window.siteScroll.to=()=>false;
@@ -302,3 +259,27 @@ context.measureWhy();
 assert.equal(state.y,collectionPosition,'a same-layout measurement preserves scroll position after the pinned section');
 assert.equal(scroll.style.getPropertyValue('min-height'),'','the measurement reservation is released after layout settles');
 section.classList.remove=removeClass;
+
+// Navigation improvements remain independent of manual scroll settings.
+state.desktop=true;state.width=1280;state.height=900;state.stableHeight=0;state.contentHeight=250;state.y=0;context.measureWhy();
+const introPaints=[];
+window.siteMotion={paintWhy:(slide,index,entry,covered)=>introPaints.push({slide,index,entry,covered})};
+paintAt(-900);scroll.dataset.skipping='true';paintAt(-450);
+assert.ok(Number(section.style.getPropertyValue('--why-reveal'))>0);
+assert.equal(introPaints.at(-1).entry,.5,'intro animates before the link trip finishes');
+paintAt(0);assert.equal(introPaints.at(-1).entry,1);
+assert.equal(introPaints.at(-1).covered,0,'returning from below prepares readable intro text');
+scroll.dataset.skipping='false';paintAt(180+720);
+assert.ok(Math.abs(x()+640)<.001,'interruption restores the original proportional track position');
+window.siteMotion=null;
+
+// Below 1100px a fine-pointer laptop uses the native route rather than Lenis.
+for(const [from,to] of [[0,9000],[9000,0]]) {
+  state.y=from;const positions=[];let finished=0;
+  context.navigateWhy(to,()=>finished++,{cut:[2000,7000]});
+  for(let time=0;time<=1700;time+=25) {advance(time);positions.push(state.y);}
+  assert.equal(state.y,to);
+  assert.equal(finished,1);
+  assert.ok(positions.every(y=>y<=2000||y>=7000),'native laptop skips the same held interval');
+  assert.ok(positions.every((y,i)=>!i||(to>from?y>=positions[i-1]:y<=positions[i-1])),'native route never reverses');
+}
