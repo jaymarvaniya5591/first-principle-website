@@ -10,5 +10,6 @@ const email = context.buildAcknowledgment_(lead);
 const output = path.resolve(process.argv[2] || '.work/email-preview');
 await mkdir(output, { recursive: true });
 await writeFile(path.join(output, 'heimdall-email-preview.html'), email.html);
-await writeFile(path.join(output, 'heimdall-email-content.txt'), `From: Heimdall at First Principle <heimdall@getfirstprinciple.com>\nTo: ${lead.email}\nCc: founder@getfirstprinciple.com\nReply-To: founder@getfirstprinciple.com\nSubject: ${email.subject}\n\n${email.text}\n`);
+const senderName = vm.runInContext('FP.senderName', context);
+await writeFile(path.join(output, 'heimdall-email-content.txt'), `From: ${senderName} <heimdall@getfirstprinciple.com>\nTo: ${lead.email}\nCc: founder@getfirstprinciple.com\nReply-To: founder@getfirstprinciple.com\nSubject: ${email.subject}\n\n${email.text}\n`);
 console.log('Email preview saved to ' + output + '. No email sent.');

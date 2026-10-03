@@ -115,6 +115,7 @@ test('Google authenticates before writing and persists before sending with reque
   const [to, subject, text, options] = google.sent[0];
   assert.equal(to, lead.email);
   assert.equal(options.from, 'heimdall@getfirstprinciple.com');
+  assert.equal(options.name, 'The front Desk');
   assert.equal(options.cc, 'founder@getfirstprinciple.com');
   assert.equal(options.replyTo, 'founder@getfirstprinciple.com');
   assert.match(subject, /^Jay,/);
@@ -162,5 +163,9 @@ test('Email uses last-name fallback, escapes visitor HTML and preserves plain te
   assert.ok(email.html.includes('&amp; thank you'));
   assert.ok(email.text.includes('<script>alert(1)</script>'));
   assert.match(email.html, /Helvetica Neue/);
+  const introduction = 'I’m Heimdall, keeping watch over the First Principle inbox. Your enquiry is with us, and someone from our team will be in touch soon.';
+  assert.ok(email.text.includes(introduction));
+  assert.ok(email.html.includes(introduction));
+  assert.ok(!email.text.includes('inbox lookout'));
   assert.equal(google.safeCell_('=IMPORTXML("bad")'), '\'=IMPORTXML("bad")');
 });

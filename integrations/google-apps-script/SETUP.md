@@ -14,7 +14,7 @@ Use the Google Workspace account that will own the sheet and script, preferably 
 
 - If heimdall@getfirstprinciple.com is already a mailbox, you can instead create and deploy the script while signed in to that mailbox.
 - Otherwise, add `heimdall` as an alternate address for the founder in Google Admin. A Workspace alias does not require another paid mailbox.
-- In the founder's Gmail, go to **Settings → See all settings → Accounts → Send mail as → Add another email address**. Add `Heimdall at First Principle` and `heimdall@getfirstprinciple.com`, completing any verification Google requests.
+- In the founder's Gmail, go to **Settings → See all settings → Accounts → Send mail as → Add another email address**. Add `The front Desk` and `heimdall@getfirstprinciple.com`, completing any verification Google requests.
 - Ensure you can select Heimdall in Gmail's From field. The script checks this during setup and refuses to impersonate an unconfigured sender.
 
 References: [Workspace aliases](https://support.google.com/a/answer/33327) · [Gmail send-as](https://support.google.com/mail/answer/22370).
@@ -81,7 +81,7 @@ Test both a first-name-only and a last-name-only entry. Empty/whitespace-only na
 
 | Field | Value |
 | --- | --- |
-| From | Heimdall at First Principle &lt;heimdall@getfirstprinciple.com&gt; |
+| From | The front Desk &lt;heimdall@getfirstprinciple.com&gt; |
 | To | Visitor's email address |
 | CC | founder@getfirstprinciple.com |
 | Reply-To | founder@getfirstprinciple.com |
@@ -90,7 +90,9 @@ Test both a first-name-only and a last-name-only entry. Empty/whitespace-only na
 
 Each email includes the enquiry details so the founder has the full context in the same conversation. As founder, use **Reply all** to answer the visitor in that thread. A visitor's ordinary Reply goes to the founder. If the visitor email is the founder address itself, the redundant CC is omitted.
 
-The design uses inline styles, presentation tables, a plain-text alternative, and `'Helvetica Neue', Helvetica, Arial, sans-serif`. It references the site's existing Helvetica Neue files for email apps that support webfonts. Apps that block webfonts use an installed Helvetica Neue or the fallback font. A browser preview is provided; exact rendering can differ by email app.
+The display name is set by `FP.senderName` in the script; this overrides the Google account profile name. Heimdall remains the email address and the character signing the message.
+
+The design uses mobile-first inline spacing, presentation tables and a plain-text alternative. Body text is explicitly regular weight, with bold reserved for the heading, greeting, founder reference, reply link and signature. A unique `FP Helvetica Neue` font family loads the site's Helvetica Neue files where webfonts work. Clients that remove webfonts use Arial, avoiding accidentally selecting a heavy locally installed Helvetica Neue face. Small-screen layout works without media queries; larger screens receive extra spacing. Dark-mode colour changes still depend on the recipient's email app.
 
 ## Reliability and sheet statuses
 

@@ -1,6 +1,7 @@
 /** First Principle contact inbox. Paste this entire file into a sheet-bound Apps Script. */
 const FP = {
   sender: 'heimdall@getfirstprinciple.com',
+  senderName: 'The front Desk',
   founder: 'founder@getfirstprinciple.com',
   sheet: 'Enquiries',
   headers: ['Submission ID', 'Received at', 'First name', 'Last name', 'Email', 'Phone', 'Message', 'Email status', 'Sent at', 'Attempts', 'Note', 'Payload']
@@ -112,7 +113,7 @@ function sendRow_(sheet, row, lead) {
   SpreadsheetApp.flush();
   try {
     const options = Object.assign({}, sender, {
-      name: 'Heimdall at First Principle', htmlBody: email.html, replyTo: FP.founder
+      name: FP.senderName, htmlBody: email.html, replyTo: FP.founder
     });
     if (lead.email.toLowerCase() !== FP.founder) options.cc = FP.founder;
     GmailApp.sendEmail(lead.email, email.subject, email.text, options);
@@ -165,46 +166,53 @@ function buildAcknowledgment_(lead) {
   const fullName = [lead.firstName, lead.lastName].filter(Boolean).join(' ');
   const note = lead.message || 'No message added — we’ll start with a hello.';
   const subject = name + ', your message made it. | First Principle';
-  const text = `FIRST PRINCIPLE\nMESSAGE RECEIVED\n\nYour message made it.\n\nHi ${name},\n\nI’m Heimdall, First Principle’s inbox lookout. Your enquiry is safely with us, and a real human will be back in touch soon.\n\nI’ve copied our founder in, so your question already has good company.\n\nWhether you’re choosing a smart toilet, planning a bathroom, or just curious about what we’re building, we’ll help you figure out the next step.\n\nOne more detail? Hit reply. It goes straight to our founder.\n\nHeimdall\nOn inbox duty at First Principle\n\nYOUR ENQUIRY\nName: ${fullName}\nEmail: ${lead.email}\nPhone: ${lead.phone}\n\n${note}\n\nSmart toilets. Human conversations.\nhttps://getfirstprinciple.com\n\nThis is an automatic acknowledgment of your website enquiry.`;
+  const introduction = 'I’m Heimdall, keeping watch over the First Principle inbox. Your enquiry is with us, and someone from our team will be in touch soon.';
+  const text = `FIRST PRINCIPLE\nMESSAGE RECEIVED\n\nYour message made it.\n\nHi ${name},\n\n${introduction}\n\nI’ve copied our founder in, so your question already has good company.\n\nWhether you’re choosing a smart toilet, planning a bathroom, or just curious about what we’re building, we’ll help you figure out the next step.\n\nOne more detail? Hit reply. It goes straight to our founder.\n\nHeimdall\nOn inbox duty at First Principle\n\nYOUR ENQUIRY\nName: ${fullName}\nEmail: ${lead.email}\nPhone: ${lead.phone}\n\n${note}\n\nSmart toilets. Human conversations.\nhttps://getfirstprinciple.com\n\nThis is an automatic acknowledgment of your website enquiry.`;
+  // A unique webfont family avoids selecting a locally installed Helvetica Neue
+  // Black face when Gmail removes @font-face. Those clients use regular Arial.
+  const font = "font-family:'FP Helvetica Neue',Arial,Helvetica,sans-serif;";
+  const normal = font + 'font-size:16px;line-height:25px;font-weight:400;';
+  const phoneLink = lead.phone.replace(/[^+\d]/g, '');
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><title>${escapeHtml_(subject)}</title>
-<!--[if !mso]><!--><style>@font-face{font-family:'Helvetica Neue';font-style:normal;font-weight:400;src:url('https://www.getfirstprinciple.com/assets/fonts/helvetica-neue-400.woff2') format('woff2')}@font-face{font-family:'Helvetica Neue';font-style:normal;font-weight:500 700;src:url('https://www.getfirstprinciple.com/assets/fonts/helvetica-neue-500.woff2') format('woff2')}</style><!--<![endif]-->
-<style>body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}@media only screen and (max-width:600px){.outer{padding:16px 8px!important}.pad{padding-left:26px!important;padding-right:26px!important}.headline{font-size:42px!important;line-height:44px!important}.hero{padding-top:38px!important;padding-bottom:38px!important}}</style></head>
-<body style="margin:0;padding:0;background-color:#eeeeee;color:#111111;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<div style="display:none;font-size:1px;line-height:1px;color:#eeeeee;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Hi ${escapeHtml_(name)}. Your enquiry is with us. A real human will be in touch soon.</div>
-<table role="presentation" width="100%" bgcolor="#eeeeee"><tr><td class="outer" align="center" style="padding:40px 16px;">
-<!--[if mso]><table role="presentation" width="600"><tr><td><![endif]-->
-<table role="presentation" width="100%" style="max-width:600px;background-color:#ffffff;border:1px solid #dedede;" bgcolor="#ffffff">
-<tr><td class="pad" style="padding:28px 44px;border-bottom:1px solid #dedede;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<a href="https://getfirstprinciple.com" style="font-size:15px;line-height:20px;font-weight:700;letter-spacing:3px;color:#111111;text-decoration:none;">FIRST PRINCIPLE<span style="letter-spacing:0;">.</span></a>
+<!--[if !mso]><!--><style>@font-face{font-family:'FP Helvetica Neue';font-style:normal;font-weight:400;src:url('https://www.getfirstprinciple.com/assets/fonts/helvetica-neue-400.woff2') format('woff2')}@font-face{font-family:'FP Helvetica Neue';font-style:normal;font-weight:700;src:url('https://www.getfirstprinciple.com/assets/fonts/helvetica-neue-500.woff2') format('woff2')}</style><!--<![endif]-->
+<style>body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt}a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}@media screen and (min-width:601px){.outer{padding:32px 16px!important}.pad{padding-left:36px!important;padding-right:36px!important}.headline{font-size:42px!important;line-height:46px!important}.hero{padding-top:32px!important;padding-bottom:32px!important}}</style></head>
+<body style="margin:0;padding:0;background-color:#f2f2f2;color:#222222;${normal}">
+<div style="display:none;font-size:1px;line-height:1px;color:#f2f2f2;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">Hi ${escapeHtml_(name)}. Your enquiry is with us. Someone from our team will be in touch soon.</div>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f2f2f2"><tr><td class="outer" align="center" style="padding:12px 4px;${normal}">
+<!--[if mso]><table role="presentation" width="560"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;table-layout:fixed;background-color:#ffffff;border:1px solid #dedede;" bgcolor="#ffffff">
+<tr><td class="pad" style="padding:20px;${font}font-weight:400;">
+<a href="https://getfirstprinciple.com" style="${font}font-size:12px;line-height:18px;font-weight:700;letter-spacing:2px;color:#111111;text-decoration:none;">FIRST PRINCIPLE.</a>
 </td></tr>
-<tr><td class="pad hero" bgcolor="#111111" style="padding:44px;color:#ffffff;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<p style="margin:0 0 28px;font-size:10px;line-height:16px;font-weight:500;letter-spacing:2.5px;color:#cccccc;">MESSAGE RECEIVED &nbsp; / &nbsp; HEIMDALL ON DUTY</p>
-<h1 class="headline" style="margin:0;font-size:54px;line-height:55px;letter-spacing:-2.3px;font-weight:500;color:#ffffff;">Your message<br>made it.</h1>
-<p style="margin:24px 0 0;font-size:14px;line-height:22px;color:#cccccc;">Good questions deserve real answers.</p>
+<tr><td class="pad hero" bgcolor="#111111" style="padding:26px 20px;color:#ffffff;${font}font-weight:400;">
+<p style="margin:0 0 14px;${font}font-size:10px;line-height:16px;font-weight:400;letter-spacing:1.7px;color:#dddddd;">MESSAGE RECEIVED</p>
+<h1 class="headline" style="margin:0;${font}font-size:32px;line-height:36px;letter-spacing:-0.8px;font-weight:700;color:#ffffff;">Your message<br>made it.</h1>
+<p style="margin:14px 0 0;${font}font-size:13px;line-height:20px;font-weight:400;color:#dddddd;">Good questions deserve real answers.</p>
 </td></tr>
-<tr><td class="pad" style="padding:36px 44px 30px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;line-height:26px;color:#333333;overflow-wrap:anywhere;word-break:break-word;">
-<p style="margin:0 0 20px;font-size:22px;line-height:30px;color:#111111;font-weight:500;">Hi ${escapeHtml_(name)},</p>
-<p style="margin:0 0 18px;">I’m Heimdall, First Principle’s inbox lookout. Your enquiry is safely with us, and a real human will be back in touch soon.</p>
-<p style="margin:0 0 18px;">I’ve copied our founder in, so your question already has good company.</p>
-<p style="margin:0 0 22px;">Whether you’re choosing a smart toilet, planning a bathroom, or just curious about what we’re building, we’ll help you figure out the next step.</p>
-<p style="margin:0 0 28px;font-size:14px;line-height:23px;">One more detail? <a href="mailto:founder@getfirstprinciple.com" style="color:#111111;text-decoration:underline;">Hit reply.</a> It goes straight to our founder.</p>
-<p style="margin:0;color:#111111;font-size:17px;line-height:24px;font-weight:600;">Heimdall</p>
-<p style="margin:2px 0 0;font-size:12px;line-height:20px;color:#777777;">On inbox duty at First Principle</p>
+<tr><td class="pad" style="padding:26px 20px 24px;${normal}color:#333333;overflow-wrap:anywhere;word-wrap:break-word;word-break:break-word;">
+<p style="margin:0 0 16px;${font}font-size:20px;line-height:28px;color:#111111;font-weight:700;">Hi ${escapeHtml_(name)},</p>
+<p style="margin:0 0 16px;${normal}">${introduction}</p>
+<p style="margin:0 0 16px;${normal}">I’ve copied <strong style="font-weight:700;">our founder</strong> in, so your question already has good company.</p>
+<p style="margin:0 0 18px;${normal}">Whether you’re choosing a smart toilet, planning a bathroom, or just curious about what we’re building, we’ll help you figure out the next step.</p>
+<p style="margin:0 0 22px;${normal}">One more detail? <a href="mailto:founder@getfirstprinciple.com" style="${font}font-weight:700;color:#111111;text-decoration:underline;">Hit reply.</a> It goes straight to our founder.</p>
+<p style="margin:0;${font}color:#111111;font-size:16px;line-height:24px;font-weight:700;">Heimdall</p>
+<p style="margin:2px 0 0;${font}font-size:12px;line-height:19px;font-weight:400;color:#666666;">On inbox duty at First Principle</p>
 </td></tr>
-<tr><td class="pad" style="padding:0 44px 34px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<table role="presentation" width="100%" style="border-top:1px solid #dedede;"><tr><td style="padding:24px 0 0;overflow-wrap:anywhere;word-break:break-word;">
-<p style="margin:0 0 14px;font-size:10px;line-height:16px;font-weight:600;letter-spacing:2px;color:#777777;">YOUR ENQUIRY</p>
-<p style="margin:0 0 5px;font-size:13px;line-height:21px;color:#555555;">${escapeHtml_(fullName)}<br>${escapeHtml_(lead.email)}<br>${escapeHtml_(lead.phone)}</p>
-<p style="margin:14px 0 0;font-size:14px;line-height:23px;color:#333333;">${escapeHtml_(note).replace(/\r?\n/g, '<br>')}</p>
+<tr><td class="pad" style="padding:0 20px 24px;${font}font-weight:400;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="table-layout:fixed;border-top:1px solid #dedede;"><tr><td style="padding:20px 0 0;${font}font-weight:400;overflow-wrap:anywhere;word-wrap:break-word;word-break:break-word;">
+<p style="margin:0 0 12px;${font}font-size:10px;line-height:16px;font-weight:700;letter-spacing:1.5px;color:#666666;">YOUR ENQUIRY</p>
+<p style="margin:0 0 4px;${font}font-size:14px;line-height:22px;font-weight:700;color:#333333;">${escapeHtml_(fullName)}</p>
+<p style="margin:0;${font}font-size:14px;line-height:22px;font-weight:400;color:#555555;"><a href="mailto:${escapeHtml_(lead.email)}" style="${font}font-weight:400;color:#555555;text-decoration:underline;word-break:break-all;">${escapeHtml_(lead.email)}</a><br><a href="tel:${escapeHtml_(phoneLink)}" style="${font}font-weight:400;color:#555555;text-decoration:none;">${escapeHtml_(lead.phone)}</a></p>
+<p style="margin:14px 0 0;${font}font-size:14px;line-height:23px;font-weight:400;color:#333333;">${escapeHtml_(note).replace(/\r?\n/g, '<br>')}</p>
 </td></tr></table>
 </td></tr>
-<tr><td class="pad" bgcolor="#111111" style="padding:26px 44px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<p style="margin:0 0 8px;font-size:15px;line-height:23px;color:#ffffff;font-weight:500;">Smart toilets. Human conversations.</p>
-<a href="https://getfirstprinciple.com" style="font-size:12px;line-height:20px;color:#bbbbbb;text-decoration:none;">getfirstprinciple.com &nbsp; ↗</a>
+<tr><td class="pad" style="padding:20px;border-top:1px solid #dedede;${font}font-weight:400;">
+<p style="margin:0 0 6px;${font}font-size:13px;line-height:21px;color:#333333;font-weight:400;">Smart toilets. Human conversations.</p>
+<a href="https://getfirstprinciple.com" style="${font}font-size:12px;line-height:20px;font-weight:400;color:#555555;text-decoration:underline;">getfirstprinciple.com</a>
+<p style="margin:14px 0 0;${font}font-size:11px;line-height:17px;font-weight:400;color:#666666;">This is an automatic acknowledgment of your enquiry.<br>A thoughtful reply from our team comes next.</p>
 </td></tr></table>
 <!--[if mso]></td></tr></table><![endif]-->
-<p style="max-width:520px;margin:20px auto 0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:18px;color:#777777;text-align:center;">This is an automatic acknowledgment of your website enquiry.<br>A thoughtful reply from our team comes next.</p>
 </td></tr></table></body></html>`;
   return { subject, text, html };
 }
