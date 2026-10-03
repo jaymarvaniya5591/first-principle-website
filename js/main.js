@@ -498,6 +498,10 @@
       whySection.style.setProperty('--why-stage-height', height + 'px');
       setWhyTones(desktop, height);
       // Measure intrinsic content in flow before deciding whether pinning fits.
+      // Keep the current runway occupied during this synchronous measurement.
+      // Removing pinning can otherwise briefly shorten the document and make
+      // the browser clamp scrollY near the Collection, even if layout is unchanged.
+      if (oldLayout && oldLayout.animated) whyScroll.style.setProperty('min-height', whyScroll.getBoundingClientRect().height + 'px');
       whySection.classList.remove('why--horizontal');
       whySection.classList.remove('why--stacked');
       whySlides.forEach(function (slide) {
@@ -525,6 +529,7 @@
       var entrance = height;
       whyLayout = { animated: animated, horizontal: horizontal, stacked: stacked, travel: travel, hold: hold, journey: journey, runway: runway, offsets: offsets, entrance: entrance, prelude: 0, width: whySection.clientWidth, height: height };
       whyScroll.style.setProperty('--why-height', (height + runway) + 'px');
+      whyScroll.style.removeProperty('min-height');
       if (!animated) {
         whySection.style.removeProperty('--why-reveal');
         whySection.style.removeProperty('--why-note-reveal');

@@ -29,6 +29,26 @@ assert.equal(scenePose(300,60,0,900,64,0).entry,1,'short documents start readabl
 assert.equal(scenePose(1000,100,1000+100-64,900,64,3000).exit,1);
 assert.ok(scenePose(1000,100,990,900,64,3000).exit>0,'return from above retraces the departure');
 
+for (const viewport of [585,900]) {
+  for (const kind of ['boundary','heading','rise','deck']) {
+    const window=context.collectionWindows[kind], top=2400, end=top-viewport*window.end;
+    const start=top-viewport*window.start;
+    assert.equal(scenePose(top,440,start,viewport,64,6000,window).entry,0);
+    assert.equal(scenePose(top,440,end,viewport,64,6000,window).entry,1);
+    for(let step=0;step<=20;step++) {
+      const y=start+(end-start)*step/20;
+      const pose=JSON.stringify(scenePose(top,440,y,viewport,64,6000,window));
+      scenePose(top,440,end,viewport,64,6000,window);
+      assert.equal(JSON.stringify(scenePose(top,440,y,viewport,64,6000,window)),pose,'extended desktop entrances retrace without history');
+    }
+    const oldEnd=top-viewport*.62;
+    assert.equal(scenePose(top,440,oldEnd,viewport,64,6000).entry,1,'mobile/default timing is unchanged');
+    assert.ok(scenePose(top,440,oldEnd,viewport,64,6000,window).entry<1,'the desktop entrance remains visible beyond its old finish');
+    assert.equal(scenePose(top,440,top-80,viewport,64,6000,window).entry,1,'direct section landings and reading positions are settled');
+    assert.equal(scenePose(top,440,1900,viewport,64,1900,window).entry,1,'short documents still settle at the actual bottom');
+  }
+}
+
 for (const count of [1,3,5,7,9]) {
   for (let step=0;step<=100;step++) {
     const p=step/100, words=Array.from({length:count},(_,i)=>wordPose(p,i,count,false));

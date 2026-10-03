@@ -28,7 +28,7 @@ const section=node(), track=node(), scroll=node(), sticky=node(), heading=node()
 Object.defineProperty(section,'clientWidth',{get:()=>state.width});
 section.querySelector=selector=>selector==='.why__viewport-probe'?{getBoundingClientRect:()=>({height:state.stableHeight||state.height})}:heading;
 heading.getBoundingClientRect=()=>({top:state.start-80-state.y});
-scroll.getBoundingClientRect=()=>({top:state.start-state.y});
+scroll.getBoundingClientRect=()=>({top:state.start-state.y,height:parseFloat(scroll.style.getPropertyValue('--why-height'))||state.height*6});
 product.getBoundingClientRect=()=>({top:9000-state.y});
 const names=['warranty','service','returns','focus','patents'];
 const slides=names.map((name,i)=>{
@@ -288,3 +288,17 @@ state.desktop=false;state.width=390;state.height=844;state.stableHeight=844;cont
 paintAt(6*844);assert.equal(context.whySlides[6].name,'focus');
 state.desktop=true;state.width=1440;state.height=900;state.stableHeight=0;context.measureWhy();
 assert.ok(Math.abs(x()+4*1440)<.001,'the focus scene remains active when rotating from the new last position');
+
+// Browsers clamp scrollY if temporarily unpinning the section makes the whole
+// document shorter. Remeasuring after cancellation must not move the viewport.
+const removeClass=section.classList.remove;
+section.classList.remove=name=>{
+  removeClass(name);
+  if(name==='why--horizontal' && !parseFloat(scroll.style.getPropertyValue('min-height'))) state.y=Math.min(state.y,5504);
+};
+paintAt(context.whyLayout.runway+250);
+const collectionPosition=state.y;
+context.measureWhy();
+assert.equal(state.y,collectionPosition,'a same-layout measurement preserves scroll position after the pinned section');
+assert.equal(scroll.style.getPropertyValue('min-height'),'','the measurement reservation is released after layout settles');
+section.classList.remove=removeClass;

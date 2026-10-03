@@ -21,10 +21,18 @@
   function sceneValues() {
     var entry = sceneLocked || reduced.matches ? 1 : sceneEntry;
     var exit = sceneLocked || reduced.matches ? 0 : sceneExit;
-    var center = ease(clamp(entry / .75, 0, 1));
-    var spread = ease(clamp((entry - .18) / .72, 0, 1));
+    var center = ease(clamp(entry / (desktop.matches ? .85 : .75), 0, 1));
+    var spreadProgress = clamp((entry - (desktop.matches ? .08 : .18)) / (desktop.matches ? .92 : .72), 0, 1);
+    // On laptops, let the neighbours unfold while the card is actually coming
+    // into view. A cubic-out spread spent most of its motion near the bottom edge.
+    // This is a direct scroll pose, not extra inertia or a timed animation queue.
+    var spread = desktop.matches ? spreadProgress * spreadProgress * (3 - 2 * spreadProgress) : ease(spreadProgress);
+    // Fade the edges in after the centre gains opacity, keeping product labels
+    // from showing through one another during the longer desktop assembly.
+    var edges = desktop.matches ? clamp((entry - .32) / .53, 0, 1) : 1;
+    var neighborAlpha = center * spread * edges * edges * (3 - 2 * edges) * (1 - exit);
     return {spread:spread, y:24 * (1 - center) - 8 * exit,
-      scale:.98 + .02 * center, alpha:center * (1 - exit)};
+      scale:.98 + .02 * center, alpha:center * (1 - exit), neighborAlpha:neighborAlpha};
   }
   function paintDesktopScene() {
     var scene = sceneValues();
@@ -32,7 +40,7 @@
     deck.style.setProperty('--deck-y', scene.y.toFixed(3) + 'px');
     deck.style.setProperty('--deck-scale', scene.scale.toFixed(5));
     deck.style.setProperty('--deck-alpha', scene.alpha.toFixed(5));
-    deck.style.setProperty('--deck-neighbor-alpha', (scene.alpha * scene.spread).toFixed(5));
+    deck.style.setProperty('--deck-neighbor-alpha', scene.neighborAlpha.toFixed(5));
   }
   function rest(index) {
     return cards.map(function (_, i) {

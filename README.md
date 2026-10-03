@@ -594,3 +594,28 @@ Hotel-card refinement:
   layouts, desktop order and unchanged journey height. Regression checks cover
   scene-specific animation after reordering and preserving the active focus card
   across desktop/mobile resizing. Scroll input settings remain unchanged.
+
+Desktop Collection handoff, 2026-10-03:
+
+- Extended the Collection's desktop entrance within the existing section geometry:
+  boundary rule 94%→58% viewport height, heading/copy 90%→48%, product deck
+  88%→28%. Ordinary entrances and mobile retain their previous 88%→62% window.
+  No section height, pinning distance, wheel multiplier or scroll damping changed.
+- The centre card leads; neighboring cards now use a smoothstep spread across the
+  longer range, with their opacity arriving after the centre becomes readable.
+  This avoids spending most of the animation near the bottom edge and reduces
+  overlapping product text during assembly. Interaction takeover is still immediate;
+  all poses follow scroll directly without a timed queue or additional inertia.
+- Preserved the Why-us runway while measuring its intrinsic content. Cancelling
+  Lenis temporarily changes scrollbar width and can request a remeasurement;
+  briefly removing the pinned height used to shorten the document and let the
+  browser clamp scrollY. At 1280×585 the reproduced position changed from 6300
+  to 5504; it now stays at 6300. The temporary minimum height is removed as soon
+  as the final layout is applied, so resting geometry is unchanged.
+- Regression checks cover wider desktop windows, exact reversal, reading and
+  page-bottom settlement, neighbor timing, interaction takeover and scroll-position
+  preservation during remeasurement. All 12 checks pass. Chromium verified the
+  transition at 1280×585 and 1440×900, unchanged mobile poses at 390×844, reduced
+  motion and direct #product landing. A 120px wheel event moved 96.7px in both
+  Why us and the Collection transition, with constant document height. Physical
+  device/trackpad and CPU-throttled checks remain unavailable.

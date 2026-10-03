@@ -6,9 +6,17 @@
   function clamp(value) { return Math.max(0, Math.min(1, value)); }
   function range(value, start, end) { return clamp((value - start) / Math.max(.00001, end - start)); }
   function ease(value) { return 1 - Math.pow(1 - clamp(value), 3); }
-  function scenePose(top, height, scroll, viewport, header, maximum) {
-    var end = Math.min(maximum, top - viewport * .62);
-    var start = Math.min(end - Math.min(120, viewport * .14), top - viewport * .88);
+  // Give the desktop handoff room inside its existing geometry. Wheel distance
+  // stays uniform; only the entrance poses span more of the visible viewport.
+  var collectionWindows = {
+    boundary: {start:.94, end:.58},
+    heading: {start:.90, end:.48},
+    rise: {start:.90, end:.48},
+    deck: {start:.88, end:.28}
+  };
+  function scenePose(top, height, scroll, viewport, header, maximum, entrance) {
+    var end = Math.min(maximum, top - viewport * (entrance ? entrance.end : .62));
+    var start = Math.min(end - Math.min(120, viewport * .14), top - viewport * (entrance ? entrance.start : .88));
     return {
       entry:range(scroll, start, end),
       exit:range(scroll, top + height - header - Math.min(72, viewport * .08), top + height - header)
@@ -92,7 +100,7 @@
     document.querySelectorAll(selector).forEach(function (el) {
       el.classList.add('scene-' + kind);
       var phrases = kind === 'heading' ? Array.from(el.querySelectorAll('.motion-phrase')) : [];
-      targets.push({el:el, kind:kind, rise:rise || 24, phrases:phrases, top:0, height:0, locked:false, signature:null});
+      targets.push({el:el, kind:kind, collection:el.matches('.collection-shell, #product *'), rise:rise || 24, phrases:phrases, top:0, height:0, locked:false, signature:null});
     });
   }
   add('#product h2, .contact__title', 'heading');
@@ -134,7 +142,8 @@
       var editing = target.kind === 'field' && (target.locked || target.el.matches(':focus-within')
         || target.el.classList.contains('is-invalid') || Array.from(target.el.querySelectorAll('input,textarea')).some(function (input) { return input.value; }));
       var pose = reduced.matches || editing || target.locked ? {entry:1,exit:0}
-        : scenePose(target.top, target.height, scroll, height, headerHeight, maximum);
+        : scenePose(target.top, target.height, scroll, height, headerHeight, maximum,
+          desktop.matches && target.collection ? collectionWindows[target.kind] : null);
       return {target:target, entry:pose.entry, exit:pose.exit, outside:fullyOutside};
     });
   }
