@@ -4,11 +4,25 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
 const source=readFileSync(new URL('../js/main.js',import.meta.url),'utf8');
+const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+const initialHeader=html.match(/<header\b[^>]*\bid="topbar"[^>]*>/)[0];
+const initialSurface={
+  mode:initialHeader.match(/data-mode="([^"]+)"/)?.[1],
+  theme:initialHeader.match(/data-theme="([^"]+)"/)?.[1]
+};
+assert.deepEqual(initialSurface,{mode:'merge',theme:'dark'},'Home must render the white logo before deferred JavaScript starts');
+const initialScript=html.match(/<script id="topbar-initial-surface">([\s\S]*?)<\/script>/)[1];
+for(const hash of ['', '#home', '#technology', '#product', '#support', '#why-us', '#footer']) {
+  const surface={...initialSurface};
+  vm.runInNewContext(initialScript,{location:{hash},document:{getElementById:()=>({setAttribute:(key,value)=>surface[key.slice(5)]=value})}});
+  const light=['#technology','#product','#support'].includes(hash);
+  assert.deepEqual(surface,{mode:light?'glass':'merge',theme:light?'light':'dark'},`first paint matches ${hash||'Home'} before deferred scripts`);
+}
 const code=source.slice(source.indexOf('  var topbarMode = null;'),source.indexOf('  var onFrame = function'));
 const controls=Array.from({length:5},(_,i)=>({
   dataset:{},getBoundingClientRect:()=>({left:300+i*100,top:20,width:80,height:30})
 }));
-const topbar={dataset:{},querySelectorAll:()=>controls,
+const topbar={dataset:{...initialSurface},querySelectorAll:()=>controls,
   getBoundingClientRect:()=>({left:0,top:0,bottom:80,height:80,width:1440}),
   setAttribute(name,value){this.dataset[name.slice(5)]=value;}
 };
@@ -27,6 +41,10 @@ const context=vm.createContext({
   themeOfSlideAt:x=>x<500?'light':'dark'
 });
 vm.runInContext(code,context);
+context.applyTopbarSurface('merge','dark');
+assert.deepEqual(topbar.dataset,initialSurface,'the first Home update must preserve the initial surface without a colour flip');
+context.applyTopbarSurface('glass','light');
+assert.equal(topbar.dataset.theme,'light','initial HTML must not prevent a restored light-section theme');
 const overrides=()=>controls.map(c=>c.dataset.whySurface);
 const cleared=()=>assert.ok(overrides().every(v=>v===undefined),'shared surfaces release every individual override');
 

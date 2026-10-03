@@ -83,6 +83,9 @@ a little texture, which dissolves as the section approaches the top.
   hero is fully restored at the top. The grade uses no blur.
 - Navigation switches contrast as the white surface arrives and highlights
   Technology when it occupies the majority of the viewport.
+- The header starts with Home's merge/dark surface in HTML, so the white logo
+  is correct before deferred JavaScript runs. The first runtime measurement still
+  updates contrast for restored scroll positions and direct section links.
 - Desktop glass appears when the incoming cloud reaches the header or visible
   text/imagery passes beneath it; plain hero sky stays clear. The Why gradient
   takes over header styling only when its actual surface reaches the bar.

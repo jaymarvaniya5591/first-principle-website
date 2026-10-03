@@ -882,11 +882,9 @@
 
   /* The cloud boundary controls navigation contrast during the
      handoff. Below the hero, sample the real section beneath the topbar. */
-  // Deliberately not pre-set to "merge"/"dark" (the actual initial state):
-  // applyTopbarSurface only writes an attribute when the value *changes*, and
-  // the DOM starts with neither attribute present at all, so seeding these to
-  // match would make the first real call a no-op and leave the bar without
-  // data-mode/data-theme forever.
+  // HTML supplies Home's merge/dark surface before first paint, preventing a
+  // black-to-white logo flash. Leave the runtime cache unset so the first
+  // measurement still handles restored scroll positions and direct section links.
   var topbarMode = null;
   var topbarTheme = null;
   var hasTopbarContent = function () {

@@ -79,7 +79,14 @@
     </filter>
   </svg>
 
-  <header class="topbar" id="topbar">
+  <header class="topbar" id="topbar" data-mode="merge" data-theme="dark">
+    <script id="topbar-initial-surface">
+      // Resolve light-section bookmarks before the logo can paint, too.
+      if (['#technology', '#product', '#support'].indexOf(location.hash) !== -1) {
+        document.getElementById('topbar').setAttribute('data-theme', 'light');
+        document.getElementById('topbar').setAttribute('data-mode', 'glass');
+      }
+    </script>
     <div class="glass-filter"></div>
     <div class="glass-overlay"></div>
     <div class="glass-specular"></div>
