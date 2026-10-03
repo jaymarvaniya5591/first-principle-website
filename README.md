@@ -8,6 +8,7 @@ Static landing page for First Principle smart toilets, built 1:1 from the Figma 
 - Plain HTML / CSS / vanilla JS — the deployed site has no build step.
 - Self-hosted, subset WOFF2 fonts in `assets/fonts` (Anton, Billion Dreams, Helvetica Now Display, Helvetica Neue) with metric-matched local fallbacks (no layout shift).
 - Responsive AVIF / WebP / JPEG-PNG images in `assets/img`, generated from the Figma exports and the client renders.
+- Contact form: a Vercel function validates submissions and a Google Apps Script saves enquiries to Sheets and sends personalised Gmail acknowledgments. See [contact setup](integrations/google-apps-script/SETUP.md). Configure accounts before deploying this form.
 
 ## Structure
 
@@ -15,7 +16,10 @@ Static landing page for First Principle smart toilets, built 1:1 from the Figma 
 index.html            # all sections (hero, features, why, collection, contact, footer)
 css/styles.css        # source stylesheet, loaded by index.html
 css/styles.min.css    # equivalent minified distribution stylesheet
-js/main.js            # 5-product carousel, mobile menu, nav scroll-spy, contact form
+js/main.js            # 5-product carousel, mobile menu, nav scroll-spy
+js/contact.js         # either-name validation, spam check, real submission feedback
+api/contact.js        # Vercel function; private Google Apps Script bridge
+integrations/         # Google Apps Script, email template, setup instructions
 scripts/serve.mjs     # local-only preview on port 5592
 assets/fonts          # generated woff2 (sources in assets/fonts-src, git-ignored)
 assets/img            # generated responsive images (sources in assets/img-src + ../Website Assets)

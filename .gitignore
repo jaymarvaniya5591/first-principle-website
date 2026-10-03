@@ -2,6 +2,7 @@
 Thumbs.db
 .vercel
 .env*
+!.env.example
 .cursor/
 node_modules/
 

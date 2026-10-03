@@ -710,43 +710,47 @@
         <p class="contact__text">Building a home is a lot to figure out. Talk to us - we'll help you find the right fit <strong>Even if it isn't us.</strong></p>
       </div>
 
-      <form class="contact__form" action="#" method="post" novalidate>
+      <form class="contact__form" action="/api/contact" method="post" novalidate>
+        <p class="sr-only" id="name-help">Enter a first name or a last name. Either is fine.</p>
         <div class="contact__fields">
           <div class="field-row">
             <div class="field">
               <label class="sr-only" for="f-first">First Name</label>
-              <input id="f-first" type="text" name="firstName" placeholder="First Name" autocomplete="given-name" required aria-describedby="e-first" />
+              <input id="f-first" type="text" name="firstName" placeholder="First Name" autocomplete="given-name" maxlength="80" aria-describedby="e-first name-help" />
               <span class="field__error" id="e-first"></span>
             </div>
             <div class="field">
               <label class="sr-only" for="f-last">Last Name</label>
-              <input id="f-last" type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required aria-describedby="e-last" />
+              <input id="f-last" type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" maxlength="80" aria-describedby="e-last name-help" />
               <span class="field__error" id="e-last"></span>
             </div>
           </div>
           <div class="field-row">
             <div class="field">
               <label class="sr-only" for="f-phone">Phone Number</label>
-              <input id="f-phone" type="tel" name="phone" placeholder="Phone Number" autocomplete="tel" inputmode="tel" required aria-describedby="e-phone" />
+              <input id="f-phone" type="tel" name="phone" placeholder="Phone Number" autocomplete="tel" inputmode="tel" maxlength="40" required aria-describedby="e-phone" />
               <span class="field__error" id="e-phone"></span>
             </div>
             <div class="field">
               <label class="sr-only" for="f-email">Email</label>
-              <input id="f-email" type="email" name="email" placeholder="Email" autocomplete="email" inputmode="email" required aria-describedby="e-email" />
+              <input id="f-email" type="email" name="email" placeholder="Email" autocomplete="email" inputmode="email" maxlength="254" required aria-describedby="e-email" />
               <span class="field__error" id="e-email"></span>
             </div>
           </div>
           <div class="field field--message">
             <label class="sr-only" for="f-message">Message</label>
-            <textarea id="f-message" name="message" placeholder="Message" rows="1"></textarea>
+            <textarea id="f-message" name="message" placeholder="Message" rows="1" maxlength="4000" aria-describedby="e-message"></textarea>
+            <span class="field__error" id="e-message"></span>
           </div>
           <div class="field--hp">
             <label for="f-company">Leave this field empty</label>
             <input id="f-company" type="text" name="company" tabindex="-1" autocomplete="off" />
           </div>
         </div>
+        <div class="contact__challenge" hidden></div>
         <button class="submit" type="submit">Submit</button>
         <p class="contact__status" role="status" aria-live="polite"></p>
+        <noscript><p>Please enable JavaScript to use this form, or email <a href="mailto:founder@getfirstprinciple.com">founder@getfirstprinciple.com</a>.</p></noscript>
       </form>
     </div>
   </section>
@@ -792,6 +796,7 @@
   <script src="js/smooth-scroll.js" defer></script>
   <script src="js/technology.js" defer></script>
   <script src="js/main.js" defer></script>
+  <script src="js/contact.js" defer></script>
   <script src="js/mobile-card-deck.js" defer></script>
   <script src="js/mobile-product.js" defer></script>
   <script src="js/site-motion.js" defer></script>

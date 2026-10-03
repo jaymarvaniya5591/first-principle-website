@@ -1854,6 +1854,10 @@ img {
   display:block;
 }
 
+.contact__challenge { width:100%; max-width:100%; }
+.contact__challenge[hidden] { display:none; }
+.submit:disabled { cursor:wait; opacity:.65; }
+
 .footer {
   position:relative;
   background:var(--ink);

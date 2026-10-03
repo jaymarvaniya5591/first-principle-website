@@ -774,57 +774,6 @@
     });
   }
 
-  /* ---------------- Contact form ---------------- */
-  var form = document.querySelector(".contact__form");
-  if (form) {
-    var formStatus = form.querySelector(".contact__status");
-    var textarea = form.querySelector("textarea");
-    if (textarea) {
-      textarea.addEventListener("input", function () {
-        textarea.style.height = "auto";
-        textarea.style.height = textarea.scrollHeight + "px";
-      });
-    }
-
-    var messages = {
-      firstName: "Please enter your first name.",
-      lastName: "Please enter your last name.",
-      phone: "Please enter a phone number.",
-      email: "Please enter a valid email address."
-    };
-    var validateField = function (input) {
-      var field = input.closest(".field");
-      var err = field && field.querySelector(".field__error");
-      var ok = input.checkValidity();
-      if (field) field.classList.toggle("is-invalid", !ok);
-      if (err) err.textContent = ok ? "" : (messages[input.name] || "This field is required.");
-      return ok;
-    };
-    form.querySelectorAll("input[required]").forEach(function (input) {
-      input.addEventListener("blur", function () { if (input.value) validateField(input); });
-      input.addEventListener("input", function () {
-        var field = input.closest(".field");
-        if (field && field.classList.contains("is-invalid") && input.checkValidity()) validateField(input);
-      });
-    });
-
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (form.elements.company && form.elements.company.value) return; // honeypot
-      var firstInvalid = null;
-      form.querySelectorAll("input[required]").forEach(function (input) {
-        if (!validateField(input) && !firstInvalid) firstInvalid = input;
-      });
-      if (firstInvalid) { firstInvalid.focus(); return; }
-      if (formStatus) {
-        formStatus.textContent = "Thanks — we’ve received your message and will get back to you shortly.";
-        formStatus.classList.add("is-visible");
-      }
-      form.reset();
-      if (textarea) textarea.style.height = "";
-    });
-  }
-
   /* ---------------- Scroll-driven effects ----------------
      One scroll listener and one rAF per frame, with every measurement taken
      before any style is written. Previously the hero transition, the
