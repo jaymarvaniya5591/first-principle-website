@@ -349,7 +349,7 @@ Upward trips to Technology or Home prepare the offscreen Why-us introduction
 before crossing its pinned scene, preventing a late white-to-black card swap.
 
 
-### Mobile collection, form and section motion
+### Collection, form and reversible section motion
 
 The mobile presentation remains the inverse of the desktop/fine-pointer landscape
 query. Desktop and the hero-to-Technology transition retain their existing design.
@@ -391,12 +391,28 @@ alignment, and grows with input. Validation messages are in normal flow. Focus
 underlines take 180ms; typed text stays still. The tablet's paired fields and the
 desktop layout are preserved.
 
-`js/mobile-motion.js` enhances existing semantic phrases with clipped windows;
-wrappers are display:contents on desktop. Entrances begin at the lower three-quarters
-of the viewport, take 560ms, and stagger related elements by 60ms. Technology,
-Collection and Contact headings rise through masks. Fields enter individually,
-with divider growth. Menu labels have masked entrances
-inside the existing opening surface. Ordinary entrances run once; interactions repeat.
+`js/site-motion.js` replaces both one-shot reveal observers with a shared,
+position-driven scene controller. It uses `main.js`'s existing scroll frame,
+reads stationary offset anchors before writes, and caches geometry until fonts,
+resizing or content changes require remeasurement. Returning to a scroll position
+reproduces the same pose; no elapsed-time smoothing chases scroll values.
+Ordinary entrances begin at 88% of viewport height and settle by 62%, then remain
+still through the reading area. A shallow 8px departure occurs only near the header.
+Footer endpoints are clamped to the document end so even the copyright fully settles.
+Offscreen scenes write their clamped endpoint once; hidden documents suspend work.
+
+Collection and Contact headings use static phrase windows. Technology's title
+remains owned solely by the existing cloud handoff. Form underlines draw with their
+field rows; paired desktop/tablet fields share an anchor. Focused, edited and invalid
+fields stay settled. Mobile menu labels keep their reversible timed open/close motion.
+The restored footer layout is unchanged; its logo, tagline, links and rule have
+shallow reversible entrances. Reduced-motion and flow fallbacks remain readable.
+
+The carousel renderer composes entry progress with its existing card positions:
+the centre rises 24px at .98–1 scale, then the neighbors spread. Interaction captures
+the current visible pose and owns the cards until the collection leaves view.
+Mobile drag settlement stays 320ms; desktop selection uses a retargetable 420ms
+deceleration. No second controller writes the carousel's positioning transform.
 
 All seven Technology panels open over 220ms, with descriptions visible immediately
 while lifting over 320ms. Mobile photos are fetched and decoded one viewport ahead
@@ -412,12 +428,19 @@ responsive sources, failed decodes and rapid-selection coverage.
 The expanded mobile title and description have no intervening decorative divider.
 
 Technology's final rule still meets the solid black Why-us boundary directly.
-The six Why-us cards retain their existing scroll distance and 15% reading holds.
-Incoming headings reveal over card-entry progress .48–.92, secondary phrases over
-.57–.97, details over .64–.98, and final elements over .73–1. Statistics move inward
-around a growing divider; service and patent pills stagger; returns and the 100%
-statement reveal in phrase order. All values remain fixed. Reversing scroll retraces
-these motions. Short screens, oversized content and reduced motion use ordinary flow.
+The six Why-us cards retain their existing scroll distance and mobile reading holds.
+Incoming headings use overlapping word-by-word waves. Whole-word spans preserve
+punctuation, emphasis, original wrapping and an unfragmented accessible heading name.
+Incoming words start around .4 progress and finish by .9; copy/pills finish by .98.
+The introduction resolves its three words and two reassurance phrases in order.
+Service pills move inward; patents settle upward from .96 scale; the first "100%"
+word settles from 1.04 scale. Non-warranty scenes depart only after 60% coverage.
+The mobile warranty statistics and central divider keep their exact original
+cubic-out .64–.98 and .73–1 curves, without additional departure motion. Desktop
+receives the same comparison treatment. Desktop panel travel stays proportional to
+scroll position, with no per-segment easing or speed boost; the original opening
+and closing allowances remain. Both modes preserve total scroll distance and retrace on
+reverse input. Short screens, oversized content and reduced motion use ordinary flow.
 
 Shared mobile headings remain Helvetica Neue, 2rem/1.15 with -.02em tracking
 (2.5rem on portrait/touch tablets). Section spacing remains 3.5rem, subtitle spacing
@@ -459,3 +482,64 @@ Validation for the second pass, 2026-10-03:
   not a physical-phone performance guarantee.
 - Physical iOS/Android devices, coarse-pointer landscape emulation and CPU-throttled
   traces are unavailable in this session and remain unverified.
+
+Validation for reversible desktop/mobile motion, 2026-10-03:
+
+- All nine existing checks plus `npm run test:motion` pass. New regressions cover
+  exact forward/reverse poses, reading intervals, upper-edge returns, bottom-of-page
+  settlement, all six word sequences, proportional desktop travel, the unchanged mobile
+  warranty curves, and carousel takeover from a partially assembled pose.
+- Chromium baseline comparisons against bd0de4a match section heights, heading
+  dimensions/type settings, field dimensions and photo geometry at 320x640,
+  360x800, 390x844, 430x932, 768x1024, 390x480, 844x390, 1024x600,
+  1280x585 and 1440x900. No horizontal overflow was measured.
+- Browser interaction checks exercise all seven Technology selections and all five
+  products in both presentations, mobile expanded-card swiping, menu open/close,
+  word/card reversal, edited form stability, footer settlement and section links.
+  Resizing desktop -> phone -> tablet -> landscape -> desktop preserves selection.
+  Reloading a page without a fragment restores its exact scroll pose; a section
+  bookmark retains the site's existing explicit anchor landing behavior.
+- Temporary response fixtures verify 200% root text, reduced motion, image failures,
+  and script-free content. Enlarged Why-us content switches to ordinary flow.
+  The no-script header now uses a solid dark surface, and the desktop catalogue
+  exposes all five articles in page flow instead of an unusable static stack.
+  These fallback rules apply only without scripts; enhanced resting layouts match.
+- Unthrottled animation-frame samples during repeated scrolling and reversals:
+  mobile viewport, 376 intervals, median 7.0ms, p95 7.2ms, maximum 7.8ms;
+  desktop viewport, 461 intervals, median 7.0ms, p95 7.3ms, maximum 20.8ms.
+  Neither sample reported a long task or an interval above 34ms. Browser-control
+  overhead is included; these are observations, not device performance guarantees.
+- Entrance, reading and departure captures were saved for desktop and mobile,
+  together with all six Why-us reading scenes, collection, contact and footer views.
+  No application JavaScript errors were reported in the final normal-page check.
+- Physical iOS/Android, Safari/Firefox, coarse-pointer landscape emulation,
+  real mobile toolbar behavior and CPU-throttled/GPU traces were unavailable.
+  Hidden-tab recovery, cancelled gestures and toolbar-resize invariants are covered
+  by deterministic controller tests, rather than physical-device verification.
+
+Scroll-control correction, 2026-10-03:
+
+- Removed the desktop Why-us segment hold/smoothstep remapping. It could make the
+  panels travel up to 1.76 times the previous rate midway through each segment.
+  Only the text/detail animation is eased; the desktop track uses its original
+  proportional travel. Native mobile covers and warranty timing are unchanged.
+- Fixed real cancellation in the shared scroll controller. Lenis 1.3.26 returns
+  early from `scrollTo(actualScroll, {immediate:true})` when target and actual
+  already match, including after `resize()` and during programmatic navigation.
+  The old cancellation could release its callback while the animation continued
+  through the section-skip route. Stop/start now halts that animation before
+  releasing navigation state. Touch, keyboard, scrollbar, resize, wheel interruption
+  and same-position retargeting use the corrected path.
+- Preserved the existing .085 wheel damping, .82 multiplier and large-impulse
+  attenuation. Routed deltas now use that same damping rather than a separate
+  faster response. There is no section-dependent input multiplier. Mobile wheel
+  and touch remain native, and mobile anchor animation yields on touchstart.
+- `npm run test:scroll-input` runs the actual vendored engine, not a scrollTo mock.
+  Its cancellation regression failed on the previous code (917.6px -> 11000px
+  after cancellation) and passes after the fix. It also checks equal wheel distances,
+  immediate reversal, native mobile input and cancellation by each input type.
+- Chromium reproduction: before, cancellation at 916.7px continued to 7154px;
+  after, cancellation at 922.7px stayed at 922.7px. Equal 120px wheel events at
+  three Why-us positions each moved 96.7px; a 430px trackpad-style burst moved
+  352.7px. Document height remained stable. Physical touch-device testing remains
+  unavailable; native touch/fallback interruption is covered by controller tests.

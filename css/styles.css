@@ -233,17 +233,6 @@ img {
   border-radius:2px;
 }
 
-.reveal-up {
-  opacity:1;
-  transform:none;
-  transition:opacity 1.2s cubic-bezier(0.16,1,0.3,1),transform 1.2s cubic-bezier(0.16,1,0.3,1);
-}
-.reveal-up.reveal-pending { opacity:0; transform:translateY(100px); }
-
-.reveal-up.is-revealed {
-  opacity:1;
-  transform:translateY(0);
-}
 
 .container {
   max-width:71.1104rem;
@@ -653,14 +642,15 @@ img {
   background:currentColor;
   opacity:0;
   transform:scaleX(0.4);
-  transition:opacity 0.25s ease,transform 0.25s ease,height 0.25s ease;
+  transform-origin:left;
+  transition:opacity 160ms ease,transform 160ms ease;
 }
 
-.nav__item:hover {
+.nav__item:hover, .nav__item:focus-visible {
   opacity:1;
 }
 
-.nav__item:hover::after {
+.nav__item:hover::after, .nav__item:focus-visible::after {
   opacity:0.3;
   transform:scaleX(1);
 }
@@ -3324,8 +3314,10 @@ img {
   #technology .features__img img {
     object-fit:cover;
     object-position:center;
-    transform:none;
+    transform:scale(1.025);
+    transition:transform 440ms cubic-bezier(.22,1,.36,1);
   }
+  #technology .features__img.is-active img { transform:scale(1); }
   #technology .features__list {
     display:block;
     position:relative;
@@ -3420,7 +3412,7 @@ img {
     transition:opacity 120ms ease-out;
   }
   #technology .feature.is-active { color:#fff; background:#111; }
-  #technology .feature.is-active .feature__desc { color:#bcbcbc; }
+  #technology .feature.is-active .feature__desc { color:#bcbcbc; animation:feature-desktop-copy 280ms cubic-bezier(.22,1,.36,1) both; }
   #technology.features--enhanced .feature:not(.is-active) {
     height:var(--technology-row);
     min-height:0;
@@ -3564,15 +3556,9 @@ img {
 #why-us.why--stacked .intro__word-window--brand { --intro-word-progress:var(--why-brand-reveal,0); }
 #why-us.why--stacked .intro__word { display:block; opacity:var(--intro-word-progress); transform:translate3d(0,calc((1 - var(--intro-word-progress)) * 1.05em),0); }
 #why-us.why--stacked .slide--intro .slide__note { opacity:var(--why-note-reveal,0); transform:translate3d(0,calc((1 - var(--why-note-reveal,0)) * 24px),0); }
-#why-us.why--stacked .slide:not(.slide--intro) .motion-window { --phrase-progress:var(--why-content,1); }
-#why-us.why--stacked .slide:not(.slide--intro) .motion-window:nth-of-type(n+2) { --phrase-progress:var(--why-second,1); }
-#why-us.why--stacked .slide:not(.slide--intro) .motion-phrase { opacity:var(--phrase-progress); transform:translate3d(0,calc((1 - var(--phrase-progress)) * 1.05em),0); }
 #why-us.why--stacked .stat { opacity:var(--why-detail,1); transform:translate3d(calc((1 - var(--why-detail,1)) * -24px),0,0); }
 #why-us.why--stacked .stat:last-child { opacity:var(--why-last,1); transform:translate3d(calc((1 - var(--why-last,1)) * 24px),0,0); }
 #why-us.why--stacked .stat__divider { transform:scaleY(var(--why-detail,1)); transform-origin:center; }
-#why-us.why--stacked .pill { --pill-progress:var(--why-detail,1); opacity:var(--pill-progress); transform:translate3d(0,calc((1 - var(--pill-progress)) * 24px),0) scale(calc(.96 + .04 * var(--pill-progress))); }
-#why-us.why--stacked .pill:nth-child(2) { --pill-progress:var(--why-last,1); }
-#why-us.why--stacked .slide:not(.slide--intro) .slide__note { opacity:var(--why-last,1); transform:translate3d(0,calc((1 - var(--why-last,1)) * 24px),0); }
 #why-us.why--stacked .why__track:focus-visible { outline-color:#888; }
 
 
@@ -3758,7 +3744,7 @@ img {
     width:var(--product-card-width);
     height:var(--product-card-height);
     border-radius:calc(28 * var(--collection-unit));
-    transition:transform .6s cubic-bezier(.4,0,.2,1),opacity .6s,visibility .6s,box-shadow .6s;
+    transition:transform 420ms cubic-bezier(.22,1,.36,1),opacity 420ms ease,visibility 420ms;
   }
   #product .card[data-pos="center"] {
     transform:translateX(-50%);
@@ -3871,7 +3857,8 @@ img {
 
 /* One type, spacing and motion system for phones and touch tablets. This is
    the complement of the explorer's desktop/fine-pointer landscape query. */
-.motion-window, .motion-phrase { display:contents; }
+.motion-window { display:inline-block; max-width:100%; vertical-align:top; overflow:clip; padding-block:.1em; margin-block:-.1em; }
+.motion-phrase { display:block; }
 @media (width <600px), (width <1100px) and (aspect-ratio <4/3), (width <1100px) and (hover:none), (width <1100px) and (pointer:coarse), (width <1100px) and (pointer:none) {
   :root {
     --mobile-heading:2rem;
@@ -3925,34 +3912,11 @@ img {
   .collection-shell::before, #support::before {
     content:''; position:absolute; top:0; left:var(--mobile-gutter); right:var(--mobile-gutter);
     height:1px; background:rgba(17,17,17,.16); pointer-events:none;
-    transform-origin:left; transition:transform 560ms var(--mobile-ease);
+    transform-origin:left;
   }
-  .mobile-rule-pending::before { transform:scaleX(0); }
-  .mobile-rule-pending.is-revealed::before { transform:scaleX(1); }
-  .reveal-up, [data-mobile-reveal] {
-    transition:opacity 560ms var(--mobile-ease),transform 560ms var(--mobile-ease);
-    transition-delay:var(--mobile-delay,0ms)!important;
-  }
-  .reveal-up.reveal-pending, .mobile-reveal-pending { opacity:0; transform:translate3d(0,20px,0); }
-  .reveal-up.is-revealed, .mobile-reveal-pending.is-revealed { opacity:1; transform:none; }
-  /* The children reveal individually; the desktop wrapper keeps its entrance. */
-  #product .section-head.reveal-up { opacity:1; transform:none; transition:none; }
-  #product .section-head__sub, #support .contact__text { --mobile-delay:60ms; }
-  /* Each element owns its entrance; an old parent reveal cannot hide it. */
-  .motion-managed.reveal-up, .motion-managed[data-mobile-reveal] { opacity:1; transform:none; transition:none; }
-  .motion-window { display:inline-block; max-width:100%; vertical-align:top; overflow:clip; padding-block:.1em; margin-block:-.1em; }
-  .motion-phrase { display:block; }
-  .motion-heading .motion-window { display:block; }
+  .scene-heading .motion-window { display:block; }
+  #why-us .slide__title .motion-window { overflow:visible; }
   #why-us .slide__title .motion-window + .motion-window { margin-left:.16em; }
-  .motion-pending.motion-heading .motion-phrase { opacity:0; transform:translate3d(0,1.05em,0); }
-  .motion-heading .motion-phrase { transition:transform 560ms var(--mobile-ease),opacity 400ms ease; transition-delay:calc(var(--phrase-order,0) * 60ms); }
-  .motion-pending.motion-rise, .motion-pending.motion-field { opacity:0; transform:translate3d(0,24px,0); transition:transform 560ms var(--mobile-ease),opacity 440ms ease; transition-delay:var(--entrance-delay,0ms)!important; }
-  .motion-pending.motion-heading.motion-visible .motion-phrase, .motion-pending.motion-visible.motion-rise, .motion-pending.motion-visible.motion-field { opacity:1; transform:none; }
-  .motion-field::before { content:''; position:absolute; inset:auto 0 -1px; height:1px; background:var(--ink-40); transform:scaleX(0); transform-origin:left; transition:transform 560ms var(--mobile-ease); transition-delay:var(--entrance-delay,0ms); }
-  #support .motion-field { border-bottom-color:transparent; }
-  .motion-field.motion-visible::before { transform:scaleX(1); }
-  .motion-boundary.motion-pending::before { transform:scaleX(0); }
-  .motion-boundary.motion-visible::before { transform:scaleX(1); }
   .mobile-menu__nav a.motion-title, .mobile-menu.is-open .mobile-menu__nav a.motion-title { opacity:1; transform:none; transition:none; }
   .mobile-menu__nav .motion-window { display:block; }
   .mobile-menu__nav .motion-phrase { opacity:0; transform:translate3d(0,110%,0); transition:transform 180ms ease,opacity 160ms ease; }
@@ -4025,11 +3989,7 @@ img {
 #product.product--mobile .carousel__arrow--next:active { translate:2px 0; }
 #product.product--mobile .carousel__arrow:focus-visible { outline:2px solid #555; outline-offset:1px; }
 @media (prefers-reduced-motion:reduce) {
-  .motion-pending, .motion-phrase { opacity:1!important; transform:none!important; transition:none!important; }
-  .motion-pending::before { transform:none!important; transition:none!important; }
-  .motion-pending::after { transition:none!important; }
-  .reveal-up.reveal-pending, .mobile-reveal-pending { opacity:1!important; transform:none!important; }
-  .mobile-rule-pending::before { transform:none!important; }
+  .motion-phrase { opacity:1!important; transform:none!important; transition:none!important; }
   #product.product--mobile .carousel__arrow, #product.product--mobile .card__disclosure::after { transition:none; }
   #product.product--mobile .carousel__arrow:active { translate:none; }
 }
@@ -4039,6 +3999,64 @@ img {
   #product:not(.product--enhanced) .carousel__controls { display:none; }
   #product:not(.product--enhanced) .card .card__media { width:100%; height:auto; aspect-ratio:1; }
   #product:not(.product--enhanced) .card .card__body { width:auto; margin:0 16px; }
+}
+
+/* Reversible scenes: progress is written by the shared scroll frame. No CSS
+   time-based transitions may chase these transforms or opacity values. */
+.scene-rise, .scene-field, .scene-heading .motion-phrase { transition:none; }
+.scene-boundary::before, .scene-rule { transform:scaleX(var(--scene-rule,1)); transform-origin:left; transition:none; }
+.scene-motion-ready #support .scene-field { border-bottom-color:transparent; }
+.scene-field::before { content:''; position:absolute; inset:auto 0 -1px; height:1px; background:var(--ink-40); transform:scaleX(var(--scene-rule,1)); transform-origin:left; pointer-events:none; }
+#why-us .why-word { display:inline-block; vertical-align:baseline; transform-origin:center 70%; }
+#why-us.why--words .intro__word-window { overflow:visible; }
+#why-us.why--words .intro__word { opacity:1; transform:none; }
+#why-us.why--words .slide--intro .slide__note { opacity:1; transform:none; }
+.why-note-line { display:inline-block; }
+#why-us:not(.why--horizontal):not(.why--stacked) :is(.why-word,.why-note-line,.slide__note,.pill) { opacity:1!important; transform:none!important; }
+#why-us.why--horizontal .stat { opacity:var(--why-detail,1); transform:translate3d(calc((1 - var(--why-detail,1)) * -24px),0,0); }
+#why-us.why--horizontal .stat:last-child { opacity:var(--why-last,1); transform:translate3d(calc((1 - var(--why-last,1)) * 24px),0,0); }
+#why-us.why--horizontal .stat__divider { transform:scaleY(var(--why-detail,1)); transform-origin:center; }
+@keyframes feature-desktop-copy {
+  from { opacity:.7; transform:translate3d(0,8px,0); }
+  55% { opacity:1; }
+  to { opacity:1; transform:none; }
+}
+@media (min-width:1100px), (min-width:600px) and (min-aspect-ratio:4/3) and (hover:hover) and (pointer:fine) {
+  .collection-shell.scene-boundary { position:relative; }
+  #technology .motion-window, #technology .motion-phrase,
+  #why-us .motion-window, #why-us .motion-phrase { display:contents; }
+  .collection-shell.scene-boundary::before { content:''; position:absolute; top:0; left:6.4%; right:6.4%; height:1px; background:rgba(17,17,17,.16); pointer-events:none; }
+  #product .product-deck .card {
+    translate:0 var(--deck-y,0px); scale:var(--deck-scale,1);
+  }
+  #product .product-deck .card[data-pos="center"] { opacity:var(--deck-alpha,1); }
+  #product .product-deck .card[data-pos="left"] {
+    translate:calc((1 - var(--deck-spread,1)) * 190 * var(--collection-unit)) var(--deck-y,0px);
+    opacity:var(--deck-neighbor-alpha,1);
+  }
+  #product .product-deck .card[data-pos="right"] {
+    translate:calc((var(--deck-spread,1) - 1) * 190 * var(--collection-unit)) var(--deck-y,0px);
+    opacity:var(--deck-neighbor-alpha,1);
+  }
+  /* Interaction takes over from the on-screen scene pose. Normal scroll
+     updates never transition; only this handoff interpolates translate/scale. */
+  #product .product-deck:not(.is-scene-takeover) .card { transition:transform 420ms cubic-bezier(.22,1,.36,1),visibility 420ms; }
+  #product .product-deck.is-scene-takeover .card {
+    transition:transform 420ms cubic-bezier(.22,1,.36,1),opacity 420ms ease,visibility 420ms,translate 160ms ease-out,scale 160ms ease-out;
+  }
+  #product .carousel__arrow img { transition:translate 160ms ease-out; }
+  #product .carousel__arrow--next:is(:hover,:focus-visible) img { translate:3px 0; }
+  #product .carousel__arrow--prev:is(:hover,:focus-visible) img { translate:-3px 0; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .scene-rise, .scene-field, .scene-heading .motion-phrase,
+  #why-us .why-word, #why-us .why-note-line, #why-us .slide__note,
+  #why-us .pill, #why-us .stat { opacity:1!important; transform:none!important; }
+  .scene-boundary::before, .scene-rule, .scene-field::before { transform:none!important; }
+  #technology .feature.is-active .feature__desc { animation:none; }
+  #technology .features__img img { transition:none; }
+  #product .product-deck .card, #product .carousel__arrow img, .nav__item::after { transition:none!important; }
+  #product .product-deck .card { translate:none!important; scale:1!important; }
 }
 
 /* Quiet tactile feedback for controls without an existing press treatment.

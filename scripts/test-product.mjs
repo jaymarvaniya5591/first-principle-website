@@ -80,6 +80,8 @@ let controller;
 class Lenis {
   constructor() { controller = this; this.actualScroll = 500; this.limit = 500; }
   on() {}
+  stop() {}
+  start() {}
   resize() { this.limit = 2000; }
   scrollTo(target) { this.actualScroll = Math.min(target, this.limit); }
 }

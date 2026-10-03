@@ -69,11 +69,11 @@
 
   function maxScroll() { return Math.max(0, list.scrollHeight - list.clientHeight); }
   function clamp(value, max) { return Math.max(0, Math.min(value, max)); }
-  function schedule() { if (!frame) frame = requestAnimationFrame(tick); }
+  function schedule() { if (!frame && !document.hidden) frame = requestAnimationFrame(tick); }
 
   function tick(time) {
     frame = 0;
-    if (!desktop.matches || flow) return;
+    if (!desktop.matches || flow || document.hidden) return;
     var dt = lastTime ? Math.min(40, time - lastTime) : 16;
     lastTime = time;
     var max = maxScroll();
@@ -494,7 +494,9 @@
   }, { rootMargin: '100% 0px' });
   nearby.observe(section);
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) warmMobileImages();
+    if (document.hidden) {
+      cancelAnimationFrame(frame); frame = 0; lastTime = 0; cancelMobileView();
+    } else { warmMobileImages(); requestMeasure(); schedule(); }
   });
 
   // Match nav-click clearance after fonts and the browser's initial fragment jump.

@@ -24,6 +24,14 @@
     navigationDone = null;
     if (done) done();
   }
+  function haltScroll() {
+    if (!instance) return;
+    // Lenis ignores scrollTo(actualScroll, {immediate:true}) when its target
+    // already equals that position (notably after resize or during a link trip).
+    // Stop the actual animation before releasing its navigation bookkeeping.
+    instance.stop();
+    instance.start();
+  }
   function reconcile() {
     if (!desktop.matches || !window.Lenis) {
       finishNavigation();
@@ -47,7 +55,7 @@
         // The technology panel already routed this input between its two scrollers.
         if (input.event.defaultPrevented) return false;
         if (input.event.type !== 'wheel' || input.event.ctrlKey) return;
-        finishNavigation();
+        if (navigationActive) { haltScroll(); finishNavigation(); }
         var amount = Math.abs(input.deltaY);
         var direction = Math.sign(input.deltaY);
         // A soft knee trims large impulses without changing fine movements.
@@ -56,7 +64,7 @@
         // towards a stale forward target while the user is already scrolling up.
         var ahead = instance.targetScroll - instance.animatedScroll;
         if (amount > 1 && Math.abs(ahead) > 1 && direction !== Math.sign(ahead)) {
-          instance.scrollTo(instance.actualScroll, { immediate: true });
+          haltScroll();
         }
       }
     });
@@ -66,16 +74,17 @@
     get active() { return !!instance; },
     onFrame: function (render) { listeners.push(render); },
     cancel: function () {
+      haltScroll();
       finishNavigation();
       if (instance) {
         // Initial fragment navigation can follow a growing Why-us runway before
         // Lenis's debounced observer refreshes its limit. Sync it before clamping.
         instance.resize();
-        instance.scrollTo(instance.actualScroll, { immediate: true });
       }
     },
     // Delta is already normalized by the caller. Keep one owner of page inertia.
     by: function (delta) {
+      if (navigationActive) haltScroll();
       finishNavigation();
       if (!instance) {
         window.scrollBy({ top: delta, behavior: 'instant' });
@@ -83,12 +92,13 @@
       }
       var ahead = instance.targetScroll - instance.animatedScroll;
       if (Math.abs(ahead) > 1 && Math.sign(delta) !== Math.sign(ahead)) {
-        instance.scrollTo(instance.actualScroll, { immediate: true });
+        haltScroll();
       }
-      instance.scrollTo(instance.targetScroll + delta, { lerp: .18 });
+      instance.scrollTo(instance.targetScroll + delta, { lerp: instance.options.lerp, programmatic:false });
     },
     to: function (target, done, options) {
       if (!instance) return false;
+      haltScroll();
       finishNavigation();
       // Links clicked just after load need the same fresh document limit.
       instance.resize();
@@ -133,13 +143,13 @@
   window.addEventListener('keydown', function (event) {
     if (!instance || !['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key)) return;
     if (event.target.closest('input,textarea,select,[contenteditable="true"]')) return;
+    haltScroll();
     finishNavigation();
-    instance.scrollTo(instance.actualScroll, { immediate: true });
   });
   window.addEventListener('pointerdown', function (event) {
     if (!instance || event.clientX < document.documentElement.clientWidth) return;
+    haltScroll();
     finishNavigation();
-    instance.scrollTo(instance.actualScroll, { immediate: true });
   });
   window.addEventListener('touchstart', function () { window.siteScroll.cancel(); }, { passive:true });
   window.addEventListener('resize', function () {

@@ -125,6 +125,13 @@ paintAt(90); assert.equal(Math.abs(x()),0,'opening reading allowance');
 paintAt(180+1440); assert.equal(x(),-1280,'1.6 viewport heights advances one full slide');
 paintAt(180+1440*2); assert.equal(x(),-2560);
 paintAt(180+1440); assert.equal(x(),-1280,'reverse input reverses directly');
+for(let segment=0;segment<5;segment++) {
+  for(const fraction of [0,.05,.15,.25,.5,.8,1]) {
+    const expected=-1280*(segment+fraction);
+    paintAt(180+1440*(segment+fraction));
+    assert.ok(Math.abs(x()-expected)<.00001,'desktop panel travel stays proportional to scroll everywhere, without pauses or speed boosts');
+  }
+}
 paintAt(180+1440*5+90); assert.equal(x(),-6400,'closing reading allowance');
 paintAt(99999); assert.equal(x(),-6400,'clamp at the end');
 paintAt(-600); assert.equal(Math.abs(x()),0,'clamp before entry');
@@ -181,6 +188,13 @@ for(let card=1;card<6;card++) for(const fraction of [0,.1,.15,.25,.5,.75,1]) {
   assert.equal(cardY(card-1),0,'previous card remains stationary');
 }
 paintAt(.5*844); const halfCover=cardY(1);
+for(const fraction of [0,.15,.5,.7,.8,.9,.98,1,.8,.5]) {
+  paintAt(fraction*844);
+  const entry=Math.max(0,Math.min(1,(fraction-.15)/.85));
+  const originalCurve=(start,end)=>1-Math.pow(1-Math.max(0,Math.min(1,(entry-start)/(end-start))),3);
+  assert.equal(track.children[1].style.getPropertyValue('--why-detail'),originalCurve(.64,.98).toFixed(5),'mobile warranty first statistic and divider retain their exact original progress');
+  assert.equal(track.children[1].style.getPropertyValue('--why-last'),originalCurve(.73,1).toFixed(5),'mobile warranty second statistic retains its exact original progress');
+}
 paintAt(.8*844);paintAt(.5*844);assert.equal(cardY(1),halfCover,'reverse retraces the same cover');
 paintAt(.98*844);
 assert.equal(track.children[1].style.getPropertyValue('--why-content'),'1.00000','heading is settled before the next hold');
@@ -236,3 +250,11 @@ paintAt(-.4*844);assert.equal(section.style.getPropertyValue('--why-brand-reveal
 assert.equal(section.style.getPropertyValue('--why-mist-clip'),'','mobile never writes a mist surface');
 document.hidden=true;const hiddenPosition=cardY(1);paintAt(844);assert.equal(cardY(1),hiddenPosition,'hidden pages do not animate');
 document.hidden=false;context.updateWhyScroll();assert.equal(cardY(1),0,'visible page resumes at its actual position');
+
+// The native mobile link fallback must yield as soon as a finger touches down.
+paintAt(0);let mobileNavigationFinished=0;
+context.navigateWhy(8968,()=>mobileNavigationFinished++);
+advance(0);advance(100);const beforeTouch=state.y;
+windowEvents.get('touchstart').forEach(fn=>fn());advance(1000);
+assert.equal(state.y,beforeTouch,'mobile touch cancels the pending link trip without adding distance');
+assert.equal(mobileNavigationFinished,1);

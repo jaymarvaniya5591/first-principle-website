@@ -8,6 +8,8 @@ function fixture(active=true) {
   class Lenis {
     constructor(options){controller=this;this.options=options;this.actualScroll=0;this.limit=12000;this.calls=[];}
     on(){} resize(){} destroy(){}
+    stop(){this.animation=null;}
+    start(){}
     scrollTo(target,options){
       this.calls.push({target,options});
       if(options.immediate){this.actualScroll=target;this.animation=null;}

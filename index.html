@@ -46,6 +46,16 @@
 
   <link rel="stylesheet" href="css/vendor/lenis-1.3.26.css" />
   <link rel="stylesheet" href="css/styles.css" />
+  <noscript>
+    <style>
+      /* Static navigation and catalogue remain usable when scripting is off. */
+      .topbar { background:#111; }
+      .topbar .hamburger { display:none; }
+      #product .carousel, #product .carousel__stage { height:auto; min-height:0; }
+      #product .card { position:relative; top:auto; left:auto; width:100%; height:auto; transform:none!important; opacity:1!important; visibility:visible!important; margin-bottom:24px; }
+      #product .carousel__arrow, #product .carousel__controls { display:none; }
+    </style>
+  </noscript>
   <script>
     // Arm the phone reveal before first paint; a failed script/font load stays readable.
     if (matchMedia('(width < 600px)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -250,8 +260,8 @@
   <!-- ============ WHAT MAKES IT DIFFERENT ============ -->
   <section class="features" id="technology" aria-labelledby="features-title">
     <div class="section-head container">
-      <h2 class="section-head__title reveal-up" id="features-title"><span class="muted">What makes it</span> <strong>Different?</strong></h2>
-      <p class="section-head__sub reveal-up" style="transition-delay: 0.2s;">Indian bathrooms. Real needs. No fancy nonsense.</p>
+      <h2 class="section-head__title" id="features-title"><span class="muted">What makes it</span> <strong>Different?</strong></h2>
+      <p class="section-head__sub">Indian bathrooms. Real needs. No fancy nonsense.</p>
     </div>
 
     <div class="features__body">
@@ -497,9 +507,9 @@
   <!-- ============ SMART TOILET COLLECTION ============ -->
   <div class="collection-shell">
   <section class="collection container" id="product" aria-labelledby="collection-title">
-    <div class="section-head reveal-up">
-      <h2 class="section-head__title" id="collection-title" data-mobile-reveal><span class="muted">Smart Toilet</span> <strong>Collection</strong></h2>
-      <p class="section-head__sub" data-mobile-reveal>Designed for comfort, hygiene, and smarter living.</p>
+    <div class="section-head">
+      <h2 class="section-head__title" id="collection-title"><span class="muted">Smart Toilet</span> <strong>Collection</strong></h2>
+      <p class="section-head__sub">Designed for comfort, hygiene, and smarter living.</p>
     </div>
 
     <div class="carousel" data-active="0">
@@ -685,11 +695,11 @@
   <section class="contact" id="support" data-nav-theme="light" aria-labelledby="contact-title">
     <div class="contact__inner container">
       <div class="contact__copy">
-        <h2 class="contact__title reveal-up" id="contact-title">Let's Talk</h2>
-        <p class="contact__text reveal-up" style="transition-delay: 0.1s;">Building a home is a lot to figure out. Talk to us - we'll help you find the right fit <strong>Even if it isn't us.</strong></p>
+        <h2 class="contact__title" id="contact-title">Let's Talk</h2>
+        <p class="contact__text">Building a home is a lot to figure out. Talk to us - we'll help you find the right fit <strong>Even if it isn't us.</strong></p>
       </div>
 
-      <form class="contact__form reveal-up" style="transition-delay: 0.2s;" action="#" method="post" novalidate>
+      <form class="contact__form" action="#" method="post" novalidate>
         <div class="contact__fields">
           <div class="field-row">
             <div class="field">
@@ -773,6 +783,6 @@
   <script src="js/main.js" defer></script>
   <script src="js/mobile-card-deck.js" defer></script>
   <script src="js/mobile-product.js" defer></script>
-  <script src="js/mobile-motion.js" defer></script>
+  <script src="js/site-motion.js" defer></script>
 </body>
 </html>

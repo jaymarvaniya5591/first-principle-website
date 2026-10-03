@@ -145,6 +145,7 @@
     };
 
     carousel.changeProduct = function (dir, source) {
+        if (carousel.cardDeck) carousel.cardDeck.takeover();
         dir = dir < 0 ? -1 : 1;
         var previousIndex = active;
         active = (active + dir + n) % n;
@@ -399,17 +400,34 @@
           whySection.style.setProperty('--why-note-reveal', noteReveal.toFixed(5));
           whySection.classList.toggle('why--entered', entranceTop <= 1);
         }
-        if (!whyLayout.animated) return;
+        if (!whyLayout.animated) {
+          if (window.siteMotion) whySlides.forEach(function (slide, i) { window.siteMotion.paintWhy(slide, i, 1, 0, false); });
+          return;
+        }
         var scrolled = -entranceTop;
         var progress = whyClamp((scrolled - whyLayout.hold) / whyLayout.journey, 1);
-        if (whyLayout.stacked) {
-          // The first 15% of each existing segment is a reading hold. Covers
-          // then follow the finger directly; there is no extra scroll runway.
-          var slideProgress = progress * (whySlides.length - 1);
-          whySlides.forEach(function (slide, i) {
-            var entry = i === 0 ? 1 : whyClamp((slideProgress - i + 1 - .15) / .85, 1);
-            slide.style.setProperty('--why-card-y', ((1 - entry) * 100).toFixed(5) + '%');
+        var slideProgress = progress * (whySlides.length - 1);
+        var segment = Math.floor(slideProgress);
+        // Panel travel stays proportional to scrolling. Ease the words and
+        // details, never the track: a remapped hold/ease accelerates the panels
+        // mid-segment even when the visitor scrolls at a constant speed.
+        var visualProgress = slideProgress;
+        if (whyLayout.horizontal) {
+          var from = whyLayout.offsets[segment];
+          var to = whyLayout.offsets[Math.min(segment + 1, whySlides.length - 1)];
+          whyScroll.style.setProperty('--why-x', (-(from + (to - from) * (visualProgress - segment))) + 'px');
+        }
+        if (!whyLayout.entries) whyLayout.entries = [];
+        whySlides.forEach(function (slide, i) {
+          var entry = i === 0 ? 1 : whyLayout.stacked
+            ? whyClamp((slideProgress - i + 1 - .15) / .85, 1) : whyClamp(visualProgress - i + 1, 1);
+          if (whyLayout.entries[i] !== entry) {
+            whyLayout.entries[i] = entry;
+            if (whyLayout.stacked) {
+              slide.style.setProperty('--why-card-y', ((1 - entry) * 100).toFixed(5) + '%');
+            }
             if (i > 0) {
+              // Preserve the exact warranty comparison's mobile curves.
               var content = whyClamp((entry - .48) / .44, 1);
               var detail = whyClamp((entry - .64) / .34, 1);
               slide.style.setProperty('--why-content', (1 - Math.pow(1 - content, 3)).toFixed(5));
@@ -419,10 +437,10 @@
               slide.style.setProperty('--why-second', (1 - Math.pow(1 - second, 3)).toFixed(5));
               slide.style.setProperty('--why-last', (1 - Math.pow(1 - last, 3)).toFixed(5));
             }
-          });
-        } else {
-          whyScroll.style.setProperty('--why-x', (-progress * whyLayout.travel) + 'px');
-        }
+          }
+          var covered = whyLayout.stacked ? whyClamp((slideProgress - i - .15) / .85, 1) : whyClamp(visualProgress - i, 1);
+          if (window.siteMotion) window.siteMotion.paintWhy(slide, i, i === 0 ? entranceProgress : entry, covered, true);
+        });
         var currentSlide = Math.round(progress * (whySlides.length - 1));
         // Sample precisely at the skip button's own position (see
         // themeOfSlideAt above) instead of a flat 50%-of-transition snap, so
@@ -780,25 +798,6 @@
     });
   }
 
-  /* ---------------- Scroll Reveals ---------------- */
-  if ("IntersectionObserver" in window) {
-    var revealObserver = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-revealed");
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
-
-    document.querySelectorAll(".reveal-up, [data-mobile-reveal], .collection-shell, #support").forEach(function(el) {
-      if (el.classList.contains('reveal-up')) el.classList.add('reveal-pending');
-      if (el.hasAttribute('data-mobile-reveal')) el.classList.add('mobile-reveal-pending');
-      if (el.matches('.collection-shell, #support')) el.classList.add('mobile-rule-pending');
-      revealObserver.observe(el);
-    });
-  }
-
   /* ---------------- Scroll-driven effects ----------------
      One scroll listener and one rAF per frame, with every measurement taken
      before any style is written. Previously the hero transition, the
@@ -1007,6 +1006,8 @@
     frame = 0;
     if (document.hidden) return;
 
+    // Read stationary scene geometry before any scroll-driven styles change.
+    var sceneFrame = window.siteMotion ? window.siteMotion.read(window.scrollY, window.innerHeight) : null;
     if (typeof updateWhyScroll === 'function') updateWhyScroll();
 
     var vh = window.innerHeight;
@@ -1084,6 +1085,7 @@
       }
     }
 
+    if (window.siteMotion) window.siteMotion.render(sceneFrame);
   };
 
   var requestFrame = function () {
@@ -1095,6 +1097,13 @@
     if (frame) window.cancelAnimationFrame(frame);
     onFrame();
   });
+  if (window.siteScroll) {
+    window.siteScroll.requestFrame = requestFrame;
+    window.siteScroll.refreshWhy = function () {
+      if (whyLayout) { whyLayout.lastPaintedTop = null; whyLayout.paintedTop = null; }
+      if (typeof updateWhyScroll === 'function') updateWhyScroll();
+    };
+  }
 
   // Mobile feature expansion and decoded photos move the following boundary
   // even when the page itself has stopped scrolling. Repaint that boundary too.

@@ -49,6 +49,17 @@ function tick(time=now+400){now=time;const pending=[...frames.values()];frames.c
 function pointer(type,x,y,time,extra={}){now=time;deck.listeners[type]({clientX:x,clientY:y,timeStamp:time,pointerId:1,button:0,target:deck,isPrimary:true,cancelable:true,preventDefault(){},...extra});}
 function gesture(dx,dy=0,duration=240){const t=now;pointer('pointerdown',200,200,t);pointer('pointermove',200+dx,200+dy,t+duration);tick(t+duration+1);pointer('pointerup',200+dx,200+dy,t+duration+2);tick();}
 tick();
+carousel.cardDeck.setSceneProgress(.35,0,true);
+const partialEntrance=cards.map(el=>el.style.transform);
+carousel.cardDeck.setSceneProgress(.8,0,true);
+carousel.cardDeck.setSceneProgress(.35,0,true);
+assert.deepEqual(cards.map(el=>el.style.transform),partialEntrance,'collection assembly retraces without timed replay');
+carousel.cardDeck.takeover();
+assert.deepEqual(cards.map(el=>el.style.transform),partialEntrance,'interaction takes over without jumping');
+carousel.cardDeck.setSceneProgress(.9,0,true);
+assert.deepEqual(cards.map(el=>el.style.transform),partialEntrance,'scroll progress cannot move an interacting card');
+carousel.cardDeck.setSceneProgress(0,0,false);
+carousel.cardDeck.setSceneProgress(1,0,true);
 assert.ok(cards.every(el=>el.parentNode===deck));
 assert.ok(images.every((el,i)=>el.parentNode===cards[i]),'photos stay attached to their product details');
 assert.equal(section.props['--mobile-product-head'],'130px','reserve the tallest real product heading');
