@@ -395,10 +395,17 @@ Collection and Contact headings rise through masks. Fields enter individually,
 with divider growth. Menu labels have masked entrances
 inside the existing opening surface. Ordinary entrances run once; interactions repeat.
 
-All seven Technology panels open over 220ms, their descriptions enter over 320ms,
-and decoded images settle from 1.035 scale over 560ms. Reopening a cached image
-restarts its entrance. Image failures and interrupted disclosure heights retain
-existing readable fallbacks.
+All seven Technology panels open over 220ms, with descriptions visible immediately
+while lifting over 320ms. Mobile photos are fetched and decoded one viewport ahead
+of Technology, including unopened cards, so a tap uses the already-prepared source.
+Photos start visibly at 55% opacity and complete a short fade in about 160ms while
+settling from 1.035 scale over 560ms. Copy starts at 70% opacity with no delay and
+finishes its fade over 160ms. Reopening never clears a prepared image or waits for
+a fresh decode before starting these animations. Data-saving connections prepare only
+the open/requested photo, and hidden tabs do not start background preparation.
+Image failures and interrupted disclosure heights retain existing readable fallbacks.
+Run `npm run test:technology-images` for preparation, instant cached selection,
+responsive sources, failed decodes and rapid-selection coverage.
 The expanded mobile title and description have no intervening decorative divider.
 
 Technology's final rule still meets the solid black Why-us boundary directly.

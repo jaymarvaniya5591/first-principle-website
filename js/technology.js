@@ -37,9 +37,19 @@
     var source = img.currentSrc || img.src;
     var cached = prepared.get(img);
     if (cached && cached.source === source) return cached.promise;
-    var promise = img.decode().then(function () { return true; }, function () { return false; });
-    prepared.set(img, { source: source, promise: promise });
-    return promise;
+    var record = { source: source, ready: false, promise: null };
+    record.promise = img.decode().then(function () {
+      // currentSrc may initially be empty while the browser chooses AVIF/WebP.
+      record.source = img.currentSrc || img.src;
+      record.ready = true;
+      return true;
+    }, function () {
+      // A failed download/decode must not poison subsequent tap-to-retry.
+      if (prepared.get(img) === record) prepared.delete(img);
+      return false;
+    });
+    prepared.set(img, record);
+    return record.promise;
   }
 
   function showImage(index) {
@@ -193,32 +203,47 @@
     return scrollY + buttons[index].getBoundingClientRect().top - bounds.top;
   }
 
-  function loadMobileImage(index) {
-    var request = ++mobileRequest;
+  function mobilePicture(index) {
     var photo = mobilePhotos[index];
-    photo.classList.remove('is-ready');
     var pic = photo.querySelector('picture');
     if (!pic) {
-      photo.appendChild(photo.querySelector('template').content.cloneNode(true));
+      var fragment = photo.querySelector('template').content.cloneNode(true);
+      fragment.querySelector('img').loading = 'eager';
+      photo.appendChild(fragment);
       pic = photo.querySelector('picture');
     }
-    // Establish the starting pose even when the decoded image is cached.
-    photo.getBoundingClientRect();
-    prepare(pic).then(function (ready) {
+    return pic;
+  }
+
+  function warmMobileImages() {
+    if (desktop.matches || !mobileNear || document.hidden) return;
+    if (mobileActive >= 0) loadMobileImage(mobileActive);
+    if (!(navigator.connection && navigator.connection.saveData)) {
+      mobilePhotos.forEach(function (_, i) { prepare(mobilePicture(i)); });
+    }
+  }
+
+  function loadMobileImage(index) {
+    var request = ++mobileRequest;
+    var photo = mobilePhotos[index], pic = mobilePicture(index);
+    function complete(ready) {
       if (desktop.matches || request !== mobileRequest || mobileActive !== index) return;
-      var rect = cards[index].getBoundingClientRect(), bounds = mobileBounds();
-      var visible = rect.top < bounds.bottom && rect.bottom > bounds.top;
       var wasHidden = photo.hidden;
       photo.hidden = !ready;
       photo.classList.toggle('is-ready', ready);
-      if (ready) sizeMobilePhoto(index);
       // Failed media must not leave a tall empty frame or a fixed animation height.
       // A successful retry must fit the newly restored photo as well.
       if (!ready || wasHidden) {
+        var rect = cards[index].getBoundingClientRect(), bounds = mobileBounds();
+        var visible = rect.top < bounds.bottom && rect.bottom > bounds.top;
+        if (ready) sizeMobilePhoto(index);
         finishDetail(index);
         if (visible) moveMobileView(mobileDestination(index));
       }
-    });
+    }
+    var img = pic.querySelector('img'), cached = prepared.get(img);
+    if (cached && cached.ready && cached.source === (img.currentSrc || img.src)) complete(true);
+    else prepare(pic).then(complete);
   }
 
   function releaseAnchor() {
@@ -348,7 +373,7 @@
       list.removeAttribute('tabindex');
       list.removeAttribute('aria-describedby');
       cards.forEach(function (_, i) { mobileState(i, i === mobileActive); });
-      if (mobileActive >= 0 && mobileNear) loadMobileImage(mobileActive);
+      warmMobileImages();
       measure();
     }
     // Establish the initial/breakpoint layout without an entrance resize.
@@ -381,6 +406,12 @@
     setActive(buttons.indexOf(event.target), true);
   });
   cards.forEach(function (card, i) {
+    // Pointer/keyboard intent can beat the near-section observer on a direct jump.
+    ['pointerdown', 'focusin'].forEach(function (name) {
+      buttons[i].addEventListener(name, function () {
+        if (!desktop.matches) prepare(mobilePicture(i));
+      });
+    });
     card.addEventListener('click', function () {
       if (!desktop.matches) return;
       setActive(i, true);
@@ -457,11 +488,14 @@
       prepare(pictures[imageIndex]);
       if (!(navigator.connection && navigator.connection.saveData)) pictures.forEach(prepare);
     } else {
-      if (mobileActive >= 0) loadMobileImage(mobileActive);
+      warmMobileImages();
     }
     nearby.disconnect();
   }, { rootMargin: '100% 0px' });
   nearby.observe(section);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) warmMobileImages();
+  });
 
   // Match nav-click clearance after fonts and the browser's initial fragment jump.
   if (location.hash === '#technology') {

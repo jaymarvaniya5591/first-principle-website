@@ -3490,18 +3490,28 @@ img {
 #technology.features--mobile .feature__mobile-photo[hidden] { display:none; }
 #technology.features--mobile .feature__mobile-photo picture,
 #technology.features--mobile .feature__mobile-photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
-#technology.features--mobile .feature__mobile-photo picture { opacity:0; transform:scale(1.035); transition:opacity 320ms ease,transform 560ms cubic-bezier(.22,1,.36,1); }
-#technology.features--mobile .feature__mobile-photo.is-ready picture { opacity:1; transform:scale(1); }
+#technology.features--mobile .feature__mobile-photo picture { opacity:1; transform:none; }
+@keyframes feature-photo-in {
+  from { opacity:.55; transform:scale(1.035); }
+  28% { opacity:1; }
+  to { opacity:1; transform:scale(1); }
+}
+#technology.features--mobile .feature.is-active .feature__mobile-photo picture { animation:feature-photo-in 560ms cubic-bezier(.22,1,.36,1) both; }
 #technology.features--mobile .feature__mobile-photo.is-compact img { object-fit:contain; }
 #technology.features--mobile .feature__btn:focus-visible { outline-offset:-5px; }
-@keyframes feature-copy-in { from { opacity:0; transform:translate3d(0,12px,0); } to { opacity:1; transform:none; } }
-#technology.features--mobile .feature.is-active .feature__desc { animation:feature-copy-in 320ms var(--mobile-ease) 40ms both; }
+@keyframes feature-copy-in {
+  from { opacity:.7; transform:translate3d(0,12px,0); }
+  50% { opacity:1; }
+  to { opacity:1; transform:none; }
+}
+#technology.features--mobile .feature.is-active .feature__desc { animation:feature-copy-in 320ms var(--mobile-ease) both; }
 @media (prefers-reduced-motion:reduce) {
   #technology.features--mobile .feature,
   #technology.features--mobile .feature__icon,
   #technology.features--mobile .feature__icon::after,
   #technology.features--mobile .feature__mobile-photo picture { transition:none; }
-  #technology.features--mobile .feature.is-active .feature__desc { animation:none; }
+  #technology.features--mobile .feature.is-active .feature__desc,
+  #technology.features--mobile .feature.is-active .feature__mobile-photo picture { animation:none; }
 }
 
 /* Quiet hotel signatures precede the phone headline. Extra space gives
