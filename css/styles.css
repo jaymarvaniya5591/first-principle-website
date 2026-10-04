@@ -4071,7 +4071,12 @@ html:not(.scene-motion-ready) #technology .feature.scene-row::after { content:no
 .footer-reveal #support { position:relative; z-index:2; }
 .footer-reveal #footer { position:sticky; bottom:0; z-index:1; }
 .footer-lift #support { position:relative; z-index:2; }
-.footer-lift #footer { position:relative; z-index:1; }
+/* A footer taller than the screen rests under the header while Support lifts away. */
+.footer-lift #footer {
+  position:sticky; z-index:1;
+  bottom:min(0px, calc(100vh - var(--footer-h,0px) - var(--header-h,0px)));
+  bottom:min(0px, calc(100dvh - var(--footer-h,0px) - var(--header-h,0px)));
+}
 .footer-reveal.footer-covered #footer, .footer-lift.footer-covered #footer { visibility:hidden; }
 
 @media (prefers-reduced-motion:reduce) {

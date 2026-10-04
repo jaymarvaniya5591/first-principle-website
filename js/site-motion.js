@@ -263,13 +263,15 @@
     if (footerScene) {
       footerScene.height = footer.offsetHeight;
       footerScene.signature = null;
-      footerReveal = !reduced.matches && !!support && footerScene.height <= height * .92;
-      // A footer taller than the screen holds under the header while Support
-      // lifts away, then scrolls on so its lower links stay reachable.
+      footerReveal = !reduced.matches && !!support && m !== 'mobile' && footerScene.height <= height * .92;
+      // Phones, and any footer taller than the screen, hold the footer still
+      // while Support lifts away, then scroll on so its lower links stay reachable.
       footerLift = !reduced.matches && !!support && !footerReveal;
       root.classList.toggle('footer-reveal', footerReveal);
       root.classList.toggle('footer-lift', footerLift);
-      if (!footerLift) footer.style.transform = '';
+      // The hold itself is CSS sticky, so the compositor keeps it still under touch scrolling.
+      root.style.setProperty('--footer-h', footerScene.height + 'px');
+      root.style.setProperty('--header-h', headerHeight + 'px');
       if (footerLift) {
         footerScene.hold = Math.max(height - footerScene.height, headerHeight);
         footerScene.items.forEach(function (item) {
@@ -308,16 +310,15 @@
       }
       return {target:target, entry:pose.entry, exit:pose.exit, outside:fullyOutside, shift:shift};
     });
-    var footerProgress = 1, footerOffset = 0;
+    var footerProgress = 1;
     if (footerScene && footerLift) {
       var natural = maximum + height - footerScene.height - scroll;
-      footerOffset = Math.min(0, footerScene.hold - natural);
       footerProgress = clamp((height - natural) / Math.max(1, height - footerScene.hold));
       footerScene.natural = natural;
     } else if (footerScene && !reduced.matches) {
       footerProgress = clamp((scroll - (maximum - footerScene.height)) / Math.max(1, footerScene.height));
     }
-    return {targets:states, footer:footerProgress, footerOffset:footerOffset, scroll:scroll};
+    return {targets:states, footer:footerProgress, scroll:scroll};
   }
   function riseUnits(units, entry, letters, lines) {
     var count = lines || (letters ? units.reduce(function (n, u) { return n + u.parts.length; }, 0) : units.length);
@@ -389,27 +390,34 @@
         el.style.setProperty('--scene-rule', smooth(range(state.entry, .3, 1)).toFixed(5));
       }
     });
-    if (footerScene) paintFooter(frame.footer, frame.footerOffset);
+    if (footerScene) paintFooter(frame.footer);
     root.classList.add('scene-motion-ready');
   }
-  function paintFooter(q, offset) {
-    offset = offset || 0;
+  function paintFooter(q) {
     var lifted = footerLift && footerScene.natural != null;
-    var signature = q.toFixed(5) + '/' + offset.toFixed(2) + '/' + footerReveal + '/' + (lifted ? footerScene.natural.toFixed(2) : footerLift);
+    var signature = q.toFixed(5) + '/' + footerReveal + '/' + (lifted ? footerScene.natural.toFixed(1) : footerLift);
     if (signature === footerScene.signature) return;
     footerScene.signature = signature;
     // Hidden until Support starts lifting, so the held footer never shows elsewhere.
-    var covered = (footerReveal || footerLift) && q <= 0;
-    root.classList.toggle('footer-covered', covered);
-    if (footerLift) footer.style.transform = !covered && offset < 0 ? 'translate3d(0,' + offset.toFixed(3) + 'px,0)' : '';
+    root.classList.toggle('footer-covered', (footerReveal || footerLift) && q <= 0);
     var count = footerScene.items.length;
     footerScene.items.forEach(function (item, i) {
       var start = .04 + .5 * i / Math.max(1, count - 1);
       var local = lifted && item.uncover ? clamp((item.uncover.from - footerScene.natural) / item.uncover.span) : null;
       var p = ease(local == null ? range(q, start, start + .42) : local);
       var el = item.el;
-      if (item.kind === 'rule') {
-        el.style.setProperty('--scene-rule', smooth(local == null ? range(q, .38, .9) : local).toFixed(5));
+      if (local != null) {
+        // Under a held footer nothing moves vertically; each item only fades in place.
+        if (item.kind === 'rule') el.style.setProperty('--scene-rule', smooth(local).toFixed(5));
+        else if (item.kind === 'tagline') {
+          riseUnits(footerScene.tagline, 1, false, 0);
+          el.style.opacity = p < 1 ? p.toFixed(5) : '';
+        } else {
+          el.style.opacity = p < 1 ? p.toFixed(5) : '';
+          el.style.transform = '';
+        }
+      } else if (item.kind === 'rule') {
+        el.style.setProperty('--scene-rule', smooth(range(q, .38, .9)).toFixed(5));
       } else if (item.kind === 'logo') {
         el.style.opacity = p < 1 ? p.toFixed(5) : '';
         el.style.transform = p < 1 ? 'translate3d(0,' + (18 * (1 - p)).toFixed(3) + 'px,0) scale(' + (.9 + .1 * p).toFixed(5) + ')' : '';
