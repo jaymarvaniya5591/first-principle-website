@@ -149,7 +149,7 @@
     el.classList.add('scene-' + kind);
     var target = {el:el, kind:kind, rise:options.rise || 24, units:options.units || [],
       desktop:options.desktop, mobile:options.mobile, noExit:!!options.noExit, parallax:options.parallax || 0,
-      top:0, height:0, anchorTop:0, locked:false, signature:null};
+      top:0, height:0, anchorTop:0, settle:null, locked:false, signature:null};
     targets.push(target);
     return target;
   }
@@ -238,6 +238,9 @@
     headerHeight = document.querySelector('.topbar').offsetHeight;
     maximum = Math.max(0, document.documentElement.scrollHeight - height);
     var m = mode();
+    // Support's navigation lands with its top under the header. Whatever is on
+    // screen there must be settled by then, however short the viewport.
+    var supportLanding = support ? Math.max(0, layoutTop(support) - headerHeight) : null;
     targets.forEach(function (target) {
       var anchor = target.el;
       // Paired laptop/tablet fields share a clock. On phones their rows stack.
@@ -245,6 +248,8 @@
       if (row && row.offsetHeight <= anchor.offsetHeight + 2) anchor = row;
       target.top = layoutTop(anchor); target.height = anchor.offsetHeight;
       if (target.kind === 'boundary') target.height = 1;
+      target.settle = supportLanding !== null && target.kind !== 'boundary' && support.contains(target.el)
+        && target.top + target.height / 2 < supportLanding + height ? supportLanding : null;
       var config = target[m];
       target.anchorTop = config && config.anchor ? layoutTop(config.anchor) : target.top;
       if (target.kind === 'letters') kern(target);
@@ -300,13 +305,19 @@
         || target.el.classList.contains('is-invalid') || Array.from(target.el.querySelectorAll('input,textarea')).some(function (input) { return input.value; }));
       var config = target[m];
       var pose = reduced.matches || editing || target.locked || config === null ? {entry:1, exit:0}
-        : scenePose(target.anchorTop, target.height, scroll, height, headerHeight, maximum, config && config.window);
+        : scenePose(target.anchorTop, target.height, scroll, height, headerHeight,
+          target.settle !== null ? Math.min(maximum, target.settle) : maximum, config && config.window);
       if (target.noExit) pose.exit = 0;
       var shift = 0;
       if (target.parallax && !reduced.matches) {
         // Drift slower than the page while in view: a function of position only.
-        var centre = target.top + target.height / 2 - height / 2;
-        shift = Math.max(-56, Math.min(56, target.parallax * (scroll - centre)));
+        // A settled heading only trails from above, so it never closes on its copy.
+        if (target.settle !== null) {
+          shift = Math.max(-56, Math.min(0, target.parallax * (scroll - target.settle)));
+        } else {
+          var centre = target.top + target.height / 2 - height / 2;
+          shift = Math.max(-56, Math.min(56, target.parallax * (scroll - centre)));
+        }
       }
       return {target:target, entry:pose.entry, exit:pose.exit, outside:fullyOutside, shift:shift};
     });
