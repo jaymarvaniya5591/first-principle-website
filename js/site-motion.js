@@ -46,7 +46,7 @@
   var footer = document.getElementById('footer');
   var support = document.getElementById('support');
   var root = document.documentElement;
-  var footerScene = null, footerReveal = false;
+  var footerScene = null, footerReveal = false, footerLift = false;
   var whyScenes = [];
   var whySceneMap = new WeakMap();
   var request = function () {
@@ -264,7 +264,25 @@
       footerScene.height = footer.offsetHeight;
       footerScene.signature = null;
       footerReveal = !reduced.matches && !!support && footerScene.height <= height * .92;
+      // A footer taller than the screen holds under the header while Support
+      // lifts away, then scrolls on so its lower links stay reachable.
+      footerLift = !reduced.matches && !!support && !footerReveal;
       root.classList.toggle('footer-reveal', footerReveal);
+      root.classList.toggle('footer-lift', footerLift);
+      if (!footerLift) footer.style.transform = '';
+      if (footerLift) {
+        footerScene.hold = Math.max(height - footerScene.height, headerHeight);
+        footerScene.items.forEach(function (item) {
+          var y = 0, node = item.el;
+          while (node && node !== footer) { y += node.offsetTop; node = node.offsetParent; }
+          // Each item starts as Support uncovers it, or as it scrolls in below the hold.
+          var bottom = footerScene.hold + y + item.el.offsetHeight;
+          var from = bottom <= height ? bottom : height - y + 60;
+          var span = bottom <= height ? item.el.offsetHeight + 140 : 240;
+          // Settled by the document bottom, where the footer rests at its natural place.
+          item.uncover = {from:from, span:Math.max(1, Math.min(span, from - (height - footerScene.height)))};
+        });
+      }
     }
     dirty = false;
   }
@@ -290,9 +308,16 @@
       }
       return {target:target, entry:pose.entry, exit:pose.exit, outside:fullyOutside, shift:shift};
     });
-    var footerProgress = 1;
-    if (footerScene && !reduced.matches) footerProgress = clamp((scroll - (maximum - footerScene.height)) / Math.max(1, footerScene.height));
-    return {targets:states, footer:footerProgress, scroll:scroll};
+    var footerProgress = 1, footerOffset = 0;
+    if (footerScene && footerLift) {
+      var natural = maximum + height - footerScene.height - scroll;
+      footerOffset = Math.min(0, footerScene.hold - natural);
+      footerProgress = clamp((height - natural) / Math.max(1, height - footerScene.hold));
+      footerScene.natural = natural;
+    } else if (footerScene && !reduced.matches) {
+      footerProgress = clamp((scroll - (maximum - footerScene.height)) / Math.max(1, footerScene.height));
+    }
+    return {targets:states, footer:footerProgress, footerOffset:footerOffset, scroll:scroll};
   }
   function riseUnits(units, entry, letters, lines) {
     var count = lines || (letters ? units.reduce(function (n, u) { return n + u.parts.length; }, 0) : units.length);
@@ -364,27 +389,32 @@
         el.style.setProperty('--scene-rule', smooth(range(state.entry, .3, 1)).toFixed(5));
       }
     });
-    if (footerScene) paintFooter(frame.footer);
+    if (footerScene) paintFooter(frame.footer, frame.footerOffset);
     root.classList.add('scene-motion-ready');
   }
-  function paintFooter(q) {
-    var signature = q.toFixed(5) + '/' + footerReveal;
+  function paintFooter(q, offset) {
+    offset = offset || 0;
+    var lifted = footerLift && footerScene.natural != null;
+    var signature = q.toFixed(5) + '/' + offset.toFixed(2) + '/' + footerReveal + '/' + (lifted ? footerScene.natural.toFixed(2) : footerLift);
     if (signature === footerScene.signature) return;
     footerScene.signature = signature;
-    // Hidden until Support starts lifting, so the sticky footer never shows elsewhere.
-    root.classList.toggle('footer-covered', footerReveal && q <= 0);
+    // Hidden until Support starts lifting, so the held footer never shows elsewhere.
+    var covered = (footerReveal || footerLift) && q <= 0;
+    root.classList.toggle('footer-covered', covered);
+    if (footerLift) footer.style.transform = !covered && offset < 0 ? 'translate3d(0,' + offset.toFixed(3) + 'px,0)' : '';
     var count = footerScene.items.length;
     footerScene.items.forEach(function (item, i) {
       var start = .04 + .5 * i / Math.max(1, count - 1);
-      var p = ease(range(q, start, start + .42));
+      var local = lifted && item.uncover ? clamp((item.uncover.from - footerScene.natural) / item.uncover.span) : null;
+      var p = ease(local == null ? range(q, start, start + .42) : local);
       var el = item.el;
       if (item.kind === 'rule') {
-        el.style.setProperty('--scene-rule', smooth(range(q, .38, .9)).toFixed(5));
+        el.style.setProperty('--scene-rule', smooth(local == null ? range(q, .38, .9) : local).toFixed(5));
       } else if (item.kind === 'logo') {
         el.style.opacity = p < 1 ? p.toFixed(5) : '';
         el.style.transform = p < 1 ? 'translate3d(0,' + (18 * (1 - p)).toFixed(3) + 'px,0) scale(' + (.9 + .1 * p).toFixed(5) + ')' : '';
       } else if (item.kind === 'tagline') {
-        riseUnits(footerScene.tagline, range(q, start, start + .5), false, 0);
+        riseUnits(footerScene.tagline, local == null ? range(q, start, start + .5) : local, false, 0);
       } else {
         el.style.opacity = p < 1 ? p.toFixed(5) : '';
         el.style.transform = p < 1 ? 'translate3d(0,' + (20 * (1 - p)).toFixed(3) + 'px,0)' : '';

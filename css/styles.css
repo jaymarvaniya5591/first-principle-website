@@ -4070,7 +4070,9 @@ html:not(.scene-motion-ready) #technology .feature.scene-row::after { content:no
 /* Footer curtain: Support lifts away to reveal the footer already in place. */
 .footer-reveal #support { position:relative; z-index:2; }
 .footer-reveal #footer { position:sticky; bottom:0; z-index:1; }
-.footer-reveal.footer-covered #footer { visibility:hidden; }
+.footer-lift #support { position:relative; z-index:2; }
+.footer-lift #footer { position:relative; z-index:1; }
+.footer-reveal.footer-covered #footer, .footer-lift.footer-covered #footer { visibility:hidden; }
 
 @media (prefers-reduced-motion:reduce) {
   .mo-word, .mo-letter, .scene-words, .scene-letters, .scene-lines, .scene-row, .scene-sweep, .scene-footer { opacity:1!important; transform:none!important; }
