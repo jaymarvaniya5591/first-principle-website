@@ -21,18 +21,20 @@
   function sceneValues() {
     var entry = sceneLocked || reduced.matches ? 1 : sceneEntry;
     var exit = sceneLocked || reduced.matches ? 0 : sceneExit;
-    var center = ease(clamp(entry / (desktop.matches ? .85 : .75), 0, 1));
-    var spreadProgress = clamp((entry - (desktop.matches ? .08 : .18)) / (desktop.matches ? .92 : .72), 0, 1);
-    // On laptops, let the neighbours unfold while the card is actually coming
-    // into view. A cubic-out spread spent most of its motion near the bottom edge.
+    var wide = desktop.matches;
+    var center = ease(clamp(entry / (wide ? .85 : .62), 0, 1));
+    var spreadProgress = clamp((entry - (wide ? .08 : .24)) / (wide ? .92 : .76), 0, 1);
+    // Let the neighbours unfold from behind the front card while it is actually
+    // coming into view. A cubic-out spread spent most of its motion near the edge.
     // This is a direct scroll pose, not extra inertia or a timed animation queue.
-    var spread = desktop.matches ? spreadProgress * spreadProgress * (3 - 2 * spreadProgress) : ease(spreadProgress);
+    var spread = spreadProgress * spreadProgress * (3 - 2 * spreadProgress);
     // Fade the edges in after the centre gains opacity, keeping product labels
-    // from showing through one another during the longer desktop assembly.
-    var edges = desktop.matches ? clamp((entry - .32) / .53, 0, 1) : 1;
+    // from showing through one another during the assembly.
+    var edges = clamp((entry - (wide ? .32 : .3)) / (wide ? .53 : .5), 0, 1);
     var neighborAlpha = center * spread * edges * edges * (3 - 2 * edges) * (1 - exit);
-    return {spread:spread, y:24 * (1 - center) - 8 * exit,
-      scale:.98 + .02 * center, alpha:center * (1 - exit), neighborAlpha:neighborAlpha};
+    return {spread:spread, y:(wide ? 24 : 56) * (1 - center) - 8 * exit,
+      scale:wide ? .98 + .02 * center : .9 + .1 * center, alpha:center * (1 - exit), neighborAlpha:neighborAlpha,
+      tuck:wide ? 1 : .915 + .085 * spread, tilt:wide ? 0 : 4 * (1 - spread), photo:wide ? 1 : 1 + .12 * (1 - center)};
   }
   function paintDesktopScene() {
     var scene = sceneValues();
@@ -54,14 +56,19 @@
   function paint(next) {
     poses = next;
     var scene = sceneValues();
+    var tilts = [];
     rendered = next.map(function (p, i) {
       var neighbor = !sceneLocked && i !== active();
+      tilts[i] = neighbor && p.x ? Math.sign(p.x) * scene.tilt : 0;
       return {x:p.x * (neighbor ? scene.spread : 1), y:(p.y || 0) + scene.y,
-        scale:p.scale * scene.scale, opacity:p.opacity * scene.alpha * (neighbor ? scene.spread : 1), z:p.z};
+        scale:p.scale * scene.scale * (neighbor ? scene.tuck : 1),
+        opacity:p.opacity * (neighbor ? scene.neighborAlpha : scene.alpha), z:p.z};
     });
+    deck.style.setProperty('--deck-photo', (sceneLocked ? 1 : scene.photo).toFixed(5));
     cards.forEach(function (el, i) {
       var p = rendered[i];
-      el.style.transform = 'translate3d(' + p.x.toFixed(3) + 'px,' + p.y.toFixed(3) + 'px,0) scale(' + p.scale.toFixed(5) + ')';
+      el.style.transform = 'translate3d(' + p.x.toFixed(3) + 'px,' + p.y.toFixed(3) + 'px,0) scale(' + p.scale.toFixed(5) + ')'
+        + (tilts[i] ? ' rotate(' + tilts[i].toFixed(3) + 'deg)' : '');
       el.style.opacity = p.opacity.toFixed(4);
       el.style.zIndex = String(p.z);
       el.style.visibility = p.opacity > .001 ? 'visible' : 'hidden';

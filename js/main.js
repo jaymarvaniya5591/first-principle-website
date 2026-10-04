@@ -239,8 +239,9 @@
         measureProduct();
         if (window.siteScroll) window.siteScroll.cancel();
         var target = document.querySelector(location.hash);
+        var box = target.id === 'technology' && target.parentElement.classList.contains('tech-stage') ? target.parentElement : target;
         var destination = location.hash === '#product' ? productDestination()
-          : window.scrollY + target.getBoundingClientRect().top - productHeader.getBoundingClientRect().height
+          : window.scrollY + box.getBoundingClientRect().top - productHeader.getBoundingClientRect().height
             + (location.hash === '#technology' ? technologyHeadingLift(target) : 0);
         window.scrollTo({ top:destination, behavior:'instant' });
         if (window.siteScroll) window.siteScroll.cancel();
@@ -341,6 +342,7 @@
           noteReveal = noteReveal * noteReveal * (3 - 2 * noteReveal);
           whySection.style.setProperty('--why-note-reveal', noteReveal.toFixed(5));
           whySection.classList.toggle('why--entered', entranceTop <= 1);
+          if (typeof paintRecede === 'function') paintRecede(entranceProgress);
         }
         if (!whyLayout.animated) {
           if (window.siteMotion) whySlides.forEach(function (slide, i) { window.siteMotion.paintWhy(slide, i, 1, 0, false); });
@@ -496,6 +498,7 @@
           : window.scrollY + (activeSlide || whyIntro).getBoundingClientRect().top;
         window.scrollTo({ top: destination, behavior: 'instant' });
       }
+      if (typeof syncTechStage === 'function') syncTechStage();
       updateWhyScroll();
       if (typeof requestFrame === 'function') requestFrame();
     };
@@ -621,12 +624,12 @@
   var navItems = Array.prototype.slice.call(document.querySelectorAll(".nav__item"));
   if (navItems.length && "IntersectionObserver" in window) {
     var sectionIds = navItems.map(function (a) { return a.dataset.section; });
-    var visible = {};
+    var visible = {}, techIntersecting = false;
     var setActiveNav = function (id) {
       // The hero's scroll runway sits underneath Technology. Count the
       // visible white surface, rather than that hidden overlapping box.
       if (clarityEnabled && tech) {
-        var boundary = tech.getBoundingClientRect();
+        var boundary = techBounds();
         if (boundary.top > window.innerHeight * .5) id = 'home';
         else if (boundary.bottom > window.innerHeight * .5) id = 'technology';
       }
@@ -637,7 +640,15 @@
     for (var i = 0; i <= 20; i++) thresholds.push(i / 20);
     
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { visible[en.target.id] = en.isIntersecting ? en.intersectionRect.height : 0; });
+      entries.forEach(function (en) {
+        visible[en.target.id] = en.isIntersecting ? en.intersectionRect.height : 0;
+        if (en.target === tech) techIntersecting = en.isIntersecting;
+      });
+      // A pinned Technology stays in view while covered; count its flow position.
+      if (techReceding && techIntersecting) {
+        var flow = techBounds(), h = window.innerHeight;
+        visible.technology = Math.max(0, Math.min(flow.bottom, h * .7) - Math.max(flow.top, h * .1));
+      }
       var best = null, bestVal = 0;
       sectionIds.forEach(function (id) { if (visible[id] > bestVal) { best = id; bestVal = visible[id]; } });
       if (best) setActiveNav(best);
@@ -665,8 +676,9 @@
         var headerHeight = document.querySelector('.topbar').getBoundingClientRect().height;
         var headerOffset = ['#product','#support','#technology'].includes(targetId) ? headerHeight
           : !isDesktop() && targetId !== "#home" ? headerHeight + 12 : 0;
+        var targetBox = target === tech && techStage ? techStage : target;
         var targetY = targetId === '#product' ? productDestination()
-          : Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerOffset
+          : Math.max(0, targetBox.getBoundingClientRect().top + window.scrollY - headerOffset
             + (targetId === '#technology' ? technologyHeadingLift(target) : 0));
         if (targetId === '#why-us' && whyLayout && whyLayout.animated) {
           targetY = window.scrollY + whyScroll.getBoundingClientRect().top;
@@ -780,6 +792,52 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) showStaticTitle(); });
   var tech = document.getElementById("technology");
   var topbar = document.querySelector(".topbar");
+  // Technology can pin while Why us rises over it. Its stage keeps the flow
+  // geometry, so the hero handoff and navigation read the original boundary.
+  var techStage = tech && tech.parentElement.classList.contains('tech-stage') ? tech.parentElement : null;
+  var techHeight = 0, techReceding = false, techRecede = 0, techStableHeight = 0;
+  var techBounds = function () {
+    var r = (techStage || tech).getBoundingClientRect();
+    return { top: r.top, bottom: r.top + (techStage ? techHeight || tech.offsetHeight : r.height) };
+  };
+  var syncTechStage = function () {
+    if (!techStage) return;
+    techHeight = tech.offsetHeight;
+    techStableHeight = clarityMobileViewport || window.innerHeight;
+    var enable = clarityEnabled && !reduceMotion.matches && !!whyLayout && whyLayout.animated;
+    if (enable !== techReceding) {
+      techReceding = enable;
+      techStage.classList.toggle('is-receding', enable);
+      if (!enable) {
+        techRecede = 0;
+        tech.style.transform = '';
+        tech.style.removeProperty('--tech-veil');
+        if (whySection) whySection.style.clipPath = '';
+      }
+      if (whyLayout) { whyLayout.lastPaintedTop = null; whyLayout.paintedTop = null; }
+    }
+    if (!enable) return;
+    // Pin by the lower edge, holding until Why us has covered the screen.
+    // Shared by the stage and the following Why section, so set on their parent.
+    var runway = Math.min(techHeight, techStableHeight), scope = techStage.parentElement.style;
+    scope.setProperty('--tech-runway', runway + 'px');
+    scope.setProperty('--tech-pin', Math.min(0, techStableHeight - techHeight) + 'px');
+    scope.setProperty('--tech-origin', (Math.max(0, techHeight - techStableHeight) + runway / 2) + 'px');
+  };
+  // Driven by Why's own entrance clock: Technology steps back into darkness
+  // while the incoming panel opens from an inset slab to the full width.
+  var paintRecede = function (progress) {
+    if (!techReceding) return;
+    var r = Math.max(0, Math.min(1, progress));
+    var e = r * r * (3 - 2 * r);
+    techRecede = e;
+    tech.style.transform = e > 0
+      ? 'translate3d(0,' + (-.035 * techStableHeight * e).toFixed(3) + 'px,0) scale(' + (1 - .06 * e).toFixed(5) + ')' : '';
+    tech.style.setProperty('--tech-veil', (.8 * e).toFixed(5));
+    var slab = 1 - e;
+    whySection.style.clipPath = slab > .0005
+      ? 'inset(0 ' + (4 * slab).toFixed(3) + '% 0 round ' + (32 * slab).toFixed(2) + 'px ' + (32 * slab).toFixed(2) + 'px 0 0)' : '';
+  };
 
   var bodyScrolled = false;
   var frame = 0;
@@ -798,6 +856,7 @@
       clarityMobileViewport = 0;
       if (hero) hero.style.removeProperty('--clarity-scene-height');
     }
+    syncTechStage();
   };
   var smoothRange = function (start, end, value) {
     var p = Math.max(0, Math.min(1, (value - start) / (end - start)));
@@ -928,6 +987,8 @@
     var mode = modeEl ? modeEl.dataset.navMode : "glass";
     var themeEl = el && el.closest ? el.closest("[data-nav-theme]") : null;
     var theme = themeEl ? themeEl.dataset.navTheme : inferBackgroundTheme(el);
+    // The receding Technology panel darkens beneath the bar before Why arrives.
+    if (typeof techRecede === 'number' && techRecede > .42 && el && tech.contains(el)) theme = 'dark';
     applyTopbarSurface(mode, theme);
   };
 
@@ -945,7 +1006,7 @@
 
     /* ---- reads ---- */
     var heroRect = hero ? hero.getBoundingClientRect() : null;
-    var techRect = tech && !still ? tech.getBoundingClientRect() : null;
+    var techRect = tech && !still ? techBounds() : null;
 
     /* ---- writes ---- */
     if (heroRect) {
@@ -1036,7 +1097,7 @@
 
   // Mobile feature expansion and decoded photos move the following boundary
   // even when the page itself has stopped scrolling. Repaint that boundary too.
-  if (tech && 'ResizeObserver' in window) new ResizeObserver(requestFrame).observe(tech);
+  if (tech && 'ResizeObserver' in window) new ResizeObserver(function () { syncTechStage(); requestFrame(); }).observe(tech);
   window.addEventListener("scroll", requestFrame, { passive: true });
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { window.cancelAnimationFrame(frame); frame = 0; }

@@ -8,6 +8,8 @@
   var list = section.querySelector('.features__list');
   var heading = section.querySelector('.section-head');
   var header = document.querySelector('.topbar');
+  // The section may be pinned while Why us covers it; its stage keeps flow position.
+  var flowBox = section.parentElement.classList.contains('tech-stage') ? section.parentElement : section;
   var cards = Array.from(list.querySelectorAll('.feature'));
   var pictures = Array.from(media.querySelectorAll('picture'));
   var buttons = cards.map(function (card) { return card.querySelector('button'); });
@@ -333,7 +335,7 @@
     else list.setAttribute('aria-describedby', 'features-hint');
     targetScroll = clamp(list.scrollTop, maxScroll());
     if (active >= 0) { revealUntil = performance.now() + 220; schedule(); }
-    var anchor = section.getBoundingClientRect().top + scrollY - headerHeight;
+    var anchor = flowBox.getBoundingClientRect().top + scrollY - headerHeight;
     // Zoom/resize also changes the hero's height above us. If the user was
     // already at Technology's entrance, keep that entrance below the header.
     // Never pull someone back after they have scrolled on to another section.
@@ -513,7 +515,7 @@
       if (!desktop.matches || interrupted) return;
       measure();
       requestAnimationFrame(function () {
-        window.scrollTo({ top: section.getBoundingClientRect().top + scrollY - header.getBoundingClientRect().height, behavior: 'instant' });
+        window.scrollTo({ top: flowBox.getBoundingClientRect().top + scrollY - header.getBoundingClientRect().height, behavior: 'instant' });
       });
     });
   }

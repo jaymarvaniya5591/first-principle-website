@@ -3180,12 +3180,13 @@ img {
     mask-image:linear-gradient(to bottom,transparent,black 38%,black 58%,transparent 100%);
     opacity:calc((1 - var(--clarity-p,0)) * .55);
   }
-  #technology .section-head > * {
+  /* Without the scene controller the heading still follows the boundary. */
+  html:not(.scene-motion-ready) #technology .section-head > * {
     opacity:var(--clarity-title,1);
     transform:translate3d(0,calc((1 - var(--clarity-title,1)) * 22px),0);
     transition:none;
   }
-  #technology .section-head__sub {
+  html:not(.scene-motion-ready) #technology .section-head__sub {
     opacity:var(--clarity-detail,1);
     transform:translate3d(0,calc((1 - var(--clarity-detail,1)) * 16px),0);
   }
@@ -4027,4 +4028,52 @@ img {
 @media (prefers-reduced-motion:reduce) {
   .topbar__contact,.submit { transition:none; }
   .topbar__contact:active,.submit:not(:disabled):active { scale:1; }
+}
+
+/* Cinematic scroll scenes. Every value below is written from scroll position by
+   js/site-motion.js or main.js, so nothing here may transition or animate. */
+.mo-mask { display:inline-block; vertical-align:baseline; overflow-x:visible; overflow-y:clip; padding-block:.14em; margin-block:-.14em; }
+.mo-word, .mo-letter { display:inline-block; }
+.mo-letter { transform-origin:0 100%; }
+.scene-words, .scene-letters, .scene-lines, .scene-row, .scene-sweep, .scene-footer,
+.mo-word, .mo-letter { transition:none; }
+#technology .section-head__title .mo-mask { padding-inline:.02em; margin-inline:-.02em; }
+
+/* Technology: the feature photo opens from a framed window; rows draw in. */
+#technology .features__img { scale:var(--tech-media-scale,1); }
+#technology .feature__mobile-photo img { scale:var(--tech-photo-scale,1); }
+#technology .feature.scene-row { position:relative; }
+.scene-motion-ready #technology .feature.scene-row { border-bottom-color:transparent; }
+#technology .feature.scene-row::after {
+  content:''; position:absolute; left:0; right:0; bottom:0; height:1px; z-index:1;
+  background:#d9d9d6; transform:scaleX(var(--row-rule,1)); transform-origin:left; pointer-events:none;
+}
+#technology.features--mobile .feature.scene-row::after { background:#dededb; }
+#technology.features--mobile .feature.scene-row.is-active::after { background:#30302e; }
+html:not(.scene-motion-ready) #technology .feature.scene-row::after { content:none; }
+
+/* Technology to Why us: Technology pins by its lower edge and recedes into
+   darkness while the black panel opens from an inset slab to full width.
+   The stage's runway equals Why's overlap, so the page length is unchanged. */
+.tech-veil { display:none; }
+.tech-stage.is-receding { position:relative; z-index:29; background:#050505; }
+.tech-stage.is-receding::after { content:''; display:block; height:var(--tech-runway,0px); }
+.tech-stage.is-receding > #technology { position:sticky; top:var(--tech-pin,0px); transform-origin:50% var(--tech-origin,50%); }
+.tech-stage.is-receding + #why-us { margin-top:calc(-1 * var(--tech-runway,0px)); }
+.tech-stage.is-receding .tech-veil { display:block; position:absolute; inset:0; z-index:8; background:#000; opacity:var(--tech-veil,0); pointer-events:none; }
+
+/* Product: the boundary draws from the centre; the phone photo settles from depth. */
+.scene-boundary::before, .collection-shell::before, #support::before { transform-origin:center; }
+#product.product--mobile .card[data-pos="center"] .card__media img { scale:var(--deck-photo,1); }
+
+/* Footer curtain: Support lifts away to reveal the footer already in place. */
+.footer-reveal #support { position:relative; z-index:2; }
+.footer-reveal #footer { position:sticky; bottom:0; z-index:1; }
+.footer-reveal.footer-covered #footer { visibility:hidden; }
+
+@media (prefers-reduced-motion:reduce) {
+  .mo-word, .mo-letter, .scene-words, .scene-letters, .scene-lines, .scene-row, .scene-sweep, .scene-footer { opacity:1!important; transform:none!important; }
+  .scene-sweep, .features__media, .feature__mobile-photo { clip-path:none!important; }
+  #technology .features__img, #technology .feature__mobile-photo img, #product.product--mobile .card__media img { scale:1!important; }
+  #technology .feature.scene-row::after { transform:none!important; }
 }
