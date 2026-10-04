@@ -4056,11 +4056,11 @@ html:not(.scene-motion-ready) #technology .feature.scene-row::after { content:no
    darkness while the black panel opens from an inset slab to full width.
    The stage's runway equals Why's overlap, so the page length is unchanged. */
 .tech-veil { display:none; }
-.tech-stage.is-receding { position:relative; z-index:29; background:#050505; }
+.tech-stage.is-receding { position:relative; z-index:29; background:var(--ink); }
 .tech-stage.is-receding::after { content:''; display:block; height:var(--tech-runway,0px); }
 .tech-stage.is-receding > #technology { position:sticky; top:var(--tech-pin,0px); transform-origin:50% var(--tech-origin,50%); }
 .tech-stage.is-receding + #why-us { margin-top:calc(-1 * var(--tech-runway,0px)); }
-.tech-stage.is-receding .tech-veil { display:block; position:absolute; inset:0; z-index:8; background:#000; opacity:var(--tech-veil,0); pointer-events:none; }
+.tech-stage.is-receding .tech-veil { display:block; position:absolute; inset:0; z-index:8; background:var(--ink); opacity:var(--tech-veil,0); pointer-events:none; }
 
 /* Product: the boundary draws from the centre; the phone photo settles from depth. */
 .scene-boundary::before, .collection-shell::before, #support::before { transform-origin:center; }
