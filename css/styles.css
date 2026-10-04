@@ -4058,6 +4058,7 @@ html:not(.scene-motion-ready) #technology .feature.scene-row::after { content:no
 .tech-veil { display:none; }
 .tech-stage.is-receding { position:relative; z-index:29; background:var(--ink); }
 .tech-stage.is-receding::after { content:''; display:block; height:var(--tech-runway,0px); }
+.tech-stage.is-receding::before { content:''; position:absolute; top:100%; left:0; right:0; height:max(0px, calc(100svh - var(--tech-runway,0px))); background:var(--ink); pointer-events:none; }
 .tech-stage.is-receding > #technology { position:sticky; top:var(--tech-pin,0px); transform-origin:50% var(--tech-origin,50%); }
 .tech-stage.is-receding + #why-us { margin-top:calc(-1 * var(--tech-runway,0px)); }
 .tech-stage.is-receding .tech-veil { display:block; position:absolute; inset:0; z-index:8; background:var(--ink); opacity:var(--tech-veil,0); pointer-events:none; }
