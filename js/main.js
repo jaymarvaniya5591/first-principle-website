@@ -342,7 +342,7 @@
           noteReveal = noteReveal * noteReveal * (3 - 2 * noteReveal);
           whySection.style.setProperty('--why-note-reveal', noteReveal.toFixed(5));
           whySection.classList.toggle('why--entered', entranceTop <= 1);
-          if (typeof paintRecede === 'function') paintRecede(entranceProgress);
+          if (typeof paintRecede === 'function') paintRecede(entranceTop);
         }
         if (!whyLayout.animated) {
           if (window.siteMotion) whySlides.forEach(function (slide, i) { window.siteMotion.paintWhy(slide, i, 1, 0, false); });
@@ -795,7 +795,7 @@
   // Technology can pin while Why us rises over it. Its stage keeps the flow
   // geometry, so the hero handoff and navigation read the original boundary.
   var techStage = tech && tech.parentElement.classList.contains('tech-stage') ? tech.parentElement : null;
-  var techHeight = 0, techReceding = false, techRecede = 0, techStableHeight = 0;
+  var techHeight = 0, techReceding = false, techRecede = 0, techStableHeight = 0, techRunway = 0;
   var techBounds = function () {
     var r = (techStage || tech).getBoundingClientRect();
     return { top: r.top, bottom: r.top + (techStage ? techHeight || tech.offsetHeight : r.height) };
@@ -818,17 +818,22 @@
     }
     if (!enable) return;
     // Pin by the lower edge, holding until Why us has covered the screen.
+    // A section taller than the screen first carries its last rows up into
+    // view, so the incoming panel never covers features before they are read.
     // Shared by the stage and the following Why section, so set on their parent.
-    var runway = Math.min(techHeight, techStableHeight), scope = techStage.parentElement.style;
+    var lift = techStableHeight * .4 * Math.max(0, Math.min(1, (techHeight - techStableHeight * .9) / (techStableHeight * .2)));
+    var pin = Math.min(0, techStableHeight - techHeight - lift);
+    var runway = Math.max(0, pin + techHeight), scope = techStage.parentElement.style;
+    techRunway = runway;
     scope.setProperty('--tech-runway', runway + 'px');
-    scope.setProperty('--tech-pin', Math.min(0, techStableHeight - techHeight) + 'px');
-    scope.setProperty('--tech-origin', (Math.max(0, techHeight - techStableHeight) + runway / 2) + 'px');
+    scope.setProperty('--tech-pin', pin + 'px');
+    scope.setProperty('--tech-origin', (runway / 2 - pin) + 'px');
   };
-  // Driven by Why's own entrance clock: Technology steps back into darkness
-  // while the incoming panel opens from an inset slab to the full width.
-  var paintRecede = function (progress) {
+  // Driven by Why's position over the pinned stretch: Technology steps back into
+  // darkness while the incoming panel opens from an inset slab to the full width.
+  var paintRecede = function (whyTop) {
     if (!techReceding) return;
-    var r = Math.max(0, Math.min(1, progress));
+    var r = techRunway > 0 ? Math.max(0, Math.min(1, 1 - whyTop / techRunway)) : 1;
     var e = r * r * (3 - 2 * r);
     techRecede = e;
     tech.style.transform = e > 0

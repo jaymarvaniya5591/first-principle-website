@@ -329,14 +329,22 @@
         el.style.transform = Math.abs(y) > .01 ? 'translate3d(0,' + y.toFixed(3) + 'px,0)' : '';
       } else if (target.kind === 'boundary') {
         el.style.setProperty('--scene-rule', entry.toFixed(5));
-      } else if (target.kind === 'media' || target.kind === 'photo') {
+      } else if (target.kind === 'media') {
+        // The photo develops inside its fixed frame: a soft exposure falls
+        // from the top, then colour floods into the monochrome print.
+        var wipe = smooth(range(state.entry, 0, .72)), tint = smooth(range(state.entry, .26, .9));
+        var edge = wipe * 140;
+        var mask = wipe < .9995 ? 'linear-gradient(to bottom,#000 ' + (edge - 40).toFixed(2) + '%,transparent ' + edge.toFixed(2) + '%)' : '';
+        el.style.webkitMaskImage = mask;
+        el.style.maskImage = mask;
+        el.style.filter = tint < .9995 ? 'grayscale(' + (1 - tint).toFixed(4) + ') brightness(' + (.8 + .2 * tint).toFixed(4) + ')' : '';
+        el.style.setProperty('--tech-media-scale', (1 + .07 * (1 - ease(state.entry))).toFixed(5));
+        el.style.willChange = tint < .9995 ? 'filter' : '';
+      } else if (target.kind === 'photo') {
         // A framed window opens to the full panel while the photo settles from depth.
         var a = 1 - smooth(state.entry);
-        var desktopMedia = target.kind === 'media';
-        el.style.clipPath = a > .0005
-          ? 'inset(' + (a * (desktopMedia ? 12 : 7)).toFixed(3) + '% ' + (a * (desktopMedia ? 14 : 6)).toFixed(3) + '% round ' + (a * (desktopMedia ? 28 : 18)).toFixed(2) + 'px)'
-          : '';
-        el.style.setProperty(desktopMedia ? '--tech-media-scale' : '--tech-photo-scale', (1 + a * (desktopMedia ? .18 : .14)).toFixed(5));
+        el.style.clipPath = a > .0005 ? 'inset(' + (a * 7).toFixed(3) + '% ' + (a * 6).toFixed(3) + '% round ' + (a * 18).toFixed(2) + 'px)' : '';
+        el.style.setProperty('--tech-photo-scale', (1 + a * .14).toFixed(5));
         el.style.willChange = a > .0005 && a < .9995 ? 'clip-path' : '';
       } else if (target.kind === 'row') {
         var r = ease(range(state.entry, 0, .82));
