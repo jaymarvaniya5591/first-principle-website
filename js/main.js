@@ -655,6 +655,106 @@
     }, { threshold: thresholds, rootMargin: "-10% 0px -30% 0px" });
     sectionIds.forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
 
+    // Long section journeys cut instead of racing through every scene between:
+    // the view dips into the destination's own surface, moves while covered, then
+    // glides the last stretch so the destination's entrance plays as it lands.
+    var navVeil = null, navCut = null, topbarHeld = false;
+    var releaseTopbar = function () {
+      topbarHeld = false;
+      var bar = document.querySelector('.topbar');
+      if (bar) bar.classList.remove('is-cutting');
+    };
+    var surfaceOf = function (section) {
+      if (section.id === 'home') return getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#111111';
+      var candidates = [section, section.querySelector('.slide'), document.body];
+      for (var i = 0; i < candidates.length; i++) {
+        var colour = candidates[i] && getComputedStyle(candidates[i]).backgroundColor;
+        if (colour && colour !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(colour)) return colour;
+      }
+      return '#ffffff';
+    };
+    var cancelNavCut = function () { if (navCut) navCut.cancel(); };
+    var cinematicJump = function (section, targetY, done) {
+      cancelNavCut();
+      if (!navVeil) {
+        navVeil = document.createElement('div');
+        navVeil.className = 'nav-veil';
+        navVeil.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(navVeil);
+      }
+      navVeil.style.backgroundColor = surfaceOf(section);
+      var glideFrame = 0, cut = { phase: 'in' }, veilIn, veilOut;
+      var lift = function () {
+        if (veilIn) veilIn.cancel();
+        var from = parseFloat(getComputedStyle(navVeil).opacity) || 0;
+        navVeil.style.opacity = '0';
+        veilOut = navVeil.animate([{ opacity: from }, { opacity: 0 }], { duration: 560, easing: 'cubic-bezier(.3,0,.2,1)' });
+      };
+      var finish = function () {
+        window.cancelAnimationFrame(glideFrame);
+        releaseTopbar();
+        if (navCut === cut) navCut = null;
+        if (done) done();
+        if (typeof requestFrame === 'function') requestFrame();
+      };
+      cut.cancel = function () {
+        if (cut.phase === 'in') lift();
+        cut.phase = 'done';
+        finish();
+      };
+      navCut = cut;
+      navVeil.style.opacity = '1';
+      veilIn = navVeil.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.45,0,.55,1)' });
+      veilIn.onfinish = function () {
+        if (cut.phase !== 'in') return;
+        cut.phase = 'glide';
+        // Arrive travelling downward, as the scenes are authored; Home rises into place.
+        var maximum = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        var glide = Math.round(window.innerHeight * .55);
+        var start = targetY > glide ? targetY - glide : Math.min(maximum, targetY + glide);
+        var jump = function (y) {
+          if (window.siteScroll && window.siteScroll.jump) window.siteScroll.jump(y);
+          else window.scrollTo({ top: y, behavior: 'instant' });
+          if (typeof requestFrame === 'function') requestFrame();
+        };
+        var afterPaint = function (next) {
+          window.requestAnimationFrame(function () { window.requestAnimationFrame(function () { if (cut.phase === 'glide') next(); }); });
+        };
+        // The header settles into its landing surface while covered, then holds it
+        // through the glide; its glass filter never rebuilds in view.
+        var bar = document.querySelector('.topbar');
+        if (bar) bar.classList.add('is-cutting');
+        jump(targetY);
+        afterPaint(function () {
+          topbarHeld = true;
+          jump(start);
+          // Let the scenes paint their approach pose under the veil before it lifts.
+          afterPaint(function () {
+            if (bar) bar.classList.remove('is-cutting');
+            lift();
+            var eased = function (p) { return 1 - Math.pow(1 - p, 4); };
+            if (window.siteScroll && window.siteScroll.to(targetY, function () { if (cut.phase === 'glide') { cut.phase = 'done'; finish(); } }, { duration: 1.05, easing: eased })) return;
+            var began = null;
+            var step = function (time) {
+              if (cut.phase !== 'glide') return;
+              if (began === null) began = time;
+              var p = Math.min(1, (time - began) / 1050);
+              window.scrollTo({ top: p === 1 ? targetY : start + (targetY - start) * eased(p), behavior: 'instant' });
+              if (p < 1) glideFrame = window.requestAnimationFrame(step);
+              else { cut.phase = 'done'; finish(); }
+            };
+            glideFrame = window.requestAnimationFrame(step);
+          });
+        });
+      };
+    };
+    ['wheel', 'touchstart', 'keydown'].forEach(function (type) {
+      window.addEventListener(type, function (event) {
+        if (!navCut || (type === 'keydown' && ['Tab', 'Shift', 'Enter'].indexOf(event.key) >= 0)) return;
+        cancelNavCut();
+      }, { capture: true, passive: true });
+    });
+
     // Section navigation shares one clock with the desktop scroll controller.
     document.querySelectorAll('a[href^="#"]').forEach(function(item) {
       item.addEventListener("click", function(e) {
@@ -683,6 +783,14 @@
         if (targetId === '#why-us' && whyLayout && whyLayout.animated) {
           targetY = window.scrollY + whyScroll.getBoundingClientRect().top;
         }
+        if (!reduceMotion.matches && Math.abs(targetY - window.scrollY) > window.innerHeight * 1.3) {
+          if (whyScroll) whyScroll.dataset.skipping = 'false';
+          cinematicJump(target, targetY, function () {
+            if (whyScroll) window.dispatchEvent(new Event('scroll'));
+          });
+          return;
+        }
+        cancelNavCut();
         var navigationOptions;
         if (whyScroll && whyLayout && whyLayout.horizontal) {
           var pinnedStart = window.scrollY + whyScroll.getBoundingClientRect().top;
@@ -909,7 +1017,7 @@
     });
   };
   var applyTopbarSurface = function (mode, theme, perControl) {
-    if (!topbar) return;
+    if (!topbar || (typeof topbarHeld !== 'undefined' && topbarHeld)) return;
     if (isDesktop() && mode === 'merge' && hasTopbarContent()) mode = 'glass';
     if (!isDesktop() && menu && !menu.hidden) { mode = "glass"; theme = "dark"; perControl = false; }
     // A shared surface must release individual Why-slide colours, including

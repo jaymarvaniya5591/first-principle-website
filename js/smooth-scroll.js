@@ -82,6 +82,18 @@
         instance.resize();
       }
     },
+    // Move instantly with Lenis's own bookkeeping, so a following journey
+    // starts from the new place rather than the stale animated position.
+    jump: function (target) {
+      haltScroll();
+      finishNavigation();
+      if (!instance) {
+        window.scrollTo({ top: target, behavior: 'instant' });
+        return;
+      }
+      instance.resize();
+      instance.scrollTo(Math.max(0, Math.min(target, instance.limit)), { immediate:true, force:true });
+    },
     // Delta is already normalized by the caller. Keep one owner of page inertia.
     by: function (delta) {
       if (navigationActive) haltScroll();
@@ -119,8 +131,8 @@
       var skipped = Math.max(0, high - low);
       var totalDistance = Math.abs(target - start);
       var distance = totalDistance - skipped;
-      var duration = navigationDuration(distance);
-      var easing = navigationEase;
+      var duration = options && options.duration || navigationDuration(distance);
+      var easing = options && options.easing || navigationEase;
       if (skipped > 0) {
         var direction = target >= start ? 1 : -1;
         var before = direction > 0 ? low - start : start - high;

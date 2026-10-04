@@ -4079,7 +4079,13 @@ html:not(.scene-motion-ready) #technology .feature.scene-row::after { content:no
 }
 .footer-reveal.footer-covered #footer, .footer-lift.footer-covered #footer { visibility:hidden; }
 
+/* Section journeys dip the whole view into the destination's surface, then
+   the header returns already themed for where it landed. */
+.nav-veil { position:fixed; inset:0; z-index:101; opacity:0; pointer-events:none; will-change:opacity; }
+.topbar.is-cutting, .topbar.is-cutting * { transition:none!important; }
+
 @media (prefers-reduced-motion:reduce) {
+  .nav-veil { display:none; }
   .mo-word, .mo-letter, .scene-words, .scene-letters, .scene-lines, .scene-row, .scene-sweep, .scene-footer { opacity:1!important; transform:none!important; }
   .scene-sweep, .features__media, .feature__mobile-photo { clip-path:none!important; }
   .features__media { -webkit-mask-image:none!important; mask-image:none!important; filter:none!important; }
