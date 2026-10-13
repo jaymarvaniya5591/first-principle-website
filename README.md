@@ -271,15 +271,24 @@ the heading-to-card gap (20 reference pixels). Support keeps its navbar-aligned 
 content expansion and the desktop-to-mobile reset in addition to catalogue and
 carousel behavior.
 
-### Product catalogue / deferred imagery
+### Product catalogue and studio imagery
 
-Product cards use the September 2026 Architect Catalogue Copy Brief: Novi
-₹19,999, Vero ₹29,999, Aera ₹34,999, Sora ₹49,999 and Liva ₹59,999.
-Luma is omitted until its catalogue content is supplied; its assets are retained.
-The current photo assignments are intentionally preserved for this layout pass.
-`product-aera-new.jpg` duplicates Sora's photo. Liva's current photo depicts a
-floor-standing body although the catalogue specifies the wall-hung N50 model.
-Correcting these two photos is deferred, not a change to their specifications.
+Current prices are Novi ₹24,999, Vero ₹34,999, Aera ₹39,999, Sora ₹54,999
+and Liva ₹64,999, excluding installation. Each model was increased by ₹5,000
+from the September 2026 catalogue prices; the hero and page description use
+the current ₹24,999 starting price. Luma is omitted until its catalogue
+content is supplied; its assets are retained.
+
+The five product cards use 2048 × 2048 studio JPEGs named
+`product-<model>-studio-hq-v1.jpg`. The approved backgrounds are sage for
+Novi, slate blue-grey for Vero, apricot for Aera, champagne for Sora and
+powder blue for Liva. Liva is shown wall-mounted, with its side controls
+checked against the original photograph; the other four models are
+floor-mounted. Earlier images are retained for recovery.
+
+The square image assets preserve the existing desktop carousel and mobile
+card layout. Exports use JPEG quality 95 with full 4:4:4 colour sampling;
+images retain lazy loading and load at full resolution for enlarged views.
 
 ### Footer
 

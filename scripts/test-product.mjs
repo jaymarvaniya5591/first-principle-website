@@ -8,15 +8,15 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../js/main.js', import.meta.url), 'utf8');
 const articles = [...html.matchAll(/<article class="card"[\s\S]*?<\/article>/g)].map(m => m[0]);
 const expected = [
-  ['Novi', '19,999', 7], ['Vero', '29,999', 12], ['Aera', '34,999', 12],
-  ['Sora', '49,999', 13], ['Liva', '59,999', 13]
+  ['Novi', '24,999', 7], ['Vero', '34,999', 12], ['Aera', '39,999', 12],
+  ['Sora', '54,999', 13], ['Liva', '64,999', 13]
 ];
 assert.equal(articles.length, expected.length);
 articles.forEach((article, i) => {
   const [name, price, included] = expected[i];
   assert.ok(article.includes(`<h3>${name}</h3>`));
   assert.ok(article.includes(`₹${price}`));
-  assert.ok(article.includes(`product-${name.toLowerCase()}-new.jpg`));
+  assert.ok(article.includes(`product-${name.toLowerCase()}-studio-hq-v1.jpg`));
   assert.equal((article.match(/class="spec is-/g) || []).length, 13);
   assert.equal((article.match(/aria-label="Included"/g) || []).length, included);
   assert.equal((article.match(/aria-label="Unavailable"/g) || []).length, 13 - included);
