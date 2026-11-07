@@ -1,16 +1,16 @@
 {
   "origin": "https://getfirstprinciple.com",
   "sharedCeramicPerformance": [
-    ["Water absorption", "<0.20%"],
-    ["Breaking strength", "650–700 kg/cm²"],
-    ["Crazing resistance", "No crazing up to four cycles", "Test condition: steam pressure of 3.7 kg/cm² for four hours."],
-    ["Minimum thickness", "7 mm at any place"],
-    ["Warpage", "Within permissible limits"],
-    ["Minimum glaze thickness", "400 microns / 0.4 mm"],
-    ["Surface quality", "No wavy finish"],
-    ["Discolouration", "None on the visible surface"],
-    ["Chemical resistance", "Passes"],
-    ["Stain and burn resistance", "Passes"]
+    {"property": "Water absorption", "requirement": "0.50%", "value": "<0.20%"},
+    {"property": "Breaking strength", "requirement": "600 kg/cm²", "value": "650–700 kg/cm²"},
+    {"property": "Crazing resistance", "requirement": "No crazing up to two cycles", "value": "No crazing up to four cycles", "note": "Test condition: steam pressure of 3.7 kg/cm² for four hours."},
+    {"property": "Minimum thickness", "requirement": "6 mm at any place", "value": "7 mm at any place"},
+    {"property": "Warpage", "requirement": "Should not exceed the specified limits", "value": "Within permissible limits"},
+    {"property": "Minimum glaze thickness", "requirement": "Not specified", "value": "400 microns / 0.4 mm"},
+    {"property": "Surface quality", "requirement": "No wavy finish on the visible surface", "value": "No wavy finish"},
+    {"property": "Discolouration", "requirement": "None on the visible surface", "value": "None on the visible surface"},
+    {"property": "Chemical resistance", "requirement": "Should be resistant to all household chemicals", "value": "Passes"},
+    {"property": "Stain and burn resistance", "requirement": "No stain should remain on testing", "value": "Passes"}
   ],
   "products": [
     {

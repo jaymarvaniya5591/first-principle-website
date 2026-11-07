@@ -14,6 +14,12 @@ const route = product => `/specifications/${product.slug}`;
 const rows = entries => `<dl class="spec-list">${entries.map(([label,value,note]) => `
   <div class="spec-row"><dt>${escape(label)}</dt><dd>${escape(value)}${note ? `<span class="spec-note">${escape(note)}</span>` : ''}</dd></div>`).join('')}
 </dl>`;
+const ceramicComparison = () => `<table class="ceramic-comparison" aria-labelledby="material-performance-heading">
+  <thead><tr><th scope="col" class="property-column">Ceramic property</th><th scope="col">I.S.I. requirement</th><th scope="col">Our value</th></tr></thead>
+  <tbody>${data.sharedCeramicPerformance.map(({property,requirement,value,note}) => `
+    <tr><th scope="row">${escape(property)}${note ? `<span class="spec-note">${escape(note)}</span>` : ''}</th><td>${escape(requirement)}</td><td>${escape(value)}</td></tr>`).join('')}
+  </tbody>
+</table>`;
 const brand = `<a class="brand" href="/" aria-label="First Principle home"><img src="/assets/img/logo-mark-footer.svg" width="40" height="40" alt=""><span>First<br>Principle</span></a>`;
 
 function page(product) {
@@ -54,7 +60,7 @@ function page(product) {
     <div class="wrap spec-sections">${sections.map(([id,num,title]) => `
       <section class="spec-section" id="${id}" aria-labelledby="${id}-heading">
         <header class="section-heading"><span class="section-number" aria-hidden="true">${num}</span><h2 id="${id}-heading">${escape(title)}</h2></header>
-        <div class="section-data">${rows(product[id])}${id==='ceramic' ? `<h3 class="subheading">Material performance</h3>${rows(data.sharedCeramicPerformance)}` : ''}</div>
+        <div class="section-data">${rows(product[id])}${id==='ceramic' ? `<h3 class="subheading" id="material-performance-heading">Material performance</h3>${ceramicComparison()}` : ''}</div>
       </section>`).join('')}
     </div>`}
   </main>

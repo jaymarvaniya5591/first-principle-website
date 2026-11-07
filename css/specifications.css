@@ -42,6 +42,16 @@ dt{color:var(--muted);font-size:14px;line-height:1.55}
 dd{margin:0;min-width:0;font-size:16px;line-height:1.5;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .spec-note{display:block;margin-top:7px;color:var(--muted);font-size:13px;line-height:1.55}
 .subheading{font-size:12px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;margin:38px 0 24px;padding-top:24px;border-top:1px solid var(--rule)}
+.ceramic-comparison{width:100%;table-layout:fixed;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums}
+.ceramic-comparison th,.ceramic-comparison td{vertical-align:top;padding:19px 12px;border-bottom:1px solid var(--rule);overflow-wrap:anywhere}
+.ceramic-comparison th:first-child{padding-left:0}
+.ceramic-comparison th:last-child,.ceramic-comparison td:last-child{padding-right:0}
+.ceramic-comparison thead th{font-size:12px;font-weight:500;padding-top:0;padding-bottom:16px}
+.ceramic-comparison tbody th{font-size:14px;line-height:1.55;font-weight:400;color:var(--muted)}
+.ceramic-comparison td{font-size:16px;line-height:1.5}
+.ceramic-comparison td:first-of-type{color:var(--muted)}
+.ceramic-comparison tbody tr:last-child>*{border-bottom:0;padding-bottom:0}
+.ceramic-comparison .spec-note{font-size:13px;font-weight:400}
 .site-footer{display:grid;grid-template-columns:1fr 1fr auto;align-items:start;gap:20px;border-top:1px solid var(--rule);padding-block:36px 48px}
 .footer-heading{font-size:20px;font-weight:500;letter-spacing:-.4px;margin:0}
 .footer-note{font-size:14px;color:var(--muted);margin:5px 0 0}
@@ -53,5 +63,6 @@ dd{margin:0;min-width:0;font-size:16px;line-height:1.5;font-variant-numeric:tabu
 @media(max-width:800px){.spec-section{grid-template-columns:1fr;gap:32px;padding-block:38px}.section-heading{position:static}h2{max-width:none;margin-top:8px;font-size:27px}.site-footer{grid-template-columns:1fr auto}.contact-links{grid-row:2;grid-column:1/-1}.top-link{grid-column:2;grid-row:1}.intro-note{font-size:21px}}
 @media(max-width:600px){.product-intro{padding-block:40px 29px;align-items:flex-start;gap:22px;flex-direction:column}.intro-note{font-size:18px;line-height:1.4}.intro-note br{display:none}.intro-note br::after{content:' '}.product-type{font-size:14px;margin-top:17px}.model-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-bottom:24px}.model-nav a{min-width:0;padding:10px 6px}.section-nav .wrap{justify-content:space-between;gap:8px}.section-nav a{font-size:13px;gap:7px;min-height:56px}.spec-row{grid-template-columns:1fr;gap:6px;padding-block:18px}dt{font-size:13px}.spec-note{font-size:14px;line-height:1.5}.site-header{padding-block:16px}.site-footer{padding-block:28px 32px}}
 @media(max-width:359px){:root{--gutter:20px}.brand{font-size:16px;gap:7px}.brand img{width:31px;height:31px}.back-link{font-size:12px;gap:5px}.section-nav a{font-size:12px;gap:5px}.section-nav a span{font-size:9px}}
+@media(max-width:600px){.ceramic-comparison,.ceramic-comparison thead,.ceramic-comparison tbody{display:block}.ceramic-comparison tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px}.ceramic-comparison thead{border-bottom:1px solid var(--rule)}.ceramic-comparison thead th{padding:0 0 16px;border:0;font-size:12px}.ceramic-comparison .property-column{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.ceramic-comparison tbody tr{padding-block:20px;border-bottom:1px solid var(--rule);row-gap:10px}.ceramic-comparison tbody th{grid-column:1/-1;font-size:14px;color:var(--ink)}.ceramic-comparison tbody th,.ceramic-comparison td{padding:0;border:0}.ceramic-comparison tbody tr:last-child{border-bottom:0;padding-bottom:0}.ceramic-comparison .spec-note{margin-top:5px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
 @media print{:root{background:#fff;color:#111;--paper:#fff;--ink:#111;--muted:#444;--rule:#ccc}.site-header,.model-nav,.section-nav,.back-link,.skip-link,.top-link{display:none}.wrap{width:100%}.product-intro{padding-block:0 24px}h1{font-size:44px}.spec-section{display:block;padding-block:24px;break-inside:auto}.section-heading{position:static;margin-bottom:20px}h2{max-width:none}.spec-row{break-inside:avoid}.site-footer{margin-top:24px}.brand img{filter:invert(1)}}
