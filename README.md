@@ -1,5 +1,23 @@
 # First Principle — Landing Page
 
+## Product specifications
+
+The six `/specifications/<product>` routes are static pages. Edit
+`data/product-specifications.json`, then run `npm run specifications` to regenerate
+the pages, homepage prices/links and sitemap. Novi, Vero, Aera, Sora and Liva have
+three technical sections; Luna intentionally shows “Coming soon.”
+
+These pages use `css/specifications.css`, existing self-hosted Helvetica Neue
+fonts, and native anchor navigation without JavaScript. `npm run test:specifications`
+checks the approved data, missing-field behavior, routes and synchronized prices.
+Existing card/mobile/navigation tests cover homepage integration. Run `npm run css`
+after editing the homepage stylesheet.
+
+Preview with `npm run serve` at `http://localhost:5592/specifications/novi`.
+Canonical and catalogue QR URLs use `https://getfirstprinciple.com`. Deployment
+must serve the six directories and their `index.html` files at the corresponding
+extensionless URLs before the QR codes can be used publicly.
+
 Static landing page for First Principle smart toilets, built 1:1 from the Figma design
 (`FIRST PRINCIPLE — LANDIN PAGE`, Web 1440px + Mobile 390px frames).
 

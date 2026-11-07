@@ -8,8 +8,8 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../js/main.js', import.meta.url), 'utf8');
 const articles = [...html.matchAll(/<article class="card"[\s\S]*?<\/article>/g)].map(m => m[0]);
 const expected = [
-  ['Novi', '24,999', 7], ['Vero', '34,999', 12], ['Aera', '39,999', 12],
-  ['Sora', '54,999', 13], ['Liva', '64,999', 13]
+  ['Novi', '39,999', 7], ['Vero', '59,999', 12], ['Aera', '59,999', 12],
+  ['Sora', '1,24,999', 13], ['Liva', '1,34,999', 13]
 ];
 assert.equal(articles.length, expected.length);
 articles.forEach((article, i) => {

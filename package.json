@@ -5,6 +5,8 @@
   "description": "First Principle landing page - static site. Scripts are dev-only asset builders; generated assets are committed.",
   "type": "module",
   "scripts": {
+    "specifications": "node scripts/build-specifications.mjs",
+    "test:specifications": "node scripts/test-specifications.mjs",
     "test:contact": "node --test scripts/test-contact.mjs",
     "preview:email": "node scripts/preview-email.mjs",
     "fonts": "node scripts/build-fonts.mjs",

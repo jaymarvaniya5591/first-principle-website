@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://first-principle-website-nine.vercel.app/sitemap.xml
+Sitemap: https://getfirstprinciple.com/sitemap.xml

@@ -4084,6 +4084,16 @@ html:not(.scene-motion-ready) #technology .feature.scene-row::after { content:no
 .nav-veil { position:fixed; inset:0; z-index:101; opacity:0; pointer-events:none; will-change:opacity; }
 .topbar.is-cutting, .topbar.is-cutting * { transition:none!important; }
 
+/* Always visible, including when the mobile feature list is collapsed. */
+#product .card__technical {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  min-height:44px; font-size:13px; line-height:1.4; color:#333;
+  text-decoration:underline; text-underline-offset:4px; text-decoration-thickness:1px;
+}
+#product .card__technical:focus-visible { outline:2px solid #242424; outline-offset:3px; }
+#product .card__technical:hover { color:#000; }
+#product .card__technical span { text-decoration:none; }
+
 @media (prefers-reduced-motion:reduce) {
   .nav-veil { display:none; }
   .mo-word, .mo-letter, .scene-words, .scene-letters, .scene-lines, .scene-row, .scene-sweep, .scene-footer { opacity:1!important; transform:none!important; }

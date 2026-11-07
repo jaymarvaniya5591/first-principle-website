@@ -1,0 +1,169 @@
+{
+  "origin": "https://getfirstprinciple.com",
+  "sharedCeramicPerformance": [
+    ["Water absorption", "<0.20%"],
+    ["Breaking strength", "650–700 kg/cm²"],
+    ["Crazing resistance", "No crazing up to four cycles", "Test condition: steam pressure of 3.7 kg/cm² for four hours."],
+    ["Minimum thickness", "7 mm at any place"],
+    ["Warpage", "Within permissible limits"],
+    ["Minimum glaze thickness", "400 microns / 0.4 mm"],
+    ["Surface quality", "No wavy finish"],
+    ["Discolouration", "None on the visible surface"],
+    ["Chemical resistance", "Passes"],
+    ["Stain and burn resistance", "Passes"]
+  ],
+  "products": [
+    {
+      "slug": "novi", "name": "Novi", "priceINR": 39999, "status": "available",
+      "description": "Floor-mounted · Non-electric",
+      "ceramic": [
+        ["Overall dimensions (L × W × H)", "680 × 380 × 470 mm", "Height refers to the ceramic body."],
+        ["Net weight", "34 kg"],
+        ["Bowl shape", "V-shape, elongated"],
+        ["Finish", "White"],
+        ["Ceramic glaze", "Antibacterial"],
+        ["Trapway glazing", "Fully glazed"]
+      ],
+      "plumbing": [
+        ["Mounting", "Floor-mounted, one-piece ceramic"],
+        ["Outlet", "S-trap · floor outlet"],
+        ["Rough-in", "220 mm"],
+        ["Seat height", "455 mm", "From finished floor to seat top."],
+        ["Water inlet", "3/4 in (DN20)", "Supply pipe and angle valve."],
+        ["Minimum water pressure", "0.15 MPa", "Approximately 1.5 kg/cm² at the inlet, for both wash and flush."],
+        ["Flush system", "Siphonic dual flush"],
+        ["Flush volume", "3 L half / 4.5 L full"],
+        ["Wash mechanism", "Hydro-mechanical", "Driven by water-supply pressure; no electric motor."],
+        ["Foot-flush operation", "Mechanical"]
+      ],
+      "electrical": [
+        ["Mains connection", "Not required", "No electrical socket or wiring is required at the WC."],
+        ["Automatic-flush power", "User-replaceable battery", "Replace approximately every six months."],
+        ["During power cuts", "Wash and mechanical foot flush remain operational", "Automatic flush uses its own battery."]
+      ]
+    },
+    {
+      "slug": "vero", "name": "Vero", "priceINR": 59999, "status": "available",
+      "description": "Floor-mounted · Electric",
+      "ceramic": [
+        ["Overall dimensions (L × W × H)", "680 × 400 × 470 mm", "Height refers to the ceramic body."],
+        ["Net weight", "34.6 kg"],
+        ["Bowl shape", "V-shape, elongated"],
+        ["Finish", "White"],
+        ["Ceramic glaze", "Antibacterial"],
+        ["Trapway glazing", "Fully glazed"]
+      ],
+      "plumbing": [
+        ["Mounting", "Floor-mounted, one-piece ceramic"],
+        ["Outlet", "S-trap · floor outlet"],
+        ["Rough-in", "220 mm"],
+        ["Seat height", "455 mm", "From finished floor to seat top."],
+        ["Water inlet", "1/2 in (G1/2, DN15)", "Supply pipe and angle valve."],
+        ["Minimum water pressure", "0.02 MPa at the inlet"],
+        ["Flush system", "Siphonic dual flush"],
+        ["Flush volume", "3 L half / 4.8 L full"]
+      ],
+      "electrical": [
+        ["Power supply", "220–240 V · 50 Hz"],
+        ["Rated input", "1035 W"],
+        ["Plug", "Earthed Type D", "Indian 3-pin."],
+        ["Standby consumption", "1.5–2.5 W", "Plugged in and idle, before a wash or flush is activated."],
+        ["Splash protection", "IPX4"],
+        ["During power cuts", "Manual flush and backup-battery flush remain available"]
+      ]
+    },
+    {
+      "slug": "aera", "name": "Aera", "priceINR": 59999, "status": "available",
+      "description": "Floor-mounted · Tankless electric",
+      "ceramic": [
+        ["Overall dimensions (L × W × H)", "595 × 370 × 480 mm", "Height refers to the ceramic body."],
+        ["Ceramic glaze", "Antibacterial"],
+        ["Trapway glazing", "Fully glazed"]
+      ],
+      "plumbing": [
+        ["Mounting", "Floor-mounted, one-piece tankless ceramic"],
+        ["Outlet", "S-trap · floor outlet"],
+        ["Rough-in", "220 mm"],
+        ["Seat height", "465 mm", "From finished floor to seat top."],
+        ["Water inlet", "1/2 in (G1/2, DN15)", "Angle-valve inlet with hose."],
+        ["Minimum water pressure", "0.14 MPa at the WC point"],
+        ["Required flow", "Greater than 18 L/min", "Check both pressure and delivered flow at the WC point."],
+        ["Flush system", "Siphonic dual flush"],
+        ["Flush volume", "2.8 L half / 4.6 L full"]
+      ],
+      "electrical": [
+        ["Power supply", "220 V · 50 Hz"],
+        ["Rated input", "1250 W"],
+        ["Socket provision", "Earthed 15 A socket", "At least 300 mm above finished floor."],
+        ["Standby consumption", "At most 2 W", "Plugged in and idle, before a wash or flush is activated."],
+        ["Splash protection", "IPX4"],
+        ["During power cuts", "AA battery box supports flushing", "Cells are sourced locally."]
+      ]
+    },
+    {
+      "slug": "sora", "name": "Sora", "priceINR": 124999, "status": "available",
+      "description": "Floor-mounted · Tankless electric",
+      "ceramic": [
+        ["Overall dimensions (L × W × H)", "600 × 380 × 455 mm", "Height refers to the ceramic body."],
+        ["Net weight", "40.5 kg"],
+        ["Bowl shape", "U-shape, elongated"],
+        ["Finishes", "White, Gray, Gold"],
+        ["Ceramic glaze", "Antibacterial"],
+        ["Trapway glazing", "Fully glazed"]
+      ],
+      "plumbing": [
+        ["Mounting", "Floor-mounted, one-piece tankless ceramic"],
+        ["Outlet", "S-trap · floor outlet"],
+        ["Rough-in", "220 mm"],
+        ["Seat height", "440 mm", "From finished floor to seat top."],
+        ["Water inlet", "1/2 in (G1/2, DN15)", "Angle-valve inlet and hose."],
+        ["Minimum water pressure", "0.12 MPa dynamic", "Measured while water flows, at the WC point."],
+        ["Required flow", "Greater than 20 L/min"],
+        ["Flush system", "Siphonic dual flush"],
+        ["Flush volume", "2.8 L half / 4.6 L full"]
+      ],
+      "electrical": [
+        ["Power supply", "220–240 V · 50 Hz"],
+        ["Rated input", "1150 W"],
+        ["Plug", "Earthed Type D", "Indian 3-pin."],
+        ["Standby consumption", "At most 2 W", "Plugged in and idle, before a wash or flush is activated."],
+        ["Splash protection", "IPX4"],
+        ["During power cuts", "Supplied AA battery box supports flushing", "Cells are sourced locally."]
+      ]
+    },
+    {
+      "slug": "liva", "name": "Liva", "priceINR": 134999, "status": "available",
+      "description": "Wall-hung · Electric",
+      "ceramic": [
+        ["Pan dimensions (L × W × H)", "600 × 370 × 360 mm", "Pan height excludes the gap below the installed pan."],
+        ["Net weight", "39 kg"],
+        ["Bowl shape", "U-shape, elongated"],
+        ["Finishes", "White, Gray, Gold"],
+        ["Ceramic glaze", "Antibacterial"],
+        ["Trapway glazing", "Fully glazed"]
+      ],
+      "plumbing": [
+        ["Mounting", "Wall-hung ceramic body"],
+        ["Flush tank", "Integrated within the ceramic body"],
+        ["Outlet", "P-trap · horizontal wall outlet"],
+        ["Rough-in distance", "180 mm"],
+        ["Installed seat height", "Set by mounting height at installation", "The 340 mm measurement belongs to the ceramic body; it is not the finished-floor-to-seat height."],
+        ["Support", "Concealed in-wall carrier frame on a load-bearing wall"],
+        ["Water inlet", "1/2 in (G1/2, DN15)", "Angle-valve inlet and hose."],
+        ["Minimum water pressure", "0.12 MPa dynamic", "Measured while water flows, at the WC point."],
+        ["Required flow", "Greater than 20 L/min"],
+        ["Flush system", "Tornado dual flush"],
+        ["Flush volume", "2.8 L half / 4.6 L full"]
+      ],
+      "electrical": [
+        ["Power supply", "220–240 V · 50 Hz"],
+        ["Rated input", "1150 W"],
+        ["Plug", "Earthed Type D", "Indian 3-pin."],
+        ["Standby consumption", "At most 2 W", "Plugged in and idle, before a wash or flush is activated."],
+        ["Splash protection", "IPX4"],
+        ["During power cuts", "Supplied AA battery box supports flushing", "Cells are sourced locally."]
+      ]
+    },
+    {"slug": "luna", "name": "Luna", "priceINR": 249999, "status": "coming-soon"}
+  ]
+}
